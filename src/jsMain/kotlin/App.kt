@@ -7,6 +7,7 @@ import polygon.Problem
 import react.RProps
 import react.dom.div
 import react.dom.h1
+import react.dom.h2
 import react.dom.ul
 import react.functionalComponent
 import react.useEffect
@@ -26,7 +27,7 @@ val App = functionalComponent<RProps> {
 
     useEffect(emptyList()) {
         scope.launch {
-            setProblems(getProblems().sortedByDescending { it.id }.take(15))
+            setProblems(getProblems().sortedByDescending { it.id }.take(25))
         }
     }
 
@@ -43,7 +44,13 @@ val App = functionalComponent<RProps> {
 
     div {
         h1 {
-            +"Так, ну значит здесь все доступные задачи. Нажми на любую:"
+            +"Это конвертер задач из полигона в бакс Полибакс"
+        }
+    }
+
+    div {
+        h2 {
+            +"Так, ну значит здесь все (последние 25 пока что) доступные задачи. Нажми на любую:"
         }
         ul {
             for (problem in problems) {
@@ -68,7 +75,7 @@ val App = functionalComponent<RProps> {
 
     if (activeProblem != null) {
         div {
-            h1 { +"Вот тут значится у нас пакеты (на самом деле бесполезные, потом выпилю). Нажми на любой:" }
+            h2 { +"Вот тут значится у нас пакеты (на самом деле бесполезные, потом выпилю). Нажми на любой:" }
             ul {
                 for (pack in packages) {
                     styledLi {

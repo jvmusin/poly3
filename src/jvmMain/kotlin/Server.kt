@@ -14,7 +14,7 @@ import sybon.SybonArchiveBuilder
 
 fun HTML.index() {
     head {
-        title("Hello from Ktor!")
+        title("Полибакс!!")
     }
     body {
         div {
