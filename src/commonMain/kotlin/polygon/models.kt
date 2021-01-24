@@ -22,13 +22,11 @@ data class Problem(
     val latestPackage: Int? = null,
     val modified: Boolean
 ) {
-    companion object {
-        @Serializable
-        enum class AccessType {
-            READ,
-            WRITE,
-            OWNER
-        }
+    @Serializable
+    enum class AccessType {
+        READ,
+        WRITE,
+        OWNER
     }
 }
 
@@ -77,20 +75,18 @@ data class ResourceAdvancedProperties(
     val stages: List<StageType>,
     val assets: List<AssetType>
 ) {
-    companion object {
-        @Serializable
-        enum class StageType {
-            COMPILE,
-            RUN
-        }
+    @Serializable
+    enum class StageType {
+        COMPILE,
+        RUN
+    }
 
-        @Serializable
-        enum class AssetType {
-            VALIDATOR,
-            INTERACTOR,
-            CHECKER,
-            SOLUTION
-        }
+    @Serializable
+    enum class AssetType {
+        VALIDATOR,
+        INTERACTOR,
+        CHECKER,
+        SOLUTION
     }
 }
 
@@ -124,12 +120,10 @@ data class TestGroup(
     val pointsPolicy: PointsPolicyType,
     val dependencies: List<String>
 ) {
-    companion object {
-        @Serializable
-        enum class PointsPolicyType {
-            COMPLETE_GROUP,
-            EACH_TEST
-        }
+    @Serializable
+    enum class PointsPolicyType {
+        COMPLETE_GROUP,
+        EACH_TEST
     }
 }
 

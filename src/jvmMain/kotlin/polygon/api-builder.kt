@@ -9,18 +9,13 @@ import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import java.security.MessageDigest
+import sha512
 
-const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
-const val POLYGON_SECRET = "c2a453543589c5650131b9e2fa8d186ca3ae01b4"
-const val POLYGON_URL = "https://polygon.codeforces.com/api/"
+private const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
+private const val POLYGON_SECRET = "c2a453543589c5650131b9e2fa8d186ca3ae01b4"
+private const val POLYGON_URL = "https://polygon.codeforces.com/api/"
 
-fun String.sha512(): String {
-    val digest = MessageDigest.getInstance("SHA-512").digest(toByteArray())
-    return digest.joinToString("") { "%02x".format(it) }
-}
-
-object ApiSigAddingInterceptor : Interceptor {
+private object ApiSigAddingInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
         val originalUrl = original.url
@@ -46,7 +41,7 @@ object ApiSigAddingInterceptor : Interceptor {
     }
 }
 
-fun buildPolygonService(): PolygonService {
+fun buildPolygonApi(): PolygonApi {
     val client = OkHttpClient().newBuilder()
         .addInterceptor(ApiSigAddingInterceptor)
         .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
@@ -58,9 +53,10 @@ fun buildPolygonService(): PolygonService {
         .addConverterFactory(ScalarsConverterFactory.create())
         .addConverterFactory(Json { isLenient = true }.asConverterFactory(contentType))
         .build()
-    return PolygonService(
-        retrofit.create(PolygonProblemsService::class.java),
-        retrofit.create(PolygonProblemService::class.java),
-        retrofit.create(PolygonContestService::class.java),
-    )
+    val problemApi = retrofit.create(ProblemApi::class.java)
+    val contestApi = retrofit.create(ContestApi::class.java)
+    return object : PolygonApi {
+        override val problem: ProblemApi get() = problemApi
+        override val contest: ContestApi get() = contestApi
+    }
 }

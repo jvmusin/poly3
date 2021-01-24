@@ -12,6 +12,7 @@ version = "1.0-SNAPSHOT"
 val ktorVersion = "1.5.0"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.0-RC"
+val junitVersion = "5.6.0"
 
 repositories {
     jcenter()
@@ -51,9 +52,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
             }
         }
         val commonTest by getting {
@@ -84,8 +83,8 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
             }
         }
         val jsMain by getting {
@@ -97,16 +96,10 @@ kotlin {
                 implementation("org.jetbrains:kotlin-redux:4.0.5-pre.141-kotlin-1.4.21")
                 implementation("org.jetbrains:kotlin-react-redux:7.2.1-pre.141-kotlin-1.4.21")
 
-//                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-js:$ktorVersion") //include http&websockets
-                //ktor client js json
+                implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
-
-
-//                implementation(npm("react", "17.0.1"))
-//                implementation(npm("react-dom", "17.0.1"))
             }
         }
         val jsTest by getting {
@@ -134,4 +127,21 @@ tasks.getByName<Jar>("jvmJar") {
 tasks.getByName<JavaExec>("run") {
     dependsOn(tasks.getByName<Jar>("jvmJar"))
     classpath(tasks.getByName<Jar>("jvmJar"))
+}
+
+// Alias "installDist" as "stage" (for cloud providers)
+tasks.create("stage") {
+    dependsOn(tasks.getByName("installDist"))
+}
+
+// only necessary until https://youtrack.jetbrains.com/issue/KT-37964 is resolved
+distributions {
+    main {
+        contents {
+            from("$buildDir/libs") {
+                rename("${rootProject.name}-jvm", rootProject.name)
+                into("lib")
+            }
+        }
+    }
 }

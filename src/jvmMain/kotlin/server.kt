@@ -9,16 +9,14 @@ import io.ktor.serialization.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.html.*
-import polygon.buildPolygonService
+import polygon.buildPolygonApi
+import sybon.SybonArchiveBuilder
 
 fun HTML.index() {
     head {
         title("Hello from Ktor!")
     }
     body {
-        div {
-            +"Hello from Ktor"
-        }
         div {
             id = "root"
         }
@@ -27,9 +25,11 @@ fun HTML.index() {
 }
 
 fun main() {
-    val service = buildPolygonService()
+    val api = buildPolygonApi()
+    val sybonArchiveBuilder = SybonArchiveBuilder(api)
 
-    embeddedServer(Netty, port = 8080, host = "127.0.0.1") {
+    val port = System.getenv("PORT")?.toInt() ?: 8080
+    embeddedServer(Netty, port = port) {
         install(ContentNegotiation) {
             json()
         }
@@ -52,7 +52,23 @@ fun main() {
             }
             route("/problems") {
                 get("/") {
-                    call.respond(HttpStatusCode.OK, service.problems.list().result!!)
+                    call.respond(HttpStatusCode.OK, api.problem.getProblems().result!!)
+                }
+                route("/{problemId}") {
+                    route("/packages") {
+                        get("/") {
+                            val problemId = call.parameters["problemId"]!!.toInt()
+                            val packages = api.problem.getPackages(problemId)
+                            call.respond(HttpStatusCode.OK, packages.result!!)
+                        }
+                        get("/{packageId}") {
+                            val problemId = call.parameters["problemId"]!!.toInt()
+                            val packageId = call.parameters["packageId"]!!.toInt()
+                            val zipPath = sybonArchiveBuilder.build(problemId, packageId)
+                            call.response.headers.append("Content-Disposition", "filename=\"${zipPath.fileName}\"")
+                            call.respondFile(zipPath.toFile())
+                        }
+                    }
                 }
             }
         }
