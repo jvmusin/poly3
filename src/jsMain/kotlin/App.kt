@@ -1,3 +1,5 @@
+import api.Problem
+import api.ProblemInfo
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.css.*
@@ -110,8 +112,8 @@ val App = functionalComponent<RProps> {
                                     fontSize = 30.px
                                     color = Color.hotPink
                                 }
-//                                    +"А теперь нажми сюда, чтобы скачать архив для сайбона. Замечательно, правда? А если кто-нибудь (Артём) запилит заливку архивов в сайбон, будет вообще чудесно(, Артём)"
-                                +"Скачать архив"
+                                +"А теперь нажми сюда, чтобы скачать архив для сайбона. Замечательно, правда? А если кто-нибудь (Артём) запилит заливку архивов в сайбон, будет вообще чудесно(, Артём)"
+//                                +"Скачать архив"
                                 attrs {
                                     href = downloadPackageLink(activeProblem.id)
                                 }
