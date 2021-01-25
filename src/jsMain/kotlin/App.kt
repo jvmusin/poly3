@@ -61,7 +61,7 @@ val App = functionalComponent<RProps> {
                             if (problem == activeProblem) fontWeight = FontWeight.bold
                             color = if (problem.latestPackage != null) Color.green else Color.red
                         }
-                        key = problem.id.toString()
+                        key = "problem-${problem.id}"
                         attrs {
                             onClickFunction = {
                                 setActiveProblem(problem)
