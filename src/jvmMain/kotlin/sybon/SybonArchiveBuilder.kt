@@ -16,7 +16,7 @@ class SybonArchiveBuilder(
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun build(problemId: Int): Path = coroutineScope {
         val problem = async { polygonApi.problem.getProblem(problemId) }
-        val packageId = async { problem.await().latestPackage!! }
+        val packageId = async { polygonApi.problem.getPackages(problemId).result!!.maxOf { it.id } }
         val unpackedPath = async { polygonApi.problem.downloadPackage(problemId, packageId.await()) }
         val problemInfo = async { polygonApi.problem.getInfo(problemId).result!! }
 
