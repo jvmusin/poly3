@@ -49,7 +49,7 @@ class SybonArchiveBuilder(
                 val config = """
                     [info]
                     name = ${statement.name}
-                    maintainers = ${setOf(problem.owner, "Musin").joinToString(",")}
+                    maintainers = ${setOf(problem.owner, "Musin").joinToString(", ")}
                     
                     [resource_limits]
                     time = ${"%.2f".format(problemInfo.timeLimit / 1000.0)}s
