@@ -11,6 +11,9 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import sha512
+import java.util.concurrent.TimeUnit
+import kotlin.time.seconds
+import kotlin.time.toJavaDuration
 
 private const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
 private const val POLYGON_SECRET = "c2a453543589c5650131b9e2fa8d186ca3ae01b4"
@@ -47,6 +50,7 @@ fun buildPolygonApi(): PolygonApi {
         getLogger(HttpLoggingInterceptor::class.java).debug(message)
     }.setLevel(HttpLoggingInterceptor.Level.BASIC)
     val client = OkHttpClient().newBuilder()
+        .connectTimeout(15, TimeUnit.SECONDS)
         .addInterceptor(ApiSigAddingInterceptor)
         .addInterceptor(httpLoggingInterceptor)
         .build()
