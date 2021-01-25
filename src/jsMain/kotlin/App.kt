@@ -27,8 +27,8 @@ val App = functionalComponent<RProps> {
 
     useEffect(listOf(activeProblem)) {
         if (activeProblem != null) {
+            println("selected problem $activeProblem")
             scope.launch {
-                println("selected problem $activeProblem")
                 setProblemInfo(null)
                 setProblemInfo(getProblemInfo(activeProblem.id))
             }
@@ -45,15 +45,13 @@ val App = functionalComponent<RProps> {
         css {
             display = Display.flex
             justifyContent = JustifyContent.flexStart
-            padding = 10.px.toString()
-            backgroundColor = Color.gray
-            boxSizing = BoxSizing.borderBox
         }
 
         styledDiv {
             css {
                 margin = 5.px.toString()
-                backgroundColor = Color.lightGray
+                padding = 5.px.toString()
+                backgroundColor = Color.aliceBlue
             }
             h2 { +"Доступные задачи. Нажми на любую:" }
             ul {
@@ -84,24 +82,24 @@ val App = functionalComponent<RProps> {
             styledDiv {
                 css {
                     margin = 5.px.toString()
-                    backgroundColor = Color.lightGray
+                    padding = 5.px.toString()
+                    backgroundColor = Color.aliceBlue
                 }
-                h2 { +"Свойства задачи" }
+                h2 { +"Свойства задачи:" }
                 if (problemInfo != null) {
                     div {
-                        p { +"Input: ${problemInfo.inputFile}" }
-                        p { +"Output: ${problemInfo.outputFile}" }
-                        p { +"Interactive: ${if (problemInfo.interactive) "Да" else "Нет"}" }
-                        p { +"Time limit: ${problemInfo.timeLimitMillis / 1000.0}s" }
-                        p { +"Memory limit: ${problemInfo.memoryLimitMegabytes}MB" }
+                        p { +"Ввод: ${problemInfo.inputFile}" }
+                        p { +"Вывод: ${problemInfo.outputFile}" }
+                        p { +"Интерактивная: ${if (problemInfo.interactive) "Да" else "Нет"}" }
+                        p { +"Ограничение времени: ${problemInfo.timeLimitMillis / 1000.0}s" }
+                        p { +"Ограничение памяти: ${problemInfo.memoryLimitMegabytes}MB" }
                     }
                     if (activeProblem.latestPackage != null) {
                         div {
                             styledA {
                                 css {
                                     fontSize = 30.px
-                                    color = Color.orange
-
+                                    color = Color.hotPink
                                 }
 //                                    +"А теперь нажми сюда, чтобы скачать архив для сайбона. Замечательно, правда? А если кто-нибудь (Артём) запилит заливку архивов в сайбон, будет вообще чудесно(, Артём)"
                                 +"Скачать архив"
