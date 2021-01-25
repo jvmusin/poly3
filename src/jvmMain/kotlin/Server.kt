@@ -42,6 +42,7 @@ fun main() {
         install(Compression) {
             gzip()
         }
+        install(CallLogging)
 
         routing {
             get("/") {
