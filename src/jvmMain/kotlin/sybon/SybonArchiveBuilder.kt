@@ -3,7 +3,6 @@
 package sybon
 
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import polygon.*
 import toZipArchive
@@ -16,22 +15,19 @@ class SybonArchiveBuilder(
 ) {
     @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun build(problemId: Int, packageId: Int): Path {
-        return Builder(problemId, packageId).build()
+        return Builder(problemId).build()
     }
 
     private inner class Builder(
-        private val problemId: Int,
-        private val packageId: Int
+        private val problemId: Int
     ) {
-        suspend fun build(): Path {
-            val (unpackedPath, problem, problemInfo) = coroutineScope {
-                val unpackedPath = async { polygonApi.problem.downloadPackage(problemId, packageId) }
-                val problem = async { polygonApi.problem.getProblem(problemId) }
-                val problemInfo = async { polygonApi.problem.getInfo(problemId).result!! }
-                Triple(unpackedPath.await(), problem.await(), problemInfo.await())
-            }
+        suspend fun build(): Path = coroutineScope {
+            val problem = async { polygonApi.problem.getProblem(problemId) }
+            val packageId = async { problem.await().latestPackage!! }
+            val unpackedPath = async { polygonApi.problem.downloadPackage(problemId, packageId.await()) }
+            val problemInfo = async { polygonApi.problem.getInfo(problemId).result!! }
 
-            val destinationPath = Paths.get("sybon-packages", "id$problemId-package$packageId", problem.name)
+            val destinationPath = Paths.get("sybon-packages", "id$problemId-package$packageId", problem.await().name)
 
             val checkerPath = destinationPath.resolve("checker")
             val miscPath = destinationPath.resolve("misc")
@@ -45,28 +41,28 @@ class SybonArchiveBuilder(
 
             val (language, statement) = polygonApi.problem.getStatement(problemId)
 
-            fun writeConfig() {
+            suspend fun writeConfig() {
                 val config = """
                     [info]
                     name = ${statement.name}
-                    maintainers = ${setOf(problem.owner, "Musin").joinToString(", ")}
+                    maintainers = ${setOf(problem.await().owner, "Musin").joinToString(", ")}
                     
                     [resource_limits]
-                    time = ${"%.2f".format(problemInfo.timeLimit / 1000.0)}s
-                    memory = ${problemInfo.memoryLimit}MiB
+                    time = ${"%.2f".format(problemInfo.await().timeLimit / 1000.0)}s
+                    memory = ${problemInfo.await().memoryLimit}MiB
                 """.trimIndent()
                 Files.write(destinationPath.resolve("config.ini"), config.toByteArray())
             }
 
             fun writeFormat() {
-                val text = "bacs/problem/single#simple0"
-                Files.write(destinationPath.resolve("format"), text.toByteArray())
+                val format = "bacs/problem/single#simple0"
+                Files.write(destinationPath.resolve("format"), format.toByteArray())
             }
 
-            fun writeChecker() {
+            suspend fun writeChecker() {
                 Files.write(
                     checkerPath.resolve("check.cpp"),
-                    Files.readAllBytes(unpackedPath.resolve("check.cpp"))
+                    Files.readAllBytes(unpackedPath.await().resolve("check.cpp"))
                 )
                 val config = """
                     [build]
@@ -83,8 +79,8 @@ class SybonArchiveBuilder(
 
             suspend fun writeSolution() {
                 val mainSolution = polygonApi.problem.getSolutions(problemId).result!!.single { it.tag == "MA" }
-                val solutionItself = polygonApi.problem.getSolution(problemId, mainSolution.name).bytes()
-                Files.write(solutionPath.resolve(mainSolution.name), solutionItself)
+                val solutionContent = polygonApi.problem.getSolution(problemId, mainSolution.name).bytes()
+                Files.write(solutionPath.resolve(mainSolution.name), solutionContent)
             }
 
             suspend fun writeStatement() {
@@ -98,29 +94,23 @@ class SybonArchiveBuilder(
                 """.trimIndent()
                 Files.write(statementPath.resolve("pdf.ini"), pdfIni.toByteArray())
 
-                val statementItself = polygonApi.problem.getStatementRaw(problemId, packageId, language = language)
-                Files.write(statementPath.resolve("problem.pdf"), statementItself)
+                val statementContent = polygonApi.problem.getStatementRaw(
+                    problemId = problemId, packageId = packageId.await(), language = language
+                )
+                Files.write(statementPath.resolve("problem.pdf"), statementContent)
             }
 
             suspend fun writeTests() {
                 val tests = polygonApi.problem.getTests(problemId).result!!
-                val (testInputs, testOutputs) = coroutineScope {
-                    Pair(
-                        tests.map {
-                            async {
-                                it.index to polygonApi.problem.getTestInput(problemId, testIndex = it.index)
-                            }
-                        },
-                        tests.map {
-                            async {
-                                it.index to polygonApi.problem.getTestAnswer(problemId, testIndex = it.index)
-                            }
-                        }
-                    ).let { it.first.awaitAll().toMap() to it.second.awaitAll().toMap() }
+                val testInputs = tests.associate {
+                    it.index to async { polygonApi.problem.getTestInput(problemId, testIndex = it.index) }
+                }
+                val testAnswers = tests.associate {
+                    it.index to async { polygonApi.problem.getTestAnswer(problemId, testIndex = it.index) }
                 }
                 for (test in tests) {
-                    Files.write(testsPath.resolve("${test.index}.in"), testInputs[test.index]!!.toByteArray())
-                    Files.write(testsPath.resolve("${test.index}.out"), testOutputs[test.index]!!.toByteArray())
+                    Files.write(testsPath.resolve("${test.index}.in"), testInputs[test.index]!!.await().toByteArray())
+                    Files.write(testsPath.resolve("${test.index}.out"), testAnswers[test.index]!!.await().toByteArray())
                 }
             }
 
@@ -132,9 +122,9 @@ class SybonArchiveBuilder(
             writeTests()
 
             val par = destinationPath.parent
-            val zipPath = par.resolve("${problem.name}-package${packageId}.zip")
+            val zipPath = par.resolve("${problem.await().name}-package${packageId}.zip")
             par.toZipArchive(zipPath)
-            return zipPath
+            zipPath
         }
     }
 }

@@ -52,24 +52,38 @@ fun main() {
             }
             route("/problems") {
                 get("/") {
-                    call.respond(HttpStatusCode.OK, api.problem.getProblems().result!!)
+                    val problems = api.problem.getProblems().result!!
+                    call.respond(HttpStatusCode.OK, problems.map(polygon.Problem::toDto))
                 }
                 route("/{problemId}") {
-                    route("/packages") {
-                        get("/") {
-                            val problemId = call.parameters["problemId"]!!.toInt()
-                            val packages = api.problem.getPackages(problemId)
-                            call.respond(HttpStatusCode.OK, packages.result!!)
-                        }
-                        get("/{packageId}") {
+                    get("/") {
+                        val problemId = call.parameters["problemId"]!!.toInt()
+                        val problemInfo = api.problem.getInfo(problemId).result!!
+                        call.respond(HttpStatusCode.OK, problemInfo.toDto())
+                    }
+                    get("/download") {
                             val problemId = call.parameters["problemId"]!!.toInt()
                             val packageId = call.parameters["packageId"]!!.toInt()
                             val zipPath = sybonArchiveBuilder.build(problemId, packageId)
                             call.response.headers.append("Content-Disposition", "filename=\"${zipPath.fileName}\"")
                             call.respondFile(zipPath.toFile())
-                        }
                     }
                 }
+//                    route("/packages") {
+//                        get("/") {
+//                            val problemId = call.parameters["problemId"]!!.toInt()
+//                            val packages = api.problem.getPackages(problemId)
+//                            call.respond(HttpStatusCode.OK, packages.result!!)
+//                        }
+//                        get("/{packageId}") {
+//                            val problemId = call.parameters["problemId"]!!.toInt()
+//                            val packageId = call.parameters["packageId"]!!.toInt()
+//                            val zipPath = sybonArchiveBuilder.build(problemId, packageId)
+//                            call.response.headers.append("Content-Disposition", "filename=\"${zipPath.fileName}\"")
+//                            call.respondFile(zipPath.toFile())
+//                        }
+//                    }
+//                }
             }
         }
     }.start(wait = true)

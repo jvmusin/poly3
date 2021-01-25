@@ -35,8 +35,8 @@ data class ProblemInfo(
     val inputFile: String,
     val outputFile: String,
     val interactive: Boolean,
-    val timeLimit: Long,
-    val memoryLimit: Long
+    val timeLimit: Int,
+    val memoryLimit: Int
 )
 
 @Serializable
