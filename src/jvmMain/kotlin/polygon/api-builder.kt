@@ -1,6 +1,7 @@
 package polygon
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import getLogger
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -42,9 +43,12 @@ private object ApiSigAddingInterceptor : Interceptor {
 }
 
 fun buildPolygonApi(): PolygonApi {
+    val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
+        getLogger(HttpLoggingInterceptor::class.java).debug(message)
+    }.setLevel(HttpLoggingInterceptor.Level.BASIC)
     val client = OkHttpClient().newBuilder()
         .addInterceptor(ApiSigAddingInterceptor)
-        .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC))
+        .addInterceptor(httpLoggingInterceptor)
         .build()
     val contentType = "application/json".toMediaType()
     val retrofit = Retrofit.Builder()
