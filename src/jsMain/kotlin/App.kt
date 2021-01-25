@@ -7,10 +7,7 @@ import react.dom.*
 import react.functionalComponent
 import react.useEffect
 import react.useState
-import styled.css
-import styled.styledA
-import styled.styledDiv
-import styled.styledLi
+import styled.*
 
 val scope = MainScope()
 
@@ -21,7 +18,7 @@ val App = functionalComponent<RProps> {
 
     useEffect(emptyList()) {
         scope.launch {
-            setProblems(getProblems().sortedByDescending { it.id }.take(25))
+            setProblems(getProblems().sortedByDescending { it.id })
         }
     }
 
@@ -36,9 +33,8 @@ val App = functionalComponent<RProps> {
     }
 
     div {
-        h1 {
-            +"Это конвертер задач из полигона в бакс Полибакс"
-        }
+        h1 { +"Это конвертер задач из полигона в бакс Полибакс" }
+        h2 { +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin" }
     }
 
     styledDiv {
@@ -49,30 +45,40 @@ val App = functionalComponent<RProps> {
 
         styledDiv {
             css {
-                margin = 5.px.toString()
-                padding = 5.px.toString()
+                margin = 0.5.em.toString()
+                padding = 0.5.em.toString()
                 backgroundColor = Color.aliceBlue
             }
             h2 { +"Доступные задачи. Нажми на любую:" }
-            ul {
-                for (problem in problems) {
-                    styledLi {
-                        css {
-                            if (problem == activeProblem) fontWeight = FontWeight.bold
-                            color = if (problem.latestPackage != null) Color.green else Color.red
-                        }
-                        key = "problem-${problem.id}"
-                        attrs {
-                            onClickFunction = {
-                                setActiveProblem(problem)
+            nav {
+                styledUl {
+                    css {
+                        backgroundColor = Color.cornsilk
+                        height = 40.em
+                        width = 30.em
+                        overflow = Overflow.hidden
+                        overflowY = Overflow.scroll
+                        fontSize = 1.20.em
+                    }
+                    for (problem in problems) {
+                        styledLi {
+                            css {
+                                if (problem == activeProblem) fontWeight = FontWeight.bold
+                                color = if (problem.latestPackage != null) Color.green else Color.red
                             }
+                            key = "problem-${problem.id}"
+                            attrs {
+                                onClickFunction = {
+                                    setActiveProblem(problem)
+                                }
+                            }
+                            val packageInfo =
+                                if (problem.latestPackage != null)
+                                    "package ${problem.latestPackage}"
+                                else
+                                    "no packages built"
+                            +"${problem.id}: ${problem.name} ($packageInfo)"
                         }
-                        val packageInfo =
-                            if (problem.latestPackage != null)
-                                "package ${problem.latestPackage}"
-                            else
-                                "no packages built"
-                        +"${problem.id}: ${problem.name} ($packageInfo)"
                     }
                 }
             }
@@ -81,18 +87,21 @@ val App = functionalComponent<RProps> {
         if (activeProblem != null) {
             styledDiv {
                 css {
-                    margin = 5.px.toString()
-                    padding = 5.px.toString()
+                    width = 25.em
+                    margin = 0.5.em.toString()
+                    padding = 0.5.em.toString()
                     backgroundColor = Color.aliceBlue
                 }
                 h2 { +"Свойства задачи:" }
                 if (problemInfo != null) {
                     div {
-                        p { +"Ввод: ${problemInfo.inputFile}" }
-                        p { +"Вывод: ${problemInfo.outputFile}" }
-                        p { +"Интерактивная: ${if (problemInfo.interactive) "Да" else "Нет"}" }
-                        p { +"Ограничение времени: ${problemInfo.timeLimitMillis / 1000.0}s" }
-                        p { +"Ограничение памяти: ${problemInfo.memoryLimitMegabytes}MB" }
+                        h3 { +"Название: ${activeProblem.name}" }
+                        h3 { +"Автор: ${activeProblem.owner}" }
+                        h3 { +"Ввод: ${problemInfo.inputFile}" }
+                        h3 { +"Вывод: ${problemInfo.outputFile}" }
+                        h3 { +"Интерактивная: ${if (problemInfo.interactive) "Да" else "Нет"}" }
+                        h3 { +"Ограничение времени: ${problemInfo.timeLimitMillis / 1000.0}s" }
+                        h3 { +"Ограничение памяти: ${problemInfo.memoryLimitMegabytes}MB" }
                     }
                     if (activeProblem.latestPackage != null) {
                         div {
@@ -107,6 +116,14 @@ val App = functionalComponent<RProps> {
                                     href = downloadPackageLink(activeProblem.id)
                                 }
                             }
+                        }
+                    } else {
+                        styledP {
+                            css {
+                                fontSize = 30.px
+                                color = Color.red
+                            }
+                            +"Пакет не собран!"
                         }
                     }
                 }
