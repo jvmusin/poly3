@@ -15,8 +15,8 @@ data class ProblemInfo(
     val inputFile: String,
     val outputFile: String,
     val interactive: Boolean,
-    val timeLimitMegabytes: Int,
-    val memoryLimitMillis: Int
+    val timeLimitMillis: Int,
+    val memoryLimitMegabytes: Int
 )
 
 fun polygon.Problem.toDto() = Problem(id, name, owner, latestPackage)

@@ -1,26 +1,18 @@
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import polygon.Package
 import polygon.buildPolygonApi
 import polygon.getStatementRaw
 import sybon.SybonArchiveBuilder
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.time.LocalDate
-import java.time.ZoneOffset
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.expect
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PolygonApiTests {
-    private val today = LocalDate.of(2021, 1, 24)
-    private val todaySeconds = today.atStartOfDay().toEpochSecond(ZoneOffset.UTC)
     private val polygonApi = buildPolygonApi()
 
     @Test
-    fun testProblems() = runBlocking {
+    fun testGetProblems() = runBlocking {
         val res = polygonApi.problem.getProblems().result!!
         println(res.size)
         for (p in res) println(p)
@@ -34,7 +26,7 @@ class PolygonApiTests {
     }
 
     @Test
-    fun testFiles() = runBlocking {
+    fun testGetFiles() = runBlocking {
         val problemId = 109779
         val allFiles = polygonApi.problem.getFiles(problemId).result!!
         for ((type, files) in allFiles) {
@@ -90,12 +82,11 @@ class PolygonApiTests {
     @Test
     fun testCreateArchive() = runBlocking<Unit> {
         val problemId = 141639
-        val packageId = 357125
-        SybonArchiveBuilder(polygonApi).build(problemId, packageId)
+        SybonArchiveBuilder(polygonApi).build(problemId)
     }
 
     @Test
-    fun testGetSolutions() = runBlocking<Unit> {
+    fun testGetSolutions() = runBlocking {
         val problemId = 106223
         val solutions = polygonApi.problem.getSolutions(problemId).result!!
         println(solutions.size)
@@ -103,7 +94,7 @@ class PolygonApiTests {
     }
 
     @Test
-    fun testGetTests() = runBlocking<Unit> {
+    fun testGetTests() = runBlocking {
         val problemId = 106223
         val result = polygonApi.problem.getTests(problemId).result!!
         println(result.size)
