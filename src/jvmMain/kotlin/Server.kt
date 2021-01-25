@@ -11,7 +11,9 @@ import io.ktor.serialization.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.html.*
+import org.slf4j.event.Level
 import polygon.buildPolygonApi
+import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
 
 fun HTML.index() {
@@ -47,7 +49,15 @@ fun main() {
         install(Compression) {
             gzip()
         }
-        install(CallLogging)
+        install(CallLogging) {
+            level = Level.DEBUG
+        }
+        install(StatusPages) {
+            exception<SybonArchiveBuildException> { cause ->
+                call.respond(HttpStatusCode.BadRequest, cause.message ?: "No message provided")
+                throw cause
+            }
+        }
 
         routing {
             get("/") {

@@ -5,9 +5,10 @@ package polygon
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CodeforcesResponse<T>(
+data class PolygonResponse<T>(
     val status: String,
-    val result: T? = null
+    val result: T? = null,
+    val comment: String? = null
 )
 
 @Serializable

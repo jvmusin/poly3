@@ -13,47 +13,47 @@ interface ProblemApi {
         @Query("id") id: Int? = null,
         @Query("name") name: String? = null,
         @Query("owner") owner: String? = null
-    ): CodeforcesResponse<List<Problem>>
+    ): PolygonResponse<List<Problem>>
 
     @POST("problem.info")
     suspend fun getInfo(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<ProblemInfo>
+    ): PolygonResponse<ProblemInfo>
 
     @POST("problem.statements")
     suspend fun getStatements(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<Map<String, Statement>>
+    ): PolygonResponse<Map<String, Statement>>
 
     @POST("problem.statementResources")
     suspend fun getStatementResources(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<List<File>>
+    ): PolygonResponse<List<File>>
 
     @POST("problem.checker")
     suspend fun getCheckerName(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<String>
+    ): PolygonResponse<String>
 
     @POST("problem.validator")
     suspend fun getValidatorName(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<String>
+    ): PolygonResponse<String>
 
     @POST("problem.interactor")
     suspend fun getInteractorName(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<String>
+    ): PolygonResponse<String>
 
     @POST("problem.files")
     suspend fun getFiles(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<Map<String, List<File>>>
+    ): PolygonResponse<Map<String, List<File>>>
 
     @POST("problem.solutions")
     suspend fun getSolutions(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<List<Solution>>
+    ): PolygonResponse<List<Solution>>
 
     @POST("problem.viewFile")
     suspend fun getFile(
@@ -78,7 +78,7 @@ interface ProblemApi {
     suspend fun getTests(
         @Query("problemId") problemId: Int,
         @Query("testset") testSet: String = DEFAULT_TESTSET
-    ): CodeforcesResponse<List<Test>>
+    ): PolygonResponse<List<Test>>
 
     @POST("problem.testInput")
     suspend fun getTestInput(
@@ -99,27 +99,27 @@ interface ProblemApi {
         @Query("problemId") problemId: Int,
         @Query("testset") testset: String = DEFAULT_TESTSET,
         @Query("group") group: String
-    ): CodeforcesResponse<List<TestGroup>>
+    ): PolygonResponse<List<TestGroup>>
 
     @POST("problem.viewTags")
     suspend fun getTags(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<List<String>>
+    ): PolygonResponse<List<String>>
 
     @POST("problem.viewGeneralDescription")
     suspend fun getGeneralDescription(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<String>
+    ): PolygonResponse<String>
 
     @POST("problem.viewGeneralTutorial")
     suspend fun getGeneralTutorial(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<String>
+    ): PolygonResponse<String>
 
     @POST("problem.packages")
     suspend fun getPackages(
         @Query("problemId") problemId: Int
-    ): CodeforcesResponse<List<Package>>
+    ): PolygonResponse<List<Package>>
 
     @POST("problem.package")
     suspend fun getPackage(
@@ -132,7 +132,7 @@ interface ContestApi {
     @POST("contest.problems")
     suspend fun getProblems(
         @Query("contestId") contestId: Int
-    ): CodeforcesResponse<List<Problem>>
+    ): PolygonResponse<List<Problem>>
 }
 
 interface PolygonApi {

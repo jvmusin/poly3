@@ -7,13 +7,12 @@ import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import sha512
 import java.util.concurrent.TimeUnit
-import kotlin.time.seconds
-import kotlin.time.toJavaDuration
 
 private const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
 private const val POLYGON_SECRET = "c2a453543589c5650131b9e2fa8d186ca3ae01b4"
@@ -45,12 +44,39 @@ private object ApiSigAddingInterceptor : Interceptor {
     }
 }
 
+private class TooManyRequestsRetryInterceptor(
+    private val periodSeconds: Int = 60,
+    private val retries: Int = 10
+) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        var done = 0
+        while (true) {
+            val res = chain.proceed(chain.request())
+            if (res.code == 400 && res.body != null && done++ < retries) {
+                val body = res.body!!.bytes().decodeToString()
+                if (body.contains("Too many requests. Please, wait few seconds and try again")) {
+                    getLogger(javaClass).warn(
+                        "Too many requests to Polygon API. Now sleep for $periodSeconds seconds and make try #${done + 1}"
+                    )
+                    Thread.sleep(periodSeconds * 1000L) // we can't delay coroutine here since it's not a suspend function =(
+                    continue
+                }
+                return res.newBuilder().body(body.toResponseBody()).build()
+            }
+            return res
+        }
+    }
+}
+
 fun buildPolygonApi(): PolygonApi {
     val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
         getLogger(HttpLoggingInterceptor::class.java).debug(message)
     }.setLevel(HttpLoggingInterceptor.Level.BASIC)
     val client = OkHttpClient().newBuilder()
         .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .addInterceptor(TooManyRequestsRetryInterceptor())
         .addInterceptor(ApiSigAddingInterceptor)
         .addInterceptor(httpLoggingInterceptor)
         .build()

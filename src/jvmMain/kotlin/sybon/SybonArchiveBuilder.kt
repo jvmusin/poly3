@@ -14,7 +14,17 @@ class SybonArchiveBuilder(
     private val polygonApi: PolygonApi
 ) {
     @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun build(problemId: Int): Path = coroutineScope {
+    suspend fun build(problemId: Int): Path {
+        try {
+            return buildInternal(problemId)
+        } catch (ex: SybonArchiveBuildException) {
+            throw ex
+        } catch (ex: Exception) {
+            throw SybonArchiveBuildException(ex)
+        }
+    }
+
+    private suspend fun buildInternal(problemId: Int): Path = coroutineScope {
         val problem = async { polygonApi.problem.getProblem(problemId) }
         val packageId = async { polygonApi.problem.getPackages(problemId).result!!.maxOf { it.id } }
         val unpackedPath = async { polygonApi.problem.downloadPackage(problemId, packageId.await()) }
@@ -37,14 +47,14 @@ class SybonArchiveBuilder(
 
         suspend fun writeConfig() {
             val config = """
-                    [info]
-                    name = ${statement.name}
-                    maintainers = ${setOf(problem.await().owner, "Musin").joinToString(", ")}
-                    
-                    [resource_limits]
-                    time = ${"%.2f".format(problemInfo.await().timeLimit / 1000.0)}s
-                    memory = ${problemInfo.await().memoryLimit}MiB
-                """.trimIndent()
+                [info]
+                name = ${statement.name}
+                maintainers = ${setOf(problem.await().owner, "Musin").joinToString(", ")}
+                
+                [resource_limits]
+                time = ${"%.2f".format(problemInfo.await().timeLimit / 1000.0)}s
+                memory = ${problemInfo.await().memoryLimit}MiB
+            """.trimIndent()
             Files.write(destinationPath.resolve("config.ini"), config.toByteArray())
         }
 
@@ -54,20 +64,25 @@ class SybonArchiveBuilder(
         }
 
         suspend fun writeChecker() {
-            Files.write(
-                checkerPath.resolve("check.cpp"),
-                Files.readAllBytes(unpackedPath.await().resolve("check.cpp"))
-            )
+            val checkerFilePath = unpackedPath.await().resolve("check.cpp")
+            if (Files.notExists(checkerFilePath)) {
+                throw SybonArchiveBuildException(
+                    "" +
+                            "Checker \"check.cpp\" doesn't exist in the polygon problem package. " +
+                            "Other kinds of checkers are not supported."
+                )
+            }
+            Files.write(checkerPath.resolve("check.cpp"), Files.readAllBytes(checkerFilePath))
             val config = """
-                    [build]
-                    builder = single
-                    source = check.cpp
-                    libs = testlib.googlecode.com-0.9.12
+                [build]
+                builder = single
+                source = check.cpp
+                libs = testlib.googlecode.com-0.9.12
 
-                    [utility]
-                    call = in_out_hint
-                    return = testlib
-                """.trimIndent()
+                [utility]
+                call = in_out_hint
+                return = testlib
+            """.trimIndent()
             Files.write(checkerPath.resolve("config.ini"), config.toByteArray())
         }
 
@@ -80,13 +95,13 @@ class SybonArchiveBuilder(
 
         suspend fun writeStatement() {
             val pdfIni = """
-                    [info]
-                    language = C
+                [info]
+                language = C
 
-                    [build]
-                    builder = copy
-                    source = problem.pdf
-                """.trimIndent()
+                [build]
+                builder = copy
+                source = problem.pdf
+            """.trimIndent()
             Files.write(statementPath.resolve("pdf.ini"), pdfIni.toByteArray())
 
             val statementContent = polygonApi.problem.getStatementRaw(
@@ -96,16 +111,26 @@ class SybonArchiveBuilder(
         }
 
         suspend fun writeTests() {
-            val tests = polygonApi.problem.getTests(problemId).result!!
-            val testInputs = tests.associate {
-                it.index to async { polygonApi.problem.getTestInput(problemId, testIndex = it.index) }
-            }
-            val testAnswers = tests.associate {
-                it.index to async { polygonApi.problem.getTestAnswer(problemId, testIndex = it.index) }
-            }
-            for (test in tests) {
-                Files.write(testsPath.resolve("${test.index}.in"), testInputs[test.index]!!.await().toByteArray())
-                Files.write(testsPath.resolve("${test.index}.out"), testAnswers[test.index]!!.await().toByteArray())
+            try {
+                val tests = polygonApi.problem.getTests(problemId).result!!
+                val testInputs = tests.associate {
+                    it.index to async { polygonApi.problem.getTestInput(problemId, testIndex = it.index) }
+                }
+                val testAnswers = tests.associate {
+                    it.index to async { polygonApi.problem.getTestAnswer(problemId, testIndex = it.index) }
+                }
+                for (test in tests) {
+                    Files.write(
+                        testsPath.resolve("${test.index}.in"),
+                        testInputs[test.index]!!.await().toByteArray()
+                    )
+                    Files.write(
+                        testsPath.resolve("${test.index}.out"),
+                        testAnswers[test.index]!!.await().toByteArray()
+                    )
+                }
+            } catch (ex: Exception) {
+                throw SybonArchiveBuildException("Failed to load test data: ${ex.message}", ex)
             }
         }
 
