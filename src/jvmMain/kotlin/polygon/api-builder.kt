@@ -50,7 +50,7 @@ fun buildPolygonApi(): PolygonApi {
         getLogger(HttpLoggingInterceptor::class.java).debug(message)
     }.setLevel(HttpLoggingInterceptor.Level.BASIC)
     val client = OkHttpClient().newBuilder()
-        .connectTimeout(15, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(ApiSigAddingInterceptor)
         .addInterceptor(httpLoggingInterceptor)
         .build()
