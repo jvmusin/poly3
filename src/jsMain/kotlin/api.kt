@@ -1,3 +1,5 @@
+import api.Problem
+import api.ProblemInfo
 import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*

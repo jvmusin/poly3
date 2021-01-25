@@ -1,3 +1,5 @@
+import api.Problem
+import api.ProblemInfo
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.html.*
@@ -23,6 +25,9 @@ fun HTML.index() {
         script(src = "/static/output.js") {}
     }
 }
+
+fun polygon.Problem.toDto() = Problem(id, name, owner, latestPackage)
+fun polygon.ProblemInfo.toDto() = ProblemInfo(inputFile, outputFile, interactive, timeLimit, memoryLimit)
 
 fun main() {
     val api = buildPolygonApi()

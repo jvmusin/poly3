@@ -1,5 +1,7 @@
 @file:Suppress("RUNTIME_ANNOTATION_NOT_SUPPORTED")
 
+package api
+
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,6 +20,3 @@ data class ProblemInfo(
     val timeLimitMillis: Int,
     val memoryLimitMegabytes: Int
 )
-
-fun polygon.Problem.toDto() = Problem(id, name, owner, latestPackage)
-fun polygon.ProblemInfo.toDto() = ProblemInfo(inputFile, outputFile, interactive, timeLimit, memoryLimit)
