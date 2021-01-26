@@ -26,10 +26,10 @@ class SybonArchiveBuilder(
     }
 
     private suspend fun buildInternal(problemId: Int): Path = coroutineScope {
-        val problem = async { polygonApi.problem.getProblem(problemId) }
-        val packageId = async { polygonApi.problem.getLatestPackage(problemId)!!.id }
-        val unpackedPath = async { polygonApi.problem.downloadPackage(problemId, packageId.await()) }
-        val problemInfo = async { polygonApi.problem.getInfo(problemId).result!! }
+        val problem = async { polygonApi.getProblem(problemId) }
+        val packageId = async { polygonApi.getLatestPackage(problemId)!!.id }
+        val unpackedPath = async { polygonApi.downloadPackage(problemId, packageId.await()) }
+        val problemInfo = async { polygonApi.getInfo(problemId).result!! }
 
         val destinationPath = Paths.get(
             "sybon-packages",
@@ -47,7 +47,7 @@ class SybonArchiveBuilder(
             Files.createDirectories(path)
         }
 
-        val (language, statement) = polygonApi.problem.getStatement(problemId)
+        val (language, statement) = polygonApi.getStatement(problemId)
 
         suspend fun writeConfig() {
             val config = """
@@ -92,8 +92,8 @@ class SybonArchiveBuilder(
 
         suspend fun writeSolution() {
             val mainSolution =
-                polygonApi.problem.getSolutions(problemId).result!!.single { it.tag == "MA" }
-            val solutionContent = polygonApi.problem.getSolution(problemId, mainSolution.name).bytes()
+                polygonApi.getSolutions(problemId).result!!.single { it.tag == "MA" }
+            val solutionContent = polygonApi.getSolution(problemId, mainSolution.name).bytes()
             Files.write(solutionPath.resolve(mainSolution.name), solutionContent)
         }
 
@@ -108,7 +108,7 @@ class SybonArchiveBuilder(
             """.trimIndent()
             Files.write(statementPath.resolve("pdf.ini"), pdfIni.toByteArray())
 
-            val statementContent = polygonApi.problem.getStatementRaw(
+            val statementContent = polygonApi.getStatementRaw(
                 problemId = problemId, packageId = packageId.await(), language = language
             )
             Files.write(statementPath.resolve("problem.pdf"), statementContent)
@@ -116,12 +116,12 @@ class SybonArchiveBuilder(
 
         suspend fun writeTests() {
             try {
-                val tests = polygonApi.problem.getTests(problemId).result!!
+                val tests = polygonApi.getTests(problemId).result!!
                 val testInputs = tests.associate {
-                    it.index to async { polygonApi.problem.getTestInput(problemId, testIndex = it.index) }
+                    it.index to async { polygonApi.getTestInput(problemId, testIndex = it.index) }
                 }
                 val testAnswers = tests.associate {
-                    it.index to async { polygonApi.problem.getTestAnswer(problemId, testIndex = it.index) }
+                    it.index to async { polygonApi.getTestAnswer(problemId, testIndex = it.index) }
                 }
                 for (test in tests) {
                     Files.write(
@@ -145,7 +145,7 @@ class SybonArchiveBuilder(
         writeStatement()
         writeTests()
 
-        val actualPackageId = polygonApi.problem.getLatestPackage(problemId)!!.id
+        val actualPackageId = polygonApi.getLatestPackage(problemId)!!.id
         if (actualPackageId != packageId.await()) {
             getLogger(javaClass).info(
                 "" +

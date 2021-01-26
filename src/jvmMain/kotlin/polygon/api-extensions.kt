@@ -7,7 +7,7 @@ import java.nio.file.Paths
 import java.util.zip.ZipFile
 
 @Suppress("BlockingMethodInNonBlockingContext")
-suspend fun ProblemApi.downloadPackage(problemId: Int, packageId: Int): Path {
+suspend fun PolygonApi.downloadPackage(problemId: Int, packageId: Int): Path {
     val destination = Paths.get("polygon-problems").resolve("id$problemId-package$packageId")
     if (Files.notExists(destination)) {
         getPackage(problemId, packageId).use { archive ->
@@ -22,7 +22,7 @@ suspend fun ProblemApi.downloadPackage(problemId: Int, packageId: Int): Path {
 }
 
 @Suppress("BlockingMethodInNonBlockingContext")
-suspend fun ProblemApi.getStatementRaw(
+suspend fun PolygonApi.getStatementRaw(
     problemId: Int,
     packageId: Int,
     type: String = "pdf",
@@ -36,17 +36,17 @@ suspend fun ProblemApi.getStatementRaw(
     return Files.readAllBytes(filePath)
 }
 
-suspend fun ProblemApi.getProblem(problemId: Int): Problem {
+suspend fun PolygonApi.getProblem(problemId: Int): Problem {
     return getProblems().result!!.first { it.id == problemId }
 }
 
-suspend fun ProblemApi.getStatement(problemId: Int, language: String? = null): Pair<String, Statement> {
+suspend fun PolygonApi.getStatement(problemId: Int, language: String? = null): Pair<String, Statement> {
     return getStatements(problemId).result!!.entries.firstOrNull {
         language == null || it.key == language
     }!!.let { it.key to it.value }
 }
 
-suspend fun ProblemApi.getLatestPackage(problemId: Int): Package? {
+suspend fun PolygonApi.getLatestPackage(problemId: Int): Package? {
     return getPackages(problemId).result
         ?.filter { it.state == Package.State.READY }
         ?.maxByOrNull { it.id }

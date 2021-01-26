@@ -68,13 +68,13 @@ fun main() {
             }
             route("/problems") {
                 get("/") {
-                    val problems = api.problem.getProblems().result!!
+                    val problems = api.getProblems().result!!
                     call.respond(HttpStatusCode.OK, problems.map(polygon.Problem::toDto))
                 }
                 route("/{problemId}") {
                     get("/") {
                         val problemId = call.parameters["problemId"]!!.toInt()
-                        val problemInfo = api.problem.getInfo(problemId).result!!
+                        val problemInfo = api.getInfo(problemId).result!!
                         call.respond(HttpStatusCode.OK, problemInfo.toDto())
                     }
                     get("/download") {

@@ -6,7 +6,8 @@ import retrofit2.http.Query
 
 const val DEFAULT_TESTSET = "tests"
 
-interface ProblemApi {
+@Suppress("unused")
+interface PolygonApi {
     @POST("problems.list")
     suspend fun getProblems(
         @Query("showDeleted") showDeleted: Boolean = false,
@@ -126,16 +127,9 @@ interface ProblemApi {
         @Query("problemId") problemId: Int,
         @Query("packageId") packageId: Int
     ): ResponseBody
-}
 
-interface ContestApi {
     @POST("contest.problems")
-    suspend fun getProblems(
+    suspend fun getContestProblems(
         @Query("contestId") contestId: Int
     ): PolygonResponse<List<Problem>>
-}
-
-interface PolygonApi {
-    val problem: ProblemApi
-    val contest: ContestApi
 }

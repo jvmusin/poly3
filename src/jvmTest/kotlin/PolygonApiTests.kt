@@ -6,29 +6,32 @@ import polygon.getStatementRaw
 import sybon.SybonArchiveBuilder
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.test.Ignore
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Ignore
 class PolygonApiTests {
     private val polygonApi = buildPolygonApi()
 
     @Test
     fun testGetProblems() = runBlocking {
-        val res = polygonApi.problem.getProblems().result!!
+        val res = polygonApi.getProblems().result!!
         println(res.size)
         for (p in res) println(p)
     }
 
     @Test
     fun testGetPackages() = runBlocking {
-        val problemId = 155265
-        val result = polygonApi.problem.getPackages(problemId)
-        println(result)
+        val problemId = 141131
+        val result = polygonApi.getPackages(problemId).result!!
+        println(result.size)
+        result.forEach(::println)
     }
 
     @Test
     fun testGetFiles() = runBlocking {
         val problemId = 133526
-        val allFiles = polygonApi.problem.getFiles(problemId).result!!
+        val allFiles = polygonApi.getFiles(problemId).result!!
         for ((type, files) in allFiles) {
             println(type)
             for (file in files) println(file)
@@ -39,7 +42,7 @@ class PolygonApiTests {
     @Test
     fun testStatements() = runBlocking {
         val problemId = 109779
-        val allStatements = polygonApi.problem.getStatements(problemId).result!!
+        val allStatements = polygonApi.getStatements(problemId).result!!
         for ((lang, statement) in allStatements) {
             println(lang)
             println(statement)
@@ -49,7 +52,7 @@ class PolygonApiTests {
     @Test
     fun testStatementResources() = runBlocking {
         val problemId = 109779
-        val resources = polygonApi.problem.getStatementResources(problemId).result!!
+        val resources = polygonApi.getStatementResources(problemId).result!!
         for (res in resources) {
             println(res)
         }
@@ -59,7 +62,7 @@ class PolygonApiTests {
     fun testPackage() = runBlocking<Unit> {
         val problemId = 144543
         val packageId = 393239
-        val archive = polygonApi.problem.getPackage(problemId, packageId)
+        val archive = polygonApi.getPackage(problemId, packageId)
         Files.write(Paths.get("archive.zip"), archive.bytes())
     }
 
@@ -67,7 +70,7 @@ class PolygonApiTests {
     fun testGetStatementPdf() = runBlocking<Unit> {
         val problemId = 144543
         val packageId = 393239
-        val pdf = polygonApi.problem.getStatementRaw(problemId, packageId)
+        val pdf = polygonApi.getStatementRaw(problemId, packageId)
         Files.write(Paths.get("statement.pdf"), pdf)
     }
 
@@ -75,7 +78,7 @@ class PolygonApiTests {
     fun testGetStatementHtml() = runBlocking<Unit> {
         val problemId = 144543
         val packageId = 393239
-        val pdf = polygonApi.problem.getStatementRaw(problemId, packageId, "html")
+        val pdf = polygonApi.getStatementRaw(problemId, packageId, "html")
         Files.write(Paths.get("statement.html"), pdf)
     }
 
@@ -88,7 +91,7 @@ class PolygonApiTests {
     @Test
     fun testGetSolutions() = runBlocking {
         val problemId = 106223
-        val solutions = polygonApi.problem.getSolutions(problemId).result!!
+        val solutions = polygonApi.getSolutions(problemId).result!!
         println(solutions.size)
         solutions.forEach(::println)
     }
@@ -96,7 +99,7 @@ class PolygonApiTests {
     @Test
     fun testGetTests() = runBlocking {
         val problemId = 106223
-        val result = polygonApi.problem.getTests(problemId).result!!
+        val result = polygonApi.getTests(problemId).result!!
         println(result.size)
         result.forEach(::println)
     }

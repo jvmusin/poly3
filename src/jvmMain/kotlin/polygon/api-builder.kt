@@ -2,6 +2,7 @@ package polygon
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import getLogger
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
@@ -72,6 +73,7 @@ private class TooManyRequestsRetryInterceptor(
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 fun buildPolygonApi(): PolygonApi {
     val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
         getLogger(HttpLoggingInterceptor::class.java).debug(message)
@@ -96,10 +98,5 @@ fun buildPolygonApi(): PolygonApi {
         .addConverterFactory(ScalarsConverterFactory.create())
         .addConverterFactory(Json { isLenient = true }.asConverterFactory(contentType))
         .build()
-    val problemApi = retrofit.create(ProblemApi::class.java)
-    val contestApi = retrofit.create(ContestApi::class.java)
-    return object : PolygonApi {
-        override val problem: ProblemApi get() = problemApi
-        override val contest: ContestApi get() = contestApi
-    }
+    return retrofit.create(PolygonApi::class.java)
 }
