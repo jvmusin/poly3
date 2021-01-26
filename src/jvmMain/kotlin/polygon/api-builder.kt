@@ -3,6 +3,7 @@ package polygon
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import getLogger
 import kotlinx.serialization.json.Json
+import okhttp3.Dispatcher
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -75,6 +76,10 @@ fun buildPolygonApi(): PolygonApi {
     val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
         getLogger(HttpLoggingInterceptor::class.java).debug(message)
     }.setLevel(HttpLoggingInterceptor.Level.BASIC)
+    val dispatcher = Dispatcher().apply {
+        maxRequests = 10000
+        maxRequestsPerHost = 10000
+    }
     val client = OkHttpClient().newBuilder()
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
@@ -82,6 +87,7 @@ fun buildPolygonApi(): PolygonApi {
         .addInterceptor(TooManyRequestsRetryInterceptor())
         .addInterceptor(ApiSigAddingInterceptor())
         .addInterceptor(httpLoggingInterceptor)
+        .dispatcher(dispatcher)
         .build()
     val contentType = "application/json".toMediaType()
     val retrofit = Retrofit.Builder()
