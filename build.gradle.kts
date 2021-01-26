@@ -112,17 +112,24 @@ kotlin {
 }
 
 application {
-    mainClassName = "ServerKt"
+    mainClass.set("ServerKt")
 }
 
-tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
-    outputFileName = "output.js"
+for (name in arrayOf("jsBrowserProductionWebpack", "jsBrowserDevelopmentWebpack")) {
+    tasks.getByName<KotlinWebpack>(name) {
+        outputFileName = "output.js"
+    }
 }
 
 tasks.getByName<Jar>("jvmJar") {
-    dependsOn(tasks.getByName("jsBrowserProductionWebpack"))
-    val jsBrowserProductionWebpack = tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack")
-    from(File(jsBrowserProductionWebpack.destinationDirectory, jsBrowserProductionWebpack.outputFileName))
+    val taskName = if (project.hasProperty("isProduction")) {
+        "jsBrowserProductionWebpack"
+    } else {
+        "jsBrowserDevelopmentWebpack"
+    }
+    val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
+    dependsOn(webpackTask) // make sure JS gets compiled first
+    from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
 }
 
 tasks.getByName<JavaExec>("run") {
