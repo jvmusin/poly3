@@ -45,3 +45,9 @@ suspend fun ProblemApi.getStatement(problemId: Int, language: String? = null): P
         language == null || it.key == language
     }!!.let { it.key to it.value }
 }
+
+suspend fun ProblemApi.getLatestPackage(problemId: Int): Package? {
+    return getPackages(problemId).result
+        ?.filter { it.state == Package.State.READY }
+        ?.maxByOrNull { it.id }
+}

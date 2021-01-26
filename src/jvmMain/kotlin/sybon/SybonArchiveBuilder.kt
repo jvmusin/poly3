@@ -2,6 +2,7 @@
 
 package sybon
 
+import getLogger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import polygon.*
@@ -26,7 +27,7 @@ class SybonArchiveBuilder(
 
     private suspend fun buildInternal(problemId: Int): Path = coroutineScope {
         val problem = async { polygonApi.problem.getProblem(problemId) }
-        val packageId = async { polygonApi.problem.getPackages(problemId).result!!.maxOf { it.id } }
+        val packageId = async { polygonApi.problem.getLatestPackage(problemId)!!.id }
         val unpackedPath = async { polygonApi.problem.downloadPackage(problemId, packageId.await()) }
         val problemInfo = async { polygonApi.problem.getInfo(problemId).result!! }
 
@@ -140,6 +141,17 @@ class SybonArchiveBuilder(
         writeSolution()
         writeStatement()
         writeTests()
+
+        val actualPackageId = polygonApi.problem.getLatestPackage(problemId)!!.id
+        if (actualPackageId != packageId.await()) {
+            getLogger(javaClass).info(
+                "" +
+                        "New package was created for problem ${problem.await()}. " +
+                        "Old package id was ${packageId.await()}, actual is $actualPackageId. " +
+                        "Rebuilding the sybon package."
+            )
+            return@coroutineScope buildInternal(problemId)
+        }
 
         val par = destinationPath.parent
         val zipPath = par.resolve("${problem.await().name}-package${packageId.await()}.zip")
