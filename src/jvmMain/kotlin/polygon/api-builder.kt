@@ -77,8 +77,8 @@ fun buildPolygonApi(): PolygonApi {
         getLogger(HttpLoggingInterceptor::class.java).debug(message)
     }.setLevel(HttpLoggingInterceptor.Level.BASIC)
     val dispatcher = Dispatcher().apply {
-        maxRequests = 10000
-        maxRequestsPerHost = 10000
+        maxRequests = 100
+        maxRequestsPerHost = 100
     }
     val client = OkHttpClient().newBuilder()
         .connectTimeout(60, TimeUnit.SECONDS)
