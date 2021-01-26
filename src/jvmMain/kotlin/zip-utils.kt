@@ -6,6 +6,8 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 import kotlin.streams.toList
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
 fun ZipFile.extract(destination: Path) {
     Files.createDirectories(destination)
@@ -20,36 +22,37 @@ fun ZipFile.extract(destination: Path) {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 fun Path.toZipArchive(destination: Path) {
-    val files = Files.walk(this)
-        .map { it.toAbsolutePath() }
-        .filter { it != toAbsolutePath() && it != destination.toAbsolutePath() && Files.isRegularFile(it) }
-        .toList()
-    Files.createDirectories(destination.parent)
-    Files.deleteIfExists(destination)
-    Files.createFile(destination)
+    val (zipPath, duration) = measureTimedValue {
+        val sourceAbsolutePath = toAbsolutePath()
+        val destinationAbsolutePath = destination.toAbsolutePath()
+        val files = Files.walk(this)
+            .map { it.toAbsolutePath() }
+            .filter { it != sourceAbsolutePath && it != destinationAbsolutePath && Files.isRegularFile(it) }
+            .toList()
+        Files.createDirectories(destination.parent)
+        Files.deleteIfExists(destination)
+        Files.createFile(destination)
 
-    fun writeToZipFile(path: Path, zipStream: ZipOutputStream) {
-        getLogger(javaClass).debug("Writing file : '$path' to zip file")
-        val fis = Files.newInputStream(path)
-        val zipEntry = ZipEntry(toAbsolutePath().relativize(path).toString().replace('\\', '/'))
-        zipStream.putNextEntry(zipEntry)
-        val bytes = ByteArray(1024)
-        var length: Int
-        while (fis.read(bytes).also { length = it } >= 0) {
-            zipStream.write(bytes, 0, length)
+        fun writeToZipFile(path: Path, zipStream: ZipOutputStream) {
+            getLogger(javaClass).debug("Writing file : '$path' to zip file")
+            val zipEntry = ZipEntry(sourceAbsolutePath.relativize(path).toString().replace('\\', '/'))
+            zipStream.putNextEntry(zipEntry)
+            Files.copy(path, zipStream)
+            zipStream.closeEntry()
         }
-        zipStream.closeEntry()
-        fis.close()
-    }
 
-    FileOutputStream(destination.toFile()).use { fos ->
-        BufferedOutputStream(fos).use { bufOS ->
-            ZipOutputStream(bufOS).use { zipOS ->
-                for (file in files) {
-                    writeToZipFile(file, zipOS)
+        FileOutputStream(destination.toFile()).use { fos ->
+            BufferedOutputStream(fos).use { bufOS ->
+                ZipOutputStream(bufOS).use { zipOS ->
+                    for (file in files) {
+                        writeToZipFile(file, zipOS)
+                    }
                 }
             }
         }
     }
+    getLogger(javaClass).info("Zip archive $destination built in $duration")
+    return zipPath
 }
