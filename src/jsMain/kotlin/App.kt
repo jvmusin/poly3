@@ -24,6 +24,10 @@ val App = functionalComponent<RProps> {
         }
     }
 
+    if (activeProblem == null && problems.isNotEmpty()) {
+        setActiveProblem(problems.first())
+    }
+
     useEffect(listOf(activeProblem)) {
         if (activeProblem != null) {
             println("selected problem $activeProblem")
@@ -34,59 +38,64 @@ val App = functionalComponent<RProps> {
         }
     }
 
-    div {
-        h1 { +"Это конвертер задач из полигона в бакс Полибакс" }
-        h2 { +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin" }
-    }
-
     styledDiv {
-        css {
-            display = Display.flex
-            justifyContent = JustifyContent.flexStart
+        styledDiv {
+            css {
+                display = Display.flex
+                flexDirection = FlexDirection.column
+                alignItems = Align.center
+            }
+            h1 { +"Это конвертер задач из полигона в бакс Полибакс" }
+            h2 { +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin" }
         }
 
         styledDiv {
             css {
-                margin = 0.5.em.toString()
-                padding = 0.5.em.toString()
-                backgroundColor = Color.aliceBlue
+                display = Display.flex
+                justifyContent = JustifyContent.center
             }
-            h2 { +"Доступные задачи. Нажми на любую:" }
-            nav {
-                styledUl {
-                    css {
-                        backgroundColor = Color.cornsilk
-                        height = 40.em
-                        width = 30.em
-                        overflow = Overflow.hidden
-                        overflowY = Overflow.scroll
-                        fontSize = 1.20.em
-                    }
-                    for (problem in problems) {
-                        styledLi {
-                            css {
-                                if (problem == activeProblem) fontWeight = FontWeight.bold
-                                color = if (problem.latestPackage != null) Color.green else Color.red
-                            }
-                            key = "problem-${problem.id}"
-                            attrs {
-                                onClickFunction = {
-                                    setActiveProblem(problem)
+
+            styledDiv {
+                css {
+                    margin = 0.5.em.toString()
+                    padding = 0.5.em.toString()
+                    backgroundColor = Color.aliceBlue
+                }
+                h2 { +"Доступные задачи. Нажми на любую:" }
+                nav {
+                    styledUl {
+                        css {
+                            backgroundColor = Color.cornsilk
+                            height = 40.em
+                            width = 30.em
+                            overflow = Overflow.hidden
+                            overflowY = Overflow.scroll
+                            fontSize = 1.20.em
+                        }
+                        for (problem in problems) {
+                            styledLi {
+                                css {
+                                    if (problem == activeProblem) fontWeight = FontWeight.bold
+                                    color = if (problem.latestPackage != null) Color.green else Color.red
                                 }
+                                key = "problem-${problem.id}"
+                                attrs {
+                                    onClickFunction = {
+                                        setActiveProblem(problem)
+                                    }
+                                }
+                                val packageInfo =
+                                    if (problem.latestPackage != null)
+                                        "package ${problem.latestPackage}"
+                                    else
+                                        "no packages built"
+                                +"${problem.id}: ${problem.name} ($packageInfo)"
                             }
-                            val packageInfo =
-                                if (problem.latestPackage != null)
-                                    "package ${problem.latestPackage}"
-                                else
-                                    "no packages built"
-                            +"${problem.id}: ${problem.name} ($packageInfo)"
                         }
                     }
                 }
             }
-        }
 
-        if (activeProblem != null) {
             styledDiv {
                 css {
                     width = 25.em
@@ -94,38 +103,40 @@ val App = functionalComponent<RProps> {
                     padding = 0.5.em.toString()
                     backgroundColor = Color.aliceBlue
                 }
-                h2 { +"Свойства задачи:" }
-                if (problemInfo != null) {
-                    div {
-                        h3 { +"Название: ${activeProblem.name}" }
-                        h3 { +"Автор: ${activeProblem.owner}" }
-                        h3 { +"Ввод: ${problemInfo.inputFile}" }
-                        h3 { +"Вывод: ${problemInfo.outputFile}" }
-                        h3 { +"Интерактивная: ${if (problemInfo.interactive) "Да" else "Нет"}" }
-                        h3 { +"Ограничение времени: ${problemInfo.timeLimitMillis / 1000.0}s" }
-                        h3 { +"Ограничение памяти: ${problemInfo.memoryLimitMegabytes}MB" }
-                    }
-                    if (activeProblem.latestPackage != null) {
+                if (activeProblem != null) {
+                    h2 { +"Свойства задачи:" }
+                    if (problemInfo != null) {
                         div {
-                            styledA {
+                            h3 { +"Название: ${activeProblem.name}" }
+                            h3 { +"Автор: ${activeProblem.owner}" }
+                            h3 { +"Ввод: ${problemInfo.inputFile}" }
+                            h3 { +"Вывод: ${problemInfo.outputFile}" }
+                            h3 { +"Интерактивная: ${if (problemInfo.interactive) "Да" else "Нет"}" }
+                            h3 { +"Ограничение времени: ${problemInfo.timeLimitMillis / 1000.0}s" }
+                            h3 { +"Ограничение памяти: ${problemInfo.memoryLimitMegabytes}MB" }
+                        }
+                        if (activeProblem.latestPackage != null) {
+                            div {
+                                styledA {
+                                    css {
+                                        fontSize = 30.px
+                                        color = Color.hotPink
+                                    }
+//                                +"А теперь нажми сюда, чтобы скачать архив для сайбона. Замечательно, правда? А если кто-нибудь (Артём) запилит заливку архивов в сайбон, будет вообще чудесно(, Артём)"
+                                    +"Скачать архив"
+                                    attrs {
+                                        href = downloadPackageLink(activeProblem.id)
+                                    }
+                                }
+                            }
+                        } else {
+                            styledP {
                                 css {
                                     fontSize = 30.px
-                                    color = Color.hotPink
+                                    color = Color.red
                                 }
-//                                +"А теперь нажми сюда, чтобы скачать архив для сайбона. Замечательно, правда? А если кто-нибудь (Артём) запилит заливку архивов в сайбон, будет вообще чудесно(, Артём)"
-                                +"Скачать архив"
-                                attrs {
-                                    href = downloadPackageLink(activeProblem.id)
-                                }
+                                +"Пакет не собран!"
                             }
-                        }
-                    } else {
-                        styledP {
-                            css {
-                                fontSize = 30.px
-                                color = Color.red
-                            }
-                            +"Пакет не собран!"
                         }
                     }
                 }
