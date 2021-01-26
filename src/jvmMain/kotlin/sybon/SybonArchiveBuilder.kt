@@ -31,8 +31,11 @@ class SybonArchiveBuilder(
         val unpackedPath = async { polygonApi.problem.downloadPackage(problemId, packageId.await()) }
         val problemInfo = async { polygonApi.problem.getInfo(problemId).result!! }
 
-        val destinationPath =
-            Paths.get("sybon-packages", "id$problemId-package${packageId.await()}", problem.await().name)
+        val destinationPath = Paths.get(
+            "sybon-packages",
+            "id$problemId-package${packageId.await()}",
+            problem.await().name
+        )
 
         val checkerPath = destinationPath.resolve("checker")
         val miscPath = destinationPath.resolve("misc")
