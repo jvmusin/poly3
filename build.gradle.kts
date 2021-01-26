@@ -66,7 +66,6 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.2")
 
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
                 implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
                 implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
