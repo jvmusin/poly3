@@ -92,9 +92,6 @@ kotlin {
                 implementation("org.jetbrains:kotlin-react:17.0.1-pre.141-kotlin-1.4.21")
                 implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.141-kotlin-1.4.21")
                 implementation("org.jetbrains:kotlin-styled:5.2.0-pre.141-kotlin-1.4.21")
-//                implementation("org.jetbrains:kotlin-react-router-dom:5.2.0-pre.141-kotlin-1.4.21")
-//                implementation("org.jetbrains:kotlin-redux:4.0.5-pre.141-kotlin-1.4.21")
-//                implementation("org.jetbrains:kotlin-react-redux:7.2.1-pre.141-kotlin-1.4.21")
 
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
@@ -114,19 +111,12 @@ application {
     mainClass.set("ServerKt")
 }
 
-for (name in arrayOf("jsBrowserProductionWebpack", "jsBrowserDevelopmentWebpack")) {
-    tasks.getByName<KotlinWebpack>(name) {
-        outputFileName = "output.js"
-    }
+tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
+    outputFileName = "output.js"
 }
 
 tasks.getByName<Jar>("jvmJar") {
-    val taskName = if (project.hasProperty("isProduction")) {
-        "jsBrowserProductionWebpack"
-    } else {
-        "jsBrowserDevelopmentWebpack"
-    }
-    val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
+    val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack")
     dependsOn(webpackTask) // make sure JS gets compiled first
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
 }
