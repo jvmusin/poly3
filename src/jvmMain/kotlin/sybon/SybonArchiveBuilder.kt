@@ -110,6 +110,8 @@ class SybonArchiveBuilder(
 
             val statementContent = polygonApi.getStatementRaw(
                 problemId = problemId, packageId = packageId.await(), language = language
+            ) ?: throw SybonArchiveBuildException(
+                "Problem doesn't have pdf statements. Add pdf or rebuild package (sometimes it helps)."
             )
             Files.write(statementPath.resolve("problem.pdf"), statementContent)
         }

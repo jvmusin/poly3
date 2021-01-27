@@ -27,12 +27,13 @@ suspend fun PolygonApi.getStatementRaw(
     packageId: Int,
     type: String = "pdf",
     language: String = "russian"
-): ByteArray {
+): ByteArray? {
     val filePath = downloadPackage(problemId, packageId)
         .resolve("statements")
         .resolve(".$type")
         .resolve(language)
         .resolve("problem.$type")
+    if (Files.notExists(filePath)) return null
     return Files.readAllBytes(filePath)
 }
 
