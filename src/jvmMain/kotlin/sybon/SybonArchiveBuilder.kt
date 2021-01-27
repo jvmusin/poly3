@@ -4,6 +4,7 @@ package sybon
 
 import getLogger
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import polygon.*
 import toZipArchive
@@ -119,22 +120,25 @@ class SybonArchiveBuilder(
         suspend fun writeTests() {
             try {
                 val tests = polygonApi.getTests(problemId).result!!
-                val testInputs = tests.associate {
-                    it.index to async { polygonApi.getTestInput(problemId, testIndex = it.index) }
-                }
-                val testAnswers = tests.associate {
-                    it.index to async { polygonApi.getTestAnswer(problemId, testIndex = it.index) }
-                }
-                for (test in tests) {
+                fun writeTest(index: Int, type: String, content: String) {
                     Files.write(
-                        testsPath.resolve("${test.index}.in"),
-                        testInputs[test.index]!!.await().toByteArray()
-                    )
-                    Files.write(
-                        testsPath.resolve("${test.index}.out"),
-                        testAnswers[test.index]!!.await().toByteArray()
+                        testsPath.resolve("${index}.$type"),
+                        content.toByteArray()
                     )
                 }
+
+                val inputs = tests.map {
+                    async {
+                        writeTest(it.index, "in", polygonApi.getTestInput(problemId, testIndex = it.index))
+                    }
+                }
+                val outputs = tests.map {
+                    async {
+                        writeTest(it.index, "out", polygonApi.getTestAnswer(problemId, testIndex = it.index))
+                    }
+                }
+                inputs.awaitAll()
+                outputs.awaitAll()
             } catch (ex: Exception) {
                 throw SybonArchiveBuildException("Failed to load test data: ${ex.message}", ex)
             }
