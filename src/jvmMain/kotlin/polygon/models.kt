@@ -110,8 +110,8 @@ data class Test(
     val scriptLine: String? = null,
     val group: String? = null,
     val points: Double? = null,
-    val inputForStatements: String? = null,
-    val outputForStatements: String? = null,
+    val inputForStatement: String? = null,
+    val outputForStatement: String? = null,
     val verifyInputOutputForStatements: Boolean? = null
 )
 
