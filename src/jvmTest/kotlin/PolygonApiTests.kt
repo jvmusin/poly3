@@ -1,8 +1,10 @@
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import polygon.buildPolygonApi
-import polygon.getStatementRaw
+import polygon.*
 import sybon.SybonArchiveBuilder
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -15,9 +17,9 @@ class PolygonApiTests {
 
     @Test
     fun testGetProblems() = runBlocking {
-        val res = polygonApi.getProblems().result!!
-        println(res.size)
-        for (p in res) println(p)
+        val result = polygonApi.getProblems().result!!
+        println(result.size)
+        result.forEach(::println)
     }
 
     @Test
@@ -53,17 +55,30 @@ class PolygonApiTests {
     fun testStatementResources() = runBlocking {
         val problemId = 109779
         val resources = polygonApi.getStatementResources(problemId).result!!
-        for (res in resources) {
-            println(res)
-        }
+        resources.forEach(::println)
     }
 
     @Test
-    fun testPackage() = runBlocking<Unit> {
+    fun testGetPackage() = runBlocking<Unit> {
         val problemId = 144543
         val packageId = 393239
         val archive = polygonApi.getPackage(problemId, packageId)
         Files.write(Paths.get("archive.zip"), archive.bytes())
+    }
+
+    @Test
+    fun testDownloadAllPackages() {
+        runBlocking {
+            val problems = polygonApi.getProblems().result!!.filter { it.accessType != Problem.AccessType.READ }
+            problems.map {
+                async {
+                    val latestPackage = polygonApi.getLatestPackage(it.id)
+                    if (latestPackage != null)
+                        polygonApi.downloadPackage(it.id, latestPackage.id)
+                    else Paths.get("")
+                }
+            }.awaitAll()
+        }
     }
 
     @Test
