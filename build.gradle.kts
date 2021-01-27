@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE")
+
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -12,7 +14,7 @@ version = "1.0-SNAPSHOT"
 
 val ktorVersion = "1.5.0"
 val retrofitVersion = "2.9.0"
-val serializationVersion = "1.0.0-RC"
+val serializationVersion = "1.0.1"
 val junitVersion = "5.6.0"
 
 repositories {
@@ -26,7 +28,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "13"
+            kotlinOptions.jvmTarget = "15"
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -90,9 +92,9 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation("org.jetbrains:kotlin-react:17.0.1-pre.141-kotlin-1.4.21")
-                implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.141-kotlin-1.4.21")
-                implementation("org.jetbrains:kotlin-styled:5.2.0-pre.141-kotlin-1.4.21")
+                implementation("org.jetbrains:kotlin-react:17.0.1-pre.143-kotlin-1.4.21")
+                implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.143-kotlin-1.4.21")
+                implementation("org.jetbrains:kotlin-styled:5.2.0-pre.143-kotlin-1.4.21")
 
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
