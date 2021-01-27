@@ -7,6 +7,7 @@ plugins {
     kotlin("multiplatform") version "1.4.21"
     application
     kotlin("plugin.serialization") version "1.4.21"
+    id("com.dorongold.task-tree") version "1.5"
 }
 
 group = "jvmusin"
