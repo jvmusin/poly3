@@ -13,6 +13,8 @@ import styled.*
 
 val scope = MainScope()
 
+val Problem.isAccessible get() = latestPackage != null && accessType != Problem.AccessType.READ
+
 val App = functionalComponent<RProps> {
     val (problems, setProblems) = useState(emptyList<Problem>())
     val (activeProblem, setActiveProblem) = useState<Problem?>(null)
@@ -24,16 +26,14 @@ val App = functionalComponent<RProps> {
         }
     }
 
-    if (activeProblem == null && problems.isNotEmpty()) {
-        setActiveProblem(problems.first())
-    }
-
     useEffect(listOf(activeProblem)) {
         if (activeProblem != null) {
             println("selected problem $activeProblem")
             scope.launch {
                 setProblemInfo(null)
-                setProblemInfo(getProblemInfo(activeProblem.id))
+                if (activeProblem.isAccessible) {
+                    setProblemInfo(getProblemInfo(activeProblem.id))
+                }
             }
         }
     }
@@ -76,7 +76,7 @@ val App = functionalComponent<RProps> {
                             styledLi {
                                 css {
                                     if (problem == activeProblem) fontWeight = FontWeight.bold
-                                    color = if (problem.latestPackage != null) Color.green else Color.red
+                                    color = if (problem.isAccessible) Color.green else Color.red
                                 }
                                 key = "problem-${problem.id}"
                                 attrs {
@@ -89,7 +89,10 @@ val App = functionalComponent<RProps> {
                                         "package ${problem.latestPackage}"
                                     else
                                         "no packages built"
-                                +"${problem.id}: ${problem.name} ($packageInfo)"
+                                var text = "${problem.id}: ${problem.name} ($packageInfo)"
+                                if (problem.accessType == Problem.AccessType.READ)
+                                    text += " (NEED WRITE ACCESS)"
+                                +text
                             }
                         }
                     }
@@ -103,7 +106,7 @@ val App = functionalComponent<RProps> {
                     padding = 0.5.em.toString()
                     backgroundColor = Color.aliceBlue
                 }
-                if (activeProblem != null) {
+                if (activeProblem != null && activeProblem.isAccessible) {
                     h2 { +"Свойства задачи:" }
                     if (problemInfo != null) {
                         div {
@@ -115,7 +118,7 @@ val App = functionalComponent<RProps> {
                             h3 { +"Ограничение времени: ${problemInfo.timeLimitMillis / 1000.0}s" }
                             h3 { +"Ограничение памяти: ${problemInfo.memoryLimitMegabytes}MB" }
                         }
-                        if (activeProblem.latestPackage != null) {
+                        if (activeProblem.isAccessible) {
                             div {
                                 styledA {
                                     css {

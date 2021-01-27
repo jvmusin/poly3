@@ -28,7 +28,7 @@ fun HTML.index() {
     }
 }
 
-fun polygon.Problem.toDto() = Problem(id, name, owner, latestPackage)
+fun polygon.Problem.toDto() = Problem(id, name, owner, Problem.AccessType.valueOf(accessType.name), latestPackage)
 fun polygon.ProblemInfo.toDto() = ProblemInfo(inputFile, outputFile, interactive, timeLimit, memoryLimit)
 
 fun main() {

@@ -9,8 +9,16 @@ data class Problem(
     val id: Int,
     val name: String,
     val owner: String,
+    val accessType: AccessType,
     val latestPackage: Int?
-)
+) {
+    @Serializable
+    enum class AccessType {
+        READ,
+        WRITE,
+        OWNER
+    }
+}
 
 @Serializable
 data class ProblemInfo(
