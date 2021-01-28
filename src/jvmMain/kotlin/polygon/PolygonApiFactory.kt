@@ -16,7 +16,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 import util.sha512
 import java.util.concurrent.TimeUnit
 
-class PolygonApiBuilder {
+class PolygonApiFactory {
 
     companion object {
         private const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
@@ -75,7 +75,7 @@ class PolygonApiBuilder {
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    fun build(): PolygonApi {
+    fun create(): PolygonApi {
         val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
             getLogger(HttpLoggingInterceptor::class.java).debug(message)
         }.setLevel(HttpLoggingInterceptor.Level.BASIC)

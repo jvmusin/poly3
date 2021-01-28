@@ -49,12 +49,11 @@ class SybonApiFactory {
     }
 
     private fun buildRetrofit(url: String): Retrofit {
-        val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl(url)
             .client(buildClient())
             .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(Json { isLenient = true }.asConverterFactory(contentType))
+            .addConverterFactory(Json { isLenient = true }.asConverterFactory("application/json".toMediaType()))
             .build()
     }
 
