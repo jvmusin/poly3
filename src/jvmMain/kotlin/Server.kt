@@ -10,7 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.html.*
 import org.slf4j.event.Level
-import polygon.buildPolygonApi
+import polygon.PolygonApiBuilder
 import polygon.toDto
 import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
@@ -28,7 +28,7 @@ fun HTML.index() {
 }
 
 fun main() {
-    val api = buildPolygonApi()
+    val api = PolygonApiBuilder().build()
     val sybonArchiveBuilder = SybonArchiveBuilder(api)
 
     val port = System.getenv("PORT")?.toInt() ?: 8080

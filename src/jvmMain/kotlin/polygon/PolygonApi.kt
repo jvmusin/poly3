@@ -4,10 +4,13 @@ import okhttp3.ResponseBody
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-const val DEFAULT_TESTSET = "tests"
-
 @Suppress("unused")
 interface PolygonApi {
+
+    companion object {
+        const val DEFAULT_TESTSET = "tests"
+    }
+
     @POST("problems.list")
     suspend fun getProblems(
         @Query("showDeleted") showDeleted: Boolean = false,

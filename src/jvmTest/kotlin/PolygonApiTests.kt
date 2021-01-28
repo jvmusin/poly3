@@ -14,7 +14,7 @@ import kotlin.test.Ignore
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Ignore
 class PolygonApiTests {
-    private val api = buildPolygonApi()
+    private val api = PolygonApiBuilder().build()
 
     @Test
     fun testGetProblems() = runBlocking {
