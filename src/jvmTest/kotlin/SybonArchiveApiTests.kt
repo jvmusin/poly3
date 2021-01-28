@@ -1,40 +1,32 @@
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
+import io.kotest.matchers.shouldBe
 import sybon.Collection
 import sybon.Problem
 import sybon.ResourceLimits
-import sybon.SybonApiBuilder
-import kotlin.test.assertEquals
+import sybon.SybonApiFactory
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(ExecutionMode.CONCURRENT)
-class SybonApiTests {
-    private val api = SybonApiBuilder().build()
+class SybonArchiveApiTests : StringSpec({
+    val api = SybonApiFactory().createArchiveApi()
 
-    @Test
-    fun testGetCollections() = runBlocking {
+    "getCollections should return single collection" {
         val expected = Collection(
             id = 1,
             name = "Global",
             description = "Only Admins",
             problems = emptyList(),
-            problemsCount = -1
+            problemsCount = 0
         )
         val collections = api.getCollections()
-        assertEquals(1, collections.size)
+        collections shouldHaveSize 1
         val collection = collections.first()
-        assert(collection.problemsCount >= 7022)
-        assertEquals(
-            expected,
-            collection.copy(problemsCount = -1)
-        )
+        collection.problemsCount shouldBeGreaterThanOrEqual 7022
+        collection.copy(problemsCount = 0) shouldBe expected
     }
 
-    @Test
-    fun testGetCollection() = runBlocking {
+    "getCollection should return the only 'Only Admins' collection" {
         val collectionId = 1
         val expected = Collection(
             id = collectionId,
@@ -44,16 +36,12 @@ class SybonApiTests {
             problemsCount = 0
         )
         val collection = api.getCollection(collectionId)
-        assertEquals(
-            expected,
-            collection.copy(problems = emptyList(), problemsCount = 0)
-        )
-        assert(collection.problems.size == collection.problemsCount)
-        assert(collection.problems.size >= 7022)
+        collection.copy(problems = emptyList(), problemsCount = 0) shouldBe expected
+        collection.problems shouldHaveSize collection.problemsCount
+        collection.problems shouldHaveAtLeastSize 7022
     }
 
-    @Test
-    fun testGetProblem() = runBlocking {
+    "getProblem should return the correct problem" {
         val problemId = 72147
         val expected = Problem(
             id = problemId,
@@ -73,15 +61,12 @@ class SybonApiTests {
             )
         )
         val problem = api.getProblem(problemId)
-        assertEquals(expected, problem)
+        problem shouldBe expected
     }
 
-    @Test
-    fun testGetProblemStatementUrl() = runBlocking {
+    "getProblemStatementUrl should return the correct url" {
         val problemId = 72147
-        val expected =
-            "http://statement.bacs.cs.istu.ru/statement/get/CkhiYWNzL3Byb2JsZW0vbXVuaWNpcGFsMjAyMC05MTEtZnJvZy1hbmQtcG9seWdvbi9zdGF0ZW1lbnQvdmVyc2lvbnMvQy9wZGYSBgoEMc68zg/bacs/RRtTY4-b81yftuSQdorVUh5w7Z8m-bDUtKdT172cGv9dSMFpF95pNdlbElEyfpMPVmgnokw-yaNEJ2tFgPvCYUvrQaxyYdpvMcFc-MklPkxvooZWcdDm3Xvu4MbD8bOmyn1JwzrydffH1vzBs3CaA-AzO89PP4Di1mu1-IScfN4-JDNN4TIe9RqdtJUGKc61XX96Zh7sVmukRBeiUUILcc3Eem3HPGm9xrKDQcxexSM9B0heJxWqVvKbGv11m1ojTdU-fO5Vi1oOif9WCMGU47oCV6upmk57_Fq-HyuQt1b2s5xGyZ1ToFSwicDF4Z9MlqsMPhOPMuWV9KCr4_GC7A"
-        val actual = api.getProblemStatementUrl(problemId)
-        assertEquals(expected, actual)
+        val url = api.getProblemStatementUrl(problemId)
+        url shouldBe "http://statement.bacs.cs.istu.ru/statement/get/CkhiYWNzL3Byb2JsZW0vbXVuaWNpcGFsMjAyMC05MTEtZnJvZy1hbmQtcG9seWdvbi9zdGF0ZW1lbnQvdmVyc2lvbnMvQy9wZGYSBgoEMc68zg/bacs/RRtTY4-b81yftuSQdorVUh5w7Z8m-bDUtKdT172cGv9dSMFpF95pNdlbElEyfpMPVmgnokw-yaNEJ2tFgPvCYUvrQaxyYdpvMcFc-MklPkxvooZWcdDm3Xvu4MbD8bOmyn1JwzrydffH1vzBs3CaA-AzO89PP4Di1mu1-IScfN4-JDNN4TIe9RqdtJUGKc61XX96Zh7sVmukRBeiUUILcc3Eem3HPGm9xrKDQcxexSM9B0heJxWqVvKbGv11m1ojTdU-fO5Vi1oOif9WCMGU47oCV6upmk57_Fq-HyuQt1b2s5xGyZ1ToFSwicDF4Z9MlqsMPhOPMuWV9KCr4_GC7A"
     }
-}
+})

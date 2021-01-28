@@ -54,6 +54,7 @@ fun main() {
                 throw cause
             }
         }
+        install(DefaultHeaders)
 
         routing {
             get("/") {

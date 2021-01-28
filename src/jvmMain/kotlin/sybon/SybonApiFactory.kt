@@ -13,9 +13,10 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 import util.getLogger
 import java.util.concurrent.TimeUnit
 
-class SybonApiBuilder {
+class SybonApiFactory {
     companion object {
         private const val ARCHIVE_API_URL = "https://archive.sybon.org/api/"
+        private const val CHECKING_API_URL = "https://checking.sybon.org/api/"
 
         @Suppress("SpellCheckingInspection")
         private const val API_KEY = "YBJY9zkkUUigNcYOlFoSg"
@@ -29,7 +30,7 @@ class SybonApiBuilder {
         }
     }
 
-    fun build(): SybonArchiveApi {
+    private fun buildClient(): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
             getLogger(HttpLoggingInterceptor::class.java).debug(message)
         }.setLevel(HttpLoggingInterceptor.Level.BASIC)
@@ -37,7 +38,7 @@ class SybonApiBuilder {
             maxRequests = 100
             maxRequestsPerHost = 100
         }
-        val client = OkHttpClient().newBuilder()
+        return OkHttpClient().newBuilder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
@@ -45,13 +46,20 @@ class SybonApiBuilder {
             .addInterceptor(httpLoggingInterceptor)
             .dispatcher(dispatcher)
             .build()
+    }
+
+    private fun buildRetrofit(url: String): Retrofit {
         val contentType = "application/json".toMediaType()
-        val retrofit = Retrofit.Builder()
-            .baseUrl(ARCHIVE_API_URL)
-            .client(client)
+        return Retrofit.Builder()
+            .baseUrl(url)
+            .client(buildClient())
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(Json { isLenient = true }.asConverterFactory(contentType))
             .build()
-        return retrofit.create(SybonArchiveApi::class.java)
     }
+
+    private fun <T> buildApi(url: String, clazz: Class<T>): T = buildRetrofit(url).create(clazz)
+
+    fun createArchiveApi() = buildApi(ARCHIVE_API_URL, SybonArchiveApi::class.java)
+    fun createCheckingApi() = buildApi(CHECKING_API_URL, SybonCheckingApi::class.java)
 }

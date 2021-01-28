@@ -17,6 +17,7 @@ val ktorVersion = "1.5.0"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.1"
 val junitVersion = "5.6.0"
+val kotestVersion = "4.4.0.RC2"
 
 repositories {
     jcenter()
@@ -62,8 +63,8 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
+//                implementation(kotlin("test-common"))
+//                implementation(kotlin("test-annotations-common"))
             }
         }
         val jvmMain by getting {
@@ -86,9 +87,15 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+//                implementation(kotlin("test-junit5"))
+//                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+//                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+//                implementation("org.hamcrest:hamcrest:2.2")
+
+                implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
+                implementation("io.kotest:kotest-property:$kotestVersion")
+//                implementation("io.kotest:kotest-assertions-ktor:$kotestVersion")
             }
         }
         val jsMain by getting {
@@ -105,7 +112,7 @@ kotlin {
         }
         val jsTest by getting {
             dependencies {
-                implementation(kotlin("test-js"))
+//                implementation(kotlin("test-js"))
             }
         }
     }
@@ -149,4 +156,8 @@ distributions {
 
 tasks.withType(KotlinCompile::class).all {
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
