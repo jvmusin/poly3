@@ -2,12 +2,12 @@
 
 package sybon
 
-import getLogger
+import util.getLogger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import polygon.*
-import toZipArchive
+import util.toZipArchive
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths

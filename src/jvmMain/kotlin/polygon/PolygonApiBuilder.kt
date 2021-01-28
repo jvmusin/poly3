@@ -1,7 +1,7 @@
 package polygon
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import getLogger
+import util.getLogger
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Dispatcher
@@ -13,7 +13,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
-import sha512
+import util.sha512
 import java.util.concurrent.TimeUnit
 
 class PolygonApiBuilder {

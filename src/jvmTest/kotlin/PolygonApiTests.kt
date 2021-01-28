@@ -7,6 +7,7 @@ import org.junit.jupiter.api.TestInstance
 import polygon.*
 import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
+import util.getLogger
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.test.Ignore
