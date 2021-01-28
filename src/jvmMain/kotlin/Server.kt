@@ -1,5 +1,3 @@
-import api.Problem
-import api.ProblemInfo
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.html.*
@@ -13,6 +11,7 @@ import io.ktor.server.netty.*
 import kotlinx.html.*
 import org.slf4j.event.Level
 import polygon.buildPolygonApi
+import polygon.toDto
 import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
 
@@ -27,9 +26,6 @@ fun HTML.index() {
         script(src = "/static/output.js") {}
     }
 }
-
-fun polygon.Problem.toDto() = Problem(id, name, owner, Problem.AccessType.valueOf(accessType.name), latestPackage)
-fun polygon.ProblemInfo.toDto() = ProblemInfo(inputFile, outputFile, interactive, timeLimit, memoryLimit)
 
 fun main() {
     val api = buildPolygonApi()
@@ -69,7 +65,7 @@ fun main() {
             route("/problems") {
                 get("/") {
                     val problems = api.getProblems().result!!
-                    call.respond(HttpStatusCode.OK, problems.map(polygon.Problem::toDto))
+                    call.respond(HttpStatusCode.OK, problems.map { it.toDto() })
                 }
                 route("/{problemId}") {
                     get("/") {
