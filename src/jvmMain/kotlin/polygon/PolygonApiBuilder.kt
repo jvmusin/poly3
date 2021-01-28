@@ -24,7 +24,7 @@ class PolygonApiBuilder {
         private const val POLYGON_URL = "https://polygon.codeforces.com/api/"
     }
 
-    private class ApiSigAddingInterceptor() : Interceptor {
+    private class ApiSigAddingInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val original = chain.request()
             val originalUrl = original.url
