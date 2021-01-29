@@ -38,7 +38,7 @@ suspend fun PolygonApi.getStatementRaw(
 }
 
 suspend fun PolygonApi.getProblem(problemId: Int): Problem {
-    return getProblems().result!!.first { it.id == problemId }
+    return getProblems().result!!.single { it.id == problemId }
 }
 
 suspend fun PolygonApi.getStatement(problemId: Int, language: String? = null): Pair<String, Statement> {
@@ -51,4 +51,8 @@ suspend fun PolygonApi.getLatestPackage(problemId: Int): Package? {
     return getPackages(problemId).result
         ?.filter { it.state == Package.State.READY }
         ?.maxByOrNull { it.id }
+}
+
+suspend fun PolygonApi.getMainSolution(problemId: Int): Solution {
+    return getSolutions(problemId).result!!.single { it.tag == "MA" }
 }

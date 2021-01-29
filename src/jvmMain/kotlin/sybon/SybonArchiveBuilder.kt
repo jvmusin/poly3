@@ -16,9 +16,9 @@ class SybonArchiveBuilder(
     private val polygonApi: PolygonApi
 ) {
     @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun build(problemId: Int): Path {
+    suspend fun build(problemId: Int, properties: SybonArchiveProperties): Path {
         try {
-            return buildInternal(problemId)
+            return buildInternal(problemId, properties)
         } catch (ex: SybonArchiveBuildException) {
             throw ex
         } catch (ex: Exception) {
@@ -26,7 +26,7 @@ class SybonArchiveBuilder(
         }
     }
 
-    private suspend fun buildInternal(problemId: Int): Path = coroutineScope {
+    private suspend fun buildInternal(problemId: Int, properties: SybonArchiveProperties): Path = coroutineScope {
         val problem = async { polygonApi.getProblem(problemId) }
         val packageId = async { polygonApi.getLatestPackage(problemId)!!.id }
         val unpackedPath = async { polygonApi.downloadPackage(problemId, packageId.await()) }
@@ -34,8 +34,8 @@ class SybonArchiveBuilder(
 
         val destinationPath = Paths.get(
             "sybon-packages",
-            "id$problemId-package${packageId.await()}",
-            problem.await().name
+            "id$problemId-rev${problem.await().revision}",
+            "${properties.addPrefix.orEmpty()}${problem.await().name}${properties.addSuffix.orEmpty()}"
         )
 
         val checkerPath = destinationPath.resolve("checker")
@@ -79,12 +79,11 @@ class SybonArchiveBuilder(
             val checkerFilePath = unpackedPath.await().resolve("check.cpp")
             if (Files.notExists(checkerFilePath)) {
                 throw SybonArchiveBuildException(
-                    "" +
-                            "Checker \"check.cpp\" doesn't exist in the polygon problem package. " +
+                    "Checker 'check.cpp' not found in the polygon problem package. " +
                             "Other kinds of checkers are not supported."
                 )
             }
-            Files.write(checkerPath.resolve("check.cpp"), Files.readAllBytes(checkerFilePath))
+            Files.copy(checkerFilePath, checkerPath.resolve("check.cpp"))
             val config = """
                 [build]
                 builder = single
@@ -99,8 +98,7 @@ class SybonArchiveBuilder(
         }
 
         suspend fun writeSolution() {
-            val mainSolution =
-                polygonApi.getSolutions(problemId).result!!.single { it.tag == "MA" }
+            val mainSolution = polygonApi.getMainSolution(problemId)
             val solutionContent = polygonApi.getSolution(problemId, mainSolution.name).bytes()
             Files.write(solutionPath.resolve(mainSolution.name), solutionContent)
         }
@@ -168,11 +166,11 @@ class SybonArchiveBuilder(
                         "Old package id was ${packageId.await()}, actual is $actualPackageId. " +
                         "Rebuilding the sybon package."
             )
-            return@coroutineScope buildInternal(problemId)
+            return@coroutineScope buildInternal(problemId, properties)
         }
 
         val par = destinationPath.parent
-        val zipPath = par.resolve("${problem.await().name}-package${packageId.await()}.zip")
+        val zipPath = par.resolve("${problem.await().name}-rev${problem.await().revision}.zip")
         par.toZipArchive(zipPath)
         zipPath
     }

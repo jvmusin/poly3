@@ -14,6 +14,7 @@ import polygon.PolygonApiFactory
 import polygon.toDto
 import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
+import sybon.SybonArchiveProperties
 
 fun HTML.index() {
     head {
@@ -76,7 +77,7 @@ fun main() {
                     }
                     get("/download") {
                         val problemId = call.parameters["problemId"]!!.toInt()
-                        val zipPath = sybonArchiveBuilder.build(problemId)
+                        val zipPath = sybonArchiveBuilder.build(problemId, SybonArchiveProperties("polybacs-"))
                         call.response.headers.append("Content-Disposition", "filename=\"${zipPath.fileName}\"")
                         call.respondFile(zipPath.toFile())
                     }
