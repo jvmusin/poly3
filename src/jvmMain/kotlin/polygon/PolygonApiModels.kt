@@ -101,7 +101,7 @@ data class Solution(
 )
 
 @Serializable
-data class Test(
+data class PolygonTest(
     val index: Int,
     val manual: Boolean,
     val input: String? = null,

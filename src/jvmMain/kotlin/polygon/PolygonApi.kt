@@ -82,27 +82,27 @@ interface PolygonApi {
     suspend fun getTests(
         @Query("problemId") problemId: Int,
         @Query("testset") testSet: String = DEFAULT_TESTSET
-    ): PolygonResponse<List<Test>>
+    ): PolygonResponse<List<PolygonTest>>
 
     @POST("problem.testInput")
     suspend fun getTestInput(
         @Query("problemId") problemId: Int,
-        @Query("testset") testSet: String = DEFAULT_TESTSET,
-        @Query("testIndex") testIndex: Int
+        @Query("testIndex") testIndex: Int,
+        @Query("testset") testSet: String = DEFAULT_TESTSET
     ): String
 
     @POST("problem.testAnswer")
     suspend fun getTestAnswer(
         @Query("problemId") problemId: Int,
-        @Query("testset") testSet: String = DEFAULT_TESTSET,
-        @Query("testIndex") testIndex: Int
+        @Query("testIndex") testIndex: Int,
+        @Query("testset") testSet: String = DEFAULT_TESTSET
     ): String
 
     @POST("problem.viewTestGroup")
     suspend fun getTestGroup(
         @Query("problemId") problemId: Int,
-        @Query("testset") testset: String = DEFAULT_TESTSET,
-        @Query("group") group: String
+        @Query("group") group: String,
+        @Query("testset") testset: String = DEFAULT_TESTSET
     ): PolygonResponse<List<TestGroup>>
 
     @POST("problem.viewTags")

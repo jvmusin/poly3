@@ -2,11 +2,11 @@
 
 package sybon
 
-import util.getLogger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import polygon.*
+import util.getLogger
 import util.toZipArchive
 import java.nio.file.Files
 import java.nio.file.Path
@@ -50,15 +50,22 @@ class SybonArchiveBuilder(
 
         val (language, statement) = polygonApi.getStatement(problemId)
 
-        suspend fun writeConfig() {
+        suspend fun writeConfig(sampleTests: List<PolygonTest>) {
             val config = """
                 [info]
                 name = ${statement.name}
-                maintainers = ${setOf(problem.await().owner, "Musin").joinToString(", ")}
+                maintainers = ${setOf(problem.await().owner, "Musin").joinToString(" ")}
                 
                 [resource_limits]
                 time = ${"%.2f".format(problemInfo.await().timeLimit / 1000.0)}s
                 memory = ${problemInfo.await().memoryLimit}MiB
+                
+                [tests]
+                group_pre = ${sampleTests.joinToString(" ") { it.index.toString() }}
+                score_pre = 0
+                continue_condition_pre = WHILE_OK
+                score = 100
+                continue_condition = ALWAYS
             """.trimIndent()
             Files.write(destinationPath.resolve("config.ini"), config.toByteArray())
         }
@@ -117,9 +124,8 @@ class SybonArchiveBuilder(
             Files.write(statementPath.resolve("problem.pdf"), statementContent)
         }
 
-        suspend fun writeTests() {
+        suspend fun writeTests(tests: List<PolygonTest>): List<Int> {
             try {
-                val tests = polygonApi.getTests(problemId).result!!
                 fun writeTest(index: Int, type: String, content: String) {
                     Files.write(
                         testsPath.resolve("${index}.$type"),
@@ -129,27 +135,30 @@ class SybonArchiveBuilder(
 
                 val inputs = tests.map {
                     async {
-                        writeTest(it.index, "in", polygonApi.getTestInput(problemId, testIndex = it.index))
+                        writeTest(it.index, "in", polygonApi.getTestInput(problemId, it.index))
                     }
                 }
                 val outputs = tests.map {
                     async {
-                        writeTest(it.index, "out", polygonApi.getTestAnswer(problemId, testIndex = it.index))
+                        writeTest(it.index, "out", polygonApi.getTestAnswer(problemId, it.index))
                     }
                 }
                 inputs.awaitAll()
                 outputs.awaitAll()
+
+                return tests.filter { it.useInStatements }.map { it.index }
             } catch (ex: Exception) {
                 throw SybonArchiveBuildException("Failed to load test data: ${ex.message}", ex)
             }
         }
 
-        writeConfig()
+        val tests = polygonApi.getTests(problemId).result!!
+        writeConfig(tests.filter { it.useInStatements })
         writeFormat()
         writeChecker()
         writeSolution()
         writeStatement()
-        writeTests()
+        writeTests(tests)
 
         val actualPackageId = polygonApi.getLatestPackage(problemId)!!.id
         if (actualPackageId != packageId.await()) {
