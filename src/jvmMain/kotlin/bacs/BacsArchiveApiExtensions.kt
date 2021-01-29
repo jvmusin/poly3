@@ -3,6 +3,7 @@ package bacs
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import util.getLogger
 import java.nio.file.Path
 
 suspend fun BacsArchiveApi.uploadProblem(zip: Path): String {
@@ -15,5 +16,8 @@ suspend fun BacsArchiveApi.uploadProblem(zip: Path): String {
         .addFormDataPart("archiver_type", "7z")
         .addFormDataPart("response", "html")
         .build()
-    return uploadProblem(body)
+    val html = uploadProblem(body)
+    getLogger(javaClass).debug("Problem is uploaded. Response html:")
+    getLogger(javaClass).info(html)
+    return html
 }

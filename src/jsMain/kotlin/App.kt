@@ -1,5 +1,6 @@
 import api.Problem
 import api.ProblemInfo
+import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.css.*
@@ -125,10 +126,42 @@ val App = functionalComponent<RProps> {
                                         fontSize = 30.px
                                         color = Color.hotPink
                                     }
-//                                +"А теперь нажми сюда, чтобы скачать архив для сайбона. Замечательно, правда? А если кто-нибудь (Артём) запилит заливку архивов в сайбон, будет вообще чудесно(, Артём)"
                                     +"Скачать архив"
                                     attrs {
                                         href = downloadPackageLink(activeProblem.id)
+                                    }
+                                }
+                                styledButton {
+                                    css {
+                                        fontSize = 30.px
+                                        color = Color.deepPink
+                                    }
+                                    +"Загрузить в BACS с id polybacs-${activeProblem.name}"
+                                    attrs {
+                                        onClickFunction = {
+                                            fun logAlert(text: String) {
+                                                console.log(text)
+                                                window.alert(text)
+                                            }
+                                            scope.launch {
+                                                var fail = false
+                                                try {
+                                                    val sybonId = transferToBacsArchive(activeProblem.id)
+                                                    if (sybonId != -1) {
+                                                        logAlert("Задача ${activeProblem.name} загружена в BACS и имеет SybonId $sybonId")
+                                                    } else {
+                                                        fail = true
+                                                    }
+                                                } catch (ex: Exception) {
+                                                    fail = true
+                                                    println(ex)
+                                                }
+                                                if (fail) {
+                                                    logAlert("Задача ${activeProblem.name} не загрузилась в BACS((")
+                                                }
+                                            }
+                                            logAlert("Задача ${activeProblem.name} поставлена в очередь на загрузку в BACS")
+                                        }
                                     }
                                 }
                             }

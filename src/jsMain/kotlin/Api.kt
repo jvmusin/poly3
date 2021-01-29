@@ -17,3 +17,5 @@ suspend fun getProblems(): List<Problem> = jsonClient.get("$endpoint/problems")
 suspend fun getProblemInfo(problemId: Int): ProblemInfo = jsonClient.get("$endpoint/problems/$problemId")
 
 fun downloadPackageLink(problemId: Int) = "$endpoint/problems/$problemId/download"
+
+suspend fun transferToBacsArchive(problemId: Int): Int = jsonClient.get("$endpoint/problems/$problemId/transfer")
