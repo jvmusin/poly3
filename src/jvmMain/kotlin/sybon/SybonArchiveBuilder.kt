@@ -11,6 +11,7 @@ import util.toZipArchive
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 
 class SybonArchiveBuilder(
     private val polygonApi: PolygonApi
@@ -34,9 +35,10 @@ class SybonArchiveBuilder(
 
         val destinationPath = Paths.get(
             "sybon-packages",
-            "id$problemId-rev${problem.await().revision}",
+            "${problem.await().name}-rev${problem.await().revision}-${UUID.randomUUID()}",
             "${properties.addPrefix.orEmpty()}${problem.await().name}${properties.addSuffix.orEmpty()}"
         )
+        destinationPath.toFile().deleteRecursively()
 
         val checkerPath = destinationPath.resolve("checker")
         val miscPath = destinationPath.resolve("misc")
@@ -122,13 +124,10 @@ class SybonArchiveBuilder(
             Files.write(statementPath.resolve("problem.pdf"), statementContent)
         }
 
-        suspend fun writeTests(tests: List<PolygonTest>): List<Int> {
+        suspend fun writeTests(tests: List<PolygonTest>) {
             try {
                 fun writeTest(index: Int, type: String, content: String) {
-                    Files.write(
-                        testsPath.resolve("${index}.$type"),
-                        content.toByteArray()
-                    )
+                    Files.write(testsPath.resolve("${index}.$type"), content.toByteArray())
                 }
 
                 val inputs = tests.map {
@@ -143,8 +142,6 @@ class SybonArchiveBuilder(
                 }
                 inputs.awaitAll()
                 outputs.awaitAll()
-
-                return tests.filter { it.useInStatements }.map { it.index }
             } catch (ex: Exception) {
                 throw SybonArchiveBuildException("Failed to load test data: ${ex.message}", ex)
             }
