@@ -1,12 +1,10 @@
 package bacs
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import okhttp3.Dispatcher
-import okhttp3.Interceptor
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -17,18 +15,21 @@ import java.util.concurrent.TimeUnit
 class BacsArchiveApiFactory {
     companion object {
         const val API_URL = "https://archive.bacs.cs.istu.ru/repository/"
-        const val AUTH_TOKEN = "Basic c3lib246d2poJDQyZHMwOQ=="
+        const val AUTH_USERNAME = "sybon"
+        const val AUTH_PASSWORD = "wjh\$42ds09"
     }
 
     private class BasicAuthInjectorInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
-            return chain.proceed(chain.request().newBuilder().header("Authorization", AUTH_TOKEN).build())
+            val credentials = Credentials.basic(AUTH_USERNAME, AUTH_PASSWORD)
+            val request = chain.request().newBuilder().header("Authorization", credentials).build()
+            return chain.proceed(request)
         }
     }
 
     private fun buildClient(): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
-            getLogger(HttpLoggingInterceptor::class.java).debug(message)
+            getLogger(javaClass).debug(message)
         }.setLevel(HttpLoggingInterceptor.Level.BASIC)
         val dispatcher = Dispatcher().apply {
             maxRequests = 100
@@ -44,6 +45,7 @@ class BacsArchiveApiFactory {
             .build()
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     fun create(): BacsArchiveApi {
         return Retrofit.Builder()
             .baseUrl(API_URL)
