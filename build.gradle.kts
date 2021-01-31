@@ -40,10 +40,7 @@ kotlin {
     js(IR) {
         browser {
             binaries.executable()
-            webpackTask {
-                cssSupport.enabled = true
-            }
-            runTask {
+            commonWebpackConfig {
                 cssSupport.enabled = true
             }
             testTask {
@@ -75,6 +72,7 @@ kotlin {
                 implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
                 implementation("com.squareup.okhttp3:logging-interceptor:4.10.0-RC1")
+                implementation("com.squareup.okhttp3:okhttp:4.10.0-RC1")
                 implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.8.0")
 
                 implementation("io.ktor:ktor-html-builder:$ktorVersion")
@@ -83,6 +81,9 @@ kotlin {
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
                 implementation("io.ktor:ktor-websockets:$ktorVersion")
                 implementation("ch.qos.logback:logback-classic:1.3.0-alpha5")
+
+                // https://mvnrepository.com/artifact/org.jsoup/jsoup
+                implementation("org.jsoup:jsoup:1.13.1")
             }
         }
         val jvmTest by getting {
