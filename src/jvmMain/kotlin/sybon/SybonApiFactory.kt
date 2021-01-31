@@ -1,6 +1,7 @@
 package sybon
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Dispatcher
 import okhttp3.Interceptor
@@ -48,6 +49,7 @@ class SybonApiFactory {
             .build()
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private fun buildRetrofit(url: String): Retrofit {
         return Retrofit.Builder()
             .baseUrl(url)
