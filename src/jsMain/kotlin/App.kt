@@ -1,15 +1,11 @@
 import api.Problem
 import api.ProblemInfo
-import kotlinx.browser.window
+import kotlinext.js.jsObject
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.css.*
-import kotlinx.html.js.onClickFunction
-import react.RProps
+import react.*
 import react.dom.*
-import react.functionalComponent
-import react.useEffect
-import react.useState
 import styled.*
 
 val scope = MainScope()
@@ -29,7 +25,6 @@ val App = functionalComponent<RProps> {
 
     useEffect(listOf(activeProblem)) {
         if (activeProblem != null) {
-            println("selected problem $activeProblem")
             scope.launch {
                 setProblemInfo(null)
                 if (activeProblem.isAccessible) {
@@ -40,143 +35,30 @@ val App = functionalComponent<RProps> {
     }
 
     styledDiv {
-        styledDiv {
-            css {
-                display = Display.flex
-                flexDirection = FlexDirection.column
-                alignItems = Align.center
-            }
-            h1 { +"Это конвертер задач из полигона в бакс Полибакс" }
-            h2 { +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin" }
+        css {
+            display = Display.flex
+            flexDirection = FlexDirection.column
+            alignItems = Align.center
         }
+        h1 { +"Это конвертер задач из полигона в бакс Полибакс" }
+        h2 { +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin" }
+    }
 
-        styledDiv {
-            css {
-                display = Display.flex
-                justifyContent = JustifyContent.center
-            }
-
-            styledDiv {
-                css {
-                    margin = 0.5.em.toString()
-                    padding = 0.5.em.toString()
-                    backgroundColor = Color.aliceBlue
-                }
-                h2 { +"Доступные задачи. Нажми на любую:" }
-                nav {
-                    styledUl {
-                        css {
-                            backgroundColor = Color.cornsilk
-                            height = 40.em
-                            width = 30.em
-                            overflow = Overflow.hidden
-                            overflowY = Overflow.scroll
-                            fontSize = 1.20.em
-                        }
-                        for (problem in problems) {
-                            styledLi {
-                                css {
-                                    if (problem == activeProblem) fontWeight = FontWeight.bold
-                                    color = if (problem.isAccessible) Color.green else Color.red
-                                }
-                                key = "problem-${problem.id}"
-                                attrs {
-                                    onClickFunction = {
-                                        setActiveProblem(problem)
-                                    }
-                                }
-                                val packageInfo =
-                                    if (problem.latestPackage != null)
-                                        "package ${problem.latestPackage}"
-                                    else
-                                        "no packages built"
-                                var text = "${problem.id}: ${problem.name} ($packageInfo)"
-                                if (problem.accessType == Problem.AccessType.READ)
-                                    text += " (NEED WRITE ACCESS)"
-                                +text
-                            }
-                        }
-                    }
-                }
-            }
-
-            styledDiv {
-                css {
-                    width = 25.em
-                    margin = 0.5.em.toString()
-                    padding = 0.5.em.toString()
-                    backgroundColor = Color.aliceBlue
-                }
-                if (activeProblem != null && activeProblem.isAccessible) {
-                    h2 { +"Свойства задачи:" }
-                    if (problemInfo != null) {
-                        div {
-                            h3 { +"Название: ${activeProblem.name}" }
-                            h3 { +"Автор: ${activeProblem.owner}" }
-                            h3 { +"Ввод: ${problemInfo.inputFile}" }
-                            h3 { +"Вывод: ${problemInfo.outputFile}" }
-                            h3 { +"Интерактивная: ${if (problemInfo.interactive) "Да" else "Нет"}" }
-                            h3 { +"Ограничение времени: ${problemInfo.timeLimitMillis / 1000.0}s" }
-                            h3 { +"Ограничение памяти: ${problemInfo.memoryLimitMegabytes}MB" }
-                        }
-                        if (activeProblem.isAccessible) {
-                            div {
-                                styledA {
-                                    css {
-                                        fontSize = 30.px
-                                        color = Color.hotPink
-                                    }
-                                    +"Скачать архив"
-                                    attrs {
-                                        href = downloadPackageLink(activeProblem.id)
-                                    }
-                                }
-                                styledButton {
-                                    css {
-                                        fontSize = 30.px
-                                        color = Color.deepPink
-                                    }
-                                    +"Загрузить в BACS с id polybacs-${activeProblem.name}"
-                                    attrs {
-                                        onClickFunction = {
-                                            fun logAlert(text: String) {
-                                                console.log(text)
-                                                window.alert(text)
-                                            }
-                                            scope.launch {
-                                                var fail = false
-                                                try {
-                                                    val sybonId = transferToBacsArchive(activeProblem.id)
-                                                    if (sybonId != -1) {
-                                                        logAlert("Задача ${activeProblem.name} загружена в BACS и имеет SybonId $sybonId")
-                                                    } else {
-                                                        fail = true
-                                                    }
-                                                } catch (ex: Exception) {
-                                                    fail = true
-                                                    println(ex)
-                                                }
-                                                if (fail) {
-                                                    logAlert("Задача ${activeProblem.name} не загрузилась в BACS((")
-                                                }
-                                            }
-                                            logAlert("Задача ${activeProblem.name} поставлена в очередь на загрузку в BACS")
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            styledP {
-                                css {
-                                    fontSize = 30.px
-                                    color = Color.red
-                                }
-                                +"Пакет не собран!"
-                            }
-                        }
-                    }
-                }
-            }
+    styledDiv {
+        css {
+            display = Display.flex
+            justifyContent = JustifyContent.center
+            flexGrow = 1.0
+            minHeight = 0.px
         }
+        child(ProblemList, jsObject {
+            this@jsObject.problems = problems
+            this@jsObject.activeProblem = activeProblem
+            this.onProblemSelect = { problem -> scope.launch { setActiveProblem(problem) } }
+        })
+        child(ProblemDetails, jsObject {
+            this.problem = activeProblem
+            this.problemInfo = problemInfo
+        })
     }
 }
