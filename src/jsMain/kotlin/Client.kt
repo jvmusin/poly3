@@ -15,7 +15,7 @@ fun main() {
             display = Display.flex
             flexDirection = FlexDirection.column
         }
-        "h1, h2" {
+        "h1, h2, h3" {
             marginBottom = 0.px
         }
     }

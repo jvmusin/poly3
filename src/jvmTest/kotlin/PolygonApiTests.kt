@@ -1,9 +1,9 @@
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldBeSortedWith
-import io.kotest.matchers.collections.shouldHaveSize
 import polygon.PolygonApiFactory
 import polygon.PolygonTest
+import sybon.SybonArchiveBuilder
 
 @Ignored
 class PolygonApiTests : StringSpec({
@@ -14,8 +14,12 @@ class PolygonApiTests : StringSpec({
         tests shouldBeSortedWith compareBy(PolygonTest::index)
     }
 
-    "getTests should not return temporary tests" {
-        val tests = api.getTests(155265).result!!
-        tests shouldHaveSize 5
+    "test build archive" {
+        val builder = SybonArchiveBuilder(api)
+//        builder.build(LARGE_ARCHIVE_PROBLEM_ID, SybonArchiveProperties())
     }
-})
+}) {
+    companion object {
+        const val LARGE_ARCHIVE_PROBLEM_ID = 144845
+    }
+}

@@ -1,15 +1,19 @@
+import api.AdditionalProblemProperties
 import bacs.BacsArchiveApiFactory
-import bacs.uploadProblem
+import bacs.uploadProblemFromZip
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.html.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.html.*
 import org.slf4j.event.Level
@@ -19,8 +23,10 @@ import polygon.toDto
 import sybon.SybonApiFactory
 import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
-import sybon.SybonArchiveProperties
 import util.getLogger
+import java.nio.file.Paths
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.readBytes
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
@@ -36,6 +42,7 @@ fun HTML.index() {
     }
 }
 
+@ExperimentalPathApi
 @OptIn(ExperimentalTime::class)
 fun main() {
     val polygonApi = PolygonApiFactory().create()
@@ -67,8 +74,16 @@ fun main() {
             }
         }
         install(DefaultHeaders)
+        install(WebSockets)
 
         routing {
+            webSocket("/ws") {
+                getLogger(javaClass).info("CONNECTED")
+                repeat(5) {
+                    outgoing.send(Frame.Text("Test $it"))
+                    delay(5.seconds)
+                }
+            }
             get("/") {
                 call.respondHtml(HttpStatusCode.OK, HTML::index)
             }
@@ -86,25 +101,39 @@ fun main() {
                         val problemInfo = polygonApi.getInfo(problemId).result!!
                         call.respond(HttpStatusCode.OK, problemInfo.toDto())
                     }
-                    get("/download") {
+                    post("/download") {
                         val problemId = call.parameters["problemId"]!!.toInt()
-                        val zipPath = sybonArchiveBuilder.build(problemId, SybonArchiveProperties("polybacs-"))
-                        call.response.headers.append("Content-Disposition", "filename=\"${zipPath.fileName}\"")
-                        call.respondFile(zipPath.toFile())
+                        val properties = call.receive<AdditionalProblemProperties>()
+                        val zipName = sybonArchiveBuilder.build(problemId, properties)
+                        call.response.header(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.Attachment.withParameter(
+                                ContentDisposition.Parameters.FileName,
+                                zipName
+                            ).toString()
+                        )
+                        val bytes = Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName).readBytes()
+                        println(bytes.size / 1024)
+                        call.respondFile(Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName).toFile())
                     }
-                    get("/transfer") {
+                    post("/transfer") {
                         val problemId = call.parameters["problemId"]!!.toInt()
-                        val zipPath = sybonArchiveBuilder.build(problemId, SybonArchiveProperties("polybacs-"))
-                        bacsArchiveApi.uploadProblem(zipPath)
+                        val properties = call.receive<AdditionalProblemProperties>()
+                        val zipName = sybonArchiveBuilder.build(problemId, properties)
+                        bacsArchiveApi.uploadProblemFromZip(
+                            Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName)
+                        )
                         val problem = polygonApi.getProblem(problemId)
                         val expectedName = "polybacs-${problem.name}"
+
+                        //todo move it out wtf
                         for (i in 0 until 20) {
                             val problems = sybonArchiveApi.getCollection(1).problems
                             val importedProblem = problems.singleOrNull { it.internalProblemId == expectedName }
                             if (importedProblem != null) {
                                 getLogger(javaClass).info("Problem $expectedName is imported with id ${importedProblem.id}")
                                 call.respond(importedProblem.id)
-                                return@get
+                                return@post
                             }
                             getLogger(javaClass).info("Problem $expectedName is not in sybon list yet, sleeping for 3 seconds")
                             delay(3.seconds)

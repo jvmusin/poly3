@@ -7,4 +7,11 @@ object Styles : StyleSheet("Styles") {
         padding(0.5.em)
         backgroundColor = Color.aliceBlue
     }
+
+    val problemDetailsTable by css {
+        width = 100.pct
+        tableLayout = TableLayout.fixed
+        marginLeft = LinearDimension.auto
+        marginRight = LinearDimension.auto
+    }
 }

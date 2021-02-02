@@ -84,6 +84,7 @@ kotlin {
 
                 // https://mvnrepository.com/artifact/org.jsoup/jsoup
                 implementation("org.jsoup:jsoup:1.13.1")
+                implementation("io.ktor:ktor-websockets:$ktorVersion")
             }
         }
         val jvmTest by getting {
@@ -109,6 +110,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
+                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             }
         }
         val jsTest by getting {
@@ -126,9 +128,13 @@ application {
 tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
     outputFileName = "output.js"
 }
+tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack") {
+    outputFileName = "output.js"
+}
 
 tasks.getByName<Jar>("jvmJar") {
-    val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack")
+    //todo undo it
+    val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
     dependsOn(webpackTask) // make sure JS gets compiled first
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
 }

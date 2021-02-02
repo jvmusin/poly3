@@ -6,7 +6,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import util.getLogger
 import java.nio.file.Path
 
-suspend fun BacsArchiveApi.uploadProblem(zip: Path): String {
+suspend fun BacsArchiveApi.uploadProblemFromZip(zip: Path): String {
     val contentType = "application/zip".toMediaType()
     val body = MultipartBody.Builder()
         .setType(MultipartBody.FORM)

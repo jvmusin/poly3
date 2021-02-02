@@ -28,3 +28,11 @@ data class ProblemInfo(
     val timeLimitMillis: Int,
     val memoryLimitMegabytes: Int
 )
+
+@Serializable
+data class AdditionalProblemProperties(
+    val prefix: String? = null,
+    val suffix: String? = null,
+    val timeLimitMillis: Int? = null,
+    val memoryLimitMegabytes: Int? = null
+)
