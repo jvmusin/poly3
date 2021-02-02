@@ -24,11 +24,14 @@ val ProblemList = functionalComponent<ProblemListProps> { props ->
         h2 { +"Доступные задачи. Нажми на любую:" }
         styledDiv {
             css {
+                marginTop = 1.em
                 overflow = Overflow.hidden
                 overflowY = Overflow.scroll
+                flexGrow = 1.0
             }
             styledUl {
                 css {
+                    marginTop = 0.px
                     backgroundColor = Color.cornsilk
                     flexGrow = 1.0
                 }
