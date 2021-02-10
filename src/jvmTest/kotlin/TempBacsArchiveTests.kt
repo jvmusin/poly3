@@ -1,17 +1,18 @@
+import bacs.BacsArchiveService
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.StringSpec
 import kotlinx.serialization.ExperimentalSerializationApi
-import okhttp3.Interceptor
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level.HEADERS
 import org.jsoup.Jsoup
 import sybon.SybonApiFactory
+import util.getLogger
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalSerializationApi::class)
 @Ignored
@@ -66,5 +67,40 @@ class TempBacsArchiveTests : StringSpec({
             .getElementsByTag("pre")[0]
             .text()
         println(element)
+    }
+
+    "Test new api" {
+
+        val API_URL = "https://archive.bacs.cs.istu.ru/repository"
+        val AUTH_USERNAME = "sybon"
+        val AUTH_PASSWORD = "wjh\$42ds09"
+
+        class BasicAuthInjectorInterceptor : Interceptor {
+            override fun intercept(chain: Interceptor.Chain): Response {
+                val credentials = Credentials.basic(AUTH_USERNAME, AUTH_PASSWORD)
+                val request = chain.request().newBuilder().header("Authorization", credentials).build()
+                return chain.proceed(request)
+            }
+        }
+
+        val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
+            getLogger(javaClass).debug(message)
+        }.setLevel(HttpLoggingInterceptor.Level.BASIC)
+        val dispatcher = Dispatcher().apply {
+            maxRequests = 100
+            maxRequestsPerHost = 100
+        }
+        val client = OkHttpClient().newBuilder()
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .addInterceptor(BasicAuthInjectorInterceptor())
+            .addInterceptor(httpLoggingInterceptor)
+            .dispatcher(dispatcher)
+            .build()
+
+        val zip = Paths.get("4-values-sum-0-low-tl-package174473.zip")
+        val service = BacsArchiveService(client, API_URL.toHttpUrl())
+        service.uploadProblem(zip)
     }
 })
