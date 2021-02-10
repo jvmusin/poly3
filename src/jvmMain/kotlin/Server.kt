@@ -30,17 +30,32 @@ import kotlin.io.path.readBytes
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
-fun HTML.index() {
-    head {
-        title("Полибакс!!")
-    }
-    body {
-        div {
-            id = "root"
-        }
-        script(src = "/static/output.js") {}
-    }
-}
+val index = """
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+        
+        <!-- Bootstrap Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+
+        <title>Полибакс!!</title>
+      </head>
+      <body>
+        <!-- Main content -->
+        <div id="root"></div>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+        <!-- Main script -->
+        <script src="/static/output.js"></script>
+      </body>
+    </html>
+""".trimIndent()
 
 @ExperimentalPathApi
 @OptIn(ExperimentalTime::class)
@@ -85,7 +100,7 @@ fun main() {
                 }
             }
             get("/") {
-                call.respondHtml(HttpStatusCode.OK, HTML::index)
+                call.respondText(index, ContentType.Text.Html)
             }
             static("/static") {
                 resources()
