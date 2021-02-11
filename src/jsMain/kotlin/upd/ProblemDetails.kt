@@ -7,14 +7,12 @@ import downloadPackage
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
+import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.HTMLInputElement
 import react.RProps
-import react.dom.button
-import react.dom.div
-import react.dom.h2
-import react.dom.input
+import react.dom.*
 import react.functionalComponent
 import react.useEffect
 import react.useState
@@ -64,62 +62,64 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
 
     h2("my-3 text-center") { +"Свойства задачи" }
     if (problem != null) {
-        div("container") {
-            div("row gx-4 gy-2") {
-                fun draw(name: String, value: Any?) {
-                    div("col-6 text-end") {
+        div("container gy-3") {
+            fun draw(name: String, property: String, initialValue: String, setValue: ((String) -> Unit)? = null) {
+                div("row align-items-center") {
+                    label("col col-form-label text-end") {
                         +"$name:"
+                        attrs["for"] = "problem-$property"
                     }
-                    div("col-6") {
-                        +value.toString()
-                    }
-                }
-
-                fun drawEditable(name: String, value: Any?, setValue: (String) -> Unit) {
-                    div("col-6 text-end") {
-                        +"$name:"
-                    }
-                    div("col-6") {
-                        div("w-100") {
-                            input(type = InputType.text) {
+                    if (setValue != null) {
+                        div("col") {
+                            input(InputType.text, classes = "form-control") {
                                 attrs {
-                                    this.value = value.toString()
+                                    id = "problem-$property"
+                                    value = initialValue
                                     onChangeFunction = { setValue((it.target as HTMLInputElement).value) }
                                 }
                             }
                         }
+                    } else {
+                        label("col col-form-label") {
+                            +initialValue
+                            attrs { id = "problem-$property" }
+                        }
                     }
                 }
+            }
 
-                draw("Название", problem.name)
-                draw("Автор", problem.owner)
-                draw("Доступ", problem.accessType)
-                if (problemInfo != null) {
-                    draw("Ввод", problemInfo.inputFile)
-                    draw("Вывод", problemInfo.outputFile)
-                    draw("Интерактивная", if (problemInfo.interactive) "Да" else "Нет")
-                    drawEditable("Ограничение времени (сек)", timeLimitSeconds, setTimeLimitSeconds)
-                    drawEditable("Ограничение памяти (MB)", memoryLimitMegabytes, setMemoryLimitMegabytes)
-                    drawEditable("Добавить префикс", prefix, setPrefix)
-                    drawEditable("Добавить суффикс", suffix, setSuffix)
-                    div("col text-center") { +finalProblemName }
-                }
+            draw("Название", "name", problem.name)
+            draw("Автор", "author", problem.owner)
+            draw("Доступ", "access", problem.accessType.toString())
+            if (problemInfo != null) {
+                draw("Ввод", "input", problemInfo.inputFile)
+                draw("Вывод", "output", problemInfo.outputFile)
+                draw("Интерактивная", "interactive", if (problemInfo.interactive) "Да" else "Нет")
+                draw("Ограничение времени (сек)", "tl", timeLimitSeconds, setTimeLimitSeconds)
+                draw("Ограничение памяти (MB)", "ml", memoryLimitMegabytes, setMemoryLimitMegabytes)
+                draw("Добавить префикс", "prefix", prefix, setPrefix)
+                draw("Добавить суффикс", "suffix", suffix, setSuffix)
+                div("row") { div("col text-center") { +finalProblemName } }
             }
             if (problemInfo != null) {
-                div("d-flex mt-3") {
-                    button(type = ButtonType.button, classes = "btn btn-secondary btn-lg me-1 w-50") {
-                        +"Скачать пакет"
-                        attrs {
-                            onClickFunction = {
-                                scope.launch { downloadPackage(problem, buildAdditionalProperties()) }
+                div("row my-3") {
+                    div("col") {
+                        button(type = ButtonType.button, classes = "btn btn-secondary btn-lg w-100") {
+                            +"Скачать пакет"
+                            attrs {
+                                onClickFunction = {
+                                    scope.launch { downloadPackage(problem, buildAdditionalProperties()) }
+                                }
                             }
                         }
                     }
-                    button(type = ButtonType.button, classes = "btn btn-primary btn-lg ms-1 w-50") {
-                        +"Закинуть в бакс"
-                        attrs {
-                            onClickFunction = {
-                                scope.launch { transferToBacsArchive(problem.id, buildAdditionalProperties()) }
+                    div("col") {
+                        button(type = ButtonType.button, classes = "btn btn-primary btn-lg w-100") {
+                            +"Закинуть в бакс"
+                            attrs {
+                                onClickFunction = {
+                                    scope.launch { transferToBacsArchive(problem.id, buildAdditionalProperties()) }
+                                }
                             }
                         }
                     }

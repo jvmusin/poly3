@@ -26,14 +26,12 @@ val App = functionalComponent<RProps> {
     }
 
     div {
-        header("navbar navbar-light bg-light shadow-sm") {
-            div("container justify-content-center") {
-                h1("m-0") {
-                    +"Это конвертер задач из полигона в бакс Полибакс"
-                }
-                span("navbar-brand m-0") {
-                    +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin"
-                }
+        header("navbar navbar-light bg-light shadow-sm flex-column") {
+            h1("m-0 display-4 text-center") {
+                +"Это конвертер задач из полигона в бакс Полибакс"
+            }
+            span("navbar-brand m-0") {
+                +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin"
             }
         }
 
@@ -41,7 +39,7 @@ val App = functionalComponent<RProps> {
             div("row") {
                 div("col-4 problem-list") {
                     h2("my-3 text-center") { +"Доступные задачи" }
-                    ul("overflow-auto list-group") {
+                    ul("list-group") {
                         for (p in problems) {
                             val classes = mutableListOf("list-group-item", "list-group-item-action")
                             if (selectedProblem == p) classes += "active"
