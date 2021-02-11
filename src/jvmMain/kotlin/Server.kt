@@ -1,9 +1,7 @@
 import api.AdditionalProblemProperties
-import bacs.BacsArchiveApiFactory
-import bacs.uploadProblemFromZip
+import bacs.BacsArchiveServiceFactory
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.html.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
@@ -62,7 +60,7 @@ val index = """
 fun main() {
     val polygonApi = PolygonApiFactory().create()
     val sybonArchiveApi = SybonApiFactory().createArchiveApi()
-    val bacsArchiveApi = BacsArchiveApiFactory().create()
+    val bacsArchiveService = BacsArchiveServiceFactory().create()
     val sybonArchiveBuilder = SybonArchiveBuilder(polygonApi)
 
     val port = System.getenv("PORT")?.toInt() ?: 8080
@@ -135,9 +133,7 @@ fun main() {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
                         val zipName = sybonArchiveBuilder.build(problemId, properties)
-                        bacsArchiveApi.uploadProblemFromZip(
-                            Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName)
-                        )
+                        bacsArchiveService.uploadProblem(Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName))
                         val problem = polygonApi.getProblem(problemId)
                         val expectedName = "polybacs-${problem.name}"
 

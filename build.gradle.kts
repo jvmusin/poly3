@@ -4,10 +4,9 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("multiplatform") version "1.4.21"
+    kotlin("multiplatform") version "1.4.30"
     application
-    kotlin("plugin.serialization") version "1.4.21"
-    id("com.dorongold.task-tree") version "1.5"
+    kotlin("plugin.serialization") version "1.4.30"
 }
 
 group = "jvmusin"
@@ -16,8 +15,7 @@ version = "1.0-SNAPSHOT"
 val ktorVersion = "1.5.0"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.1"
-val junitVersion = "5.6.0"
-val kotestVersion = "4.4.0.RC2"
+val kotestVersion = "4.4.1"
 
 repositories {
     jcenter()
@@ -58,12 +56,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
             }
         }
-        val commonTest by getting {
-            dependencies {
-//                implementation(kotlin("test-common"))
-//                implementation(kotlin("test-annotations-common"))
-            }
-        }
+        val commonTest by getting
         val jvmMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.2")
@@ -75,7 +68,6 @@ kotlin {
                 implementation("com.squareup.okhttp3:okhttp:4.10.0-RC1")
                 implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.8.0")
 
-                implementation("io.ktor:ktor-html-builder:$ktorVersion")
                 implementation("io.ktor:ktor-serialization:$ktorVersion")
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
@@ -85,19 +77,20 @@ kotlin {
                 // https://mvnrepository.com/artifact/org.jsoup/jsoup
                 implementation("org.jsoup:jsoup:1.13.1")
                 implementation("io.ktor:ktor-websockets:$ktorVersion")
+
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation("io.ktor:ktor-client-cio:$ktorVersion")
+                implementation("io.ktor:ktor-client-auth:$ktorVersion")
+                implementation("io.ktor:ktor-client-logging:$ktorVersion")
+                implementation("io.ktor:ktor-client-features:$ktorVersion")
+                implementation("io.ktor:ktor-client-java:$ktorVersion")
             }
         }
         val jvmTest by getting {
             dependencies {
-//                implementation(kotlin("test-junit5"))
-//                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-//                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-//                implementation("org.hamcrest:hamcrest:2.2")
-
                 implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
                 implementation("io.kotest:kotest-assertions-core:$kotestVersion")
                 implementation("io.kotest:kotest-property:$kotestVersion")
-//                implementation("io.kotest:kotest-assertions-ktor:$kotestVersion")
             }
         }
         val jsMain by getting {
@@ -113,11 +106,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             }
         }
-        val jsTest by getting {
-            dependencies {
-//                implementation(kotlin("test-js"))
-            }
-        }
+        val jsTest by getting
     }
 }
 
