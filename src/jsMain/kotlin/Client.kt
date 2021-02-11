@@ -18,6 +18,10 @@ fun main() {
         ".problem-details input" {
             fontSize = 0.9.em
         }
+        ".problem-list button.disabled" {
+            color = Color("#842029")
+            backgroundColor = Color("#f8d7da")
+        }
     }
 
     window.onload = {

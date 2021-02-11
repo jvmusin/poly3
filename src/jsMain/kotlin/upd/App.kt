@@ -42,8 +42,11 @@ val App = functionalComponent<RProps> {
                     ul("list-group") {
                         for (p in problems) {
                             val classes = mutableListOf("list-group-item", "list-group-item-action")
-                            if (selectedProblem == p) classes += "active"
-                            else if (p.latestPackage == null) classes += "list-group-item-warning"
+                            when {
+                                selectedProblem == p -> classes += "active"
+                                p.accessType == Problem.AccessType.READ -> classes += "disabled"
+                                p.latestPackage == null -> classes += "list-group-item-warning"
+                            }
                             button(type = ButtonType.button, classes = classes.joinToString(" ")) {
                                 div("d-flex justify-content-between") {
                                     span { +p.name }
@@ -51,7 +54,11 @@ val App = functionalComponent<RProps> {
                                 }
                                 div("d-flex justify-content-between ${if (selectedProblem == p) "" else "text-secondary"}") {
                                     small { +p.id.toString() }
-                                    small { +(p.latestPackage?.let { "rev. $it" } ?: "") }
+                                    if (p.accessType == Problem.AccessType.READ) {
+                                        small { strong("text-dark") { +"Нет WRITE доступа" } }
+                                    } else {
+                                        small { +(p.latestPackage?.let { "rev. $it" } ?: "") }
+                                    }
                                 }
                                 attrs {
                                     onClickFunction = {
