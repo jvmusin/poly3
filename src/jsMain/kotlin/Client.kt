@@ -11,7 +11,7 @@ import styled.injectGlobal
 fun main() {
     injectGlobal {
         ".problem-list ul" {
-            maxHeight = 1000.px
+            maxHeight = 800.px
         }
         ".problem-details > .container" {
             fontSize = 1.3.em

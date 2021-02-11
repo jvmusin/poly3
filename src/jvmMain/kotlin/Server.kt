@@ -13,7 +13,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
-import kotlinx.html.*
 import org.slf4j.event.Level
 import polygon.PolygonApiFactory
 import polygon.getProblem
@@ -90,31 +89,31 @@ fun main() {
         install(WebSockets)
 
         routing {
-            webSocket("/ws") {
+            webSocket("ws") {
                 getLogger(javaClass).info("CONNECTED")
                 repeat(5) {
                     outgoing.send(Frame.Text("Test $it"))
                     delay(5.seconds)
                 }
             }
-            get("/") {
+            get {
                 call.respondText(index, ContentType.Text.Html)
             }
-            static("/static") {
+            static("static") {
                 resources()
             }
-            route("/problems") {
-                get("/") {
+            route("problems") {
+                get {
                     val problems = polygonApi.getProblems().result!!
                     call.respond(HttpStatusCode.OK, problems.map { it.toDto() })
                 }
-                route("/{problemId}") {
-                    get("/") {
+                route("{problemId}") {
+                    get {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val problemInfo = polygonApi.getInfo(problemId).result!!
                         call.respond(HttpStatusCode.OK, problemInfo.toDto())
                     }
-                    post("/download") {
+                    post("download") {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
                         val zipName = sybonArchiveBuilder.build(problemId, properties)
@@ -129,7 +128,7 @@ fun main() {
                         println(bytes.size / 1024)
                         call.respondFile(Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName).toFile())
                     }
-                    post("/transfer") {
+                    post("transfer") {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
                         val zipName = sybonArchiveBuilder.build(problemId, properties)

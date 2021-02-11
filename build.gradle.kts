@@ -12,7 +12,7 @@ plugins {
 group = "jvmusin"
 version = "1.0-SNAPSHOT"
 
-val ktorVersion = "1.5.0"
+val ktorVersion = "1.5.1"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.1"
 val kotestVersion = "4.4.1"
@@ -59,13 +59,11 @@ kotlin {
         val commonTest by getting
         val jvmMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.2")
-
                 implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
                 implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
-                implementation("com.squareup.okhttp3:logging-interceptor:4.10.0-RC1")
-                implementation("com.squareup.okhttp3:okhttp:4.10.0-RC1")
+                implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
+                implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
                 implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.8.0")
 
                 implementation("io.ktor:ktor-serialization:$ktorVersion")
@@ -95,9 +93,9 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation("org.jetbrains:kotlin-react:17.0.1-pre.144-kotlin-1.4.21")
-                implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.144-kotlin-1.4.21")
-                implementation("org.jetbrains:kotlin-styled:5.2.0-pre.144-kotlin-1.4.21")
+                implementation("org.jetbrains:kotlin-react:17.0.1-pre.144-kotlin-1.4.30")
+                implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.144-kotlin-1.4.30")
+                implementation("org.jetbrains:kotlin-styled:5.2.0-pre.144-kotlin-1.4.30")
 
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-js:$ktorVersion")

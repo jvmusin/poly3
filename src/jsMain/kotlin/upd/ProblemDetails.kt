@@ -105,20 +105,22 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                     div("col text-center") { +finalProblemName }
                 }
             }
-            div("d-flex mt-3") {
-                button(type = ButtonType.button, classes = "btn btn-secondary btn-lg me-1 w-50") {
-                    +"Скачать пакет"
-                    attrs {
-                        onClickFunction = {
-                            scope.launch { downloadPackage(problem, buildAdditionalProperties()) }
+            if (problemInfo != null) {
+                div("d-flex mt-3") {
+                    button(type = ButtonType.button, classes = "btn btn-secondary btn-lg me-1 w-50") {
+                        +"Скачать пакет"
+                        attrs {
+                            onClickFunction = {
+                                scope.launch { downloadPackage(problem, buildAdditionalProperties()) }
+                            }
                         }
                     }
-                }
-                button(type = ButtonType.button, classes = "btn btn-primary btn-lg ms-1 w-50") {
-                    +"Закинуть в бакс"
-                    attrs {
-                        onClickFunction = {
-                            scope.launch { transferToBacsArchive(problem.id, buildAdditionalProperties()) }
+                    button(type = ButtonType.button, classes = "btn btn-primary btn-lg ms-1 w-50") {
+                        +"Закинуть в бакс"
+                        attrs {
+                            onClickFunction = {
+                                scope.launch { transferToBacsArchive(problem.id, buildAdditionalProperties()) }
+                            }
                         }
                     }
                 }

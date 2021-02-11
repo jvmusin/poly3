@@ -10,6 +10,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import org.jsoup.Jsoup
 import util.getLogger
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
@@ -302,7 +303,35 @@ class BacsArchiveService(
         throw BacsArchiveUploadException("Flag $PENDING_IMPORT not found, $extra")
     }
 
-    suspend fun getImportResult(problemId: String) {
+    suspend fun getProblemStatus(problemId: String): BacsProblemStatus {
+        val content = client.post<String>("/status") {
+            body = MultiPartFormDataContent(
+                formData {
+                    append("response", "html")
+                    append("ids", problemId)
+                    append("_4", "Get status")
+                }
+            )
+        }
 
+        val row = Jsoup.parse(content).body()
+            .getElementsByTag("table")[0]
+            .getElementsByTag("tbody")[0]
+            .getElementsByTag("tr")[1]
+            .getElementsByTag("td")
+            .map { it.text().trim() }
+
+        if (row.size == 2) {
+            //todo test it
+            return BacsProblemStatus(row[1], emptyList(), "")
+        }
+
+        val flagRegex = "flag\\{(?<name>.*?):(?<value>.*?)}".toRegex()
+
+        val name = row[1]
+        val revision = row[3]
+        val flagsRaw = row[2].replace("\\s".toRegex(), "")
+        val flags = flagRegex.findAll(flagsRaw).map { "${it.groups["name"]}: ${it.groups["value"]}" }.toList()
+        return BacsProblemStatus(name, flags, revision)
     }
 }

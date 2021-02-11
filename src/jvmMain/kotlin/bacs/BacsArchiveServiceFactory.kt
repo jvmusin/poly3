@@ -21,6 +21,7 @@ class BacsArchiveServiceFactory {
         val client = HttpClient(CIO) {
             install(Auth) {
                 basic {
+                    sendWithoutRequest = true
                     username = AUTH_USERNAME
                     password = AUTH_PASSWORD
                 }
