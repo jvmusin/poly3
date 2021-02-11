@@ -8,26 +8,24 @@ import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.css.*
 import kotlinx.html.ButtonType
 import kotlinx.html.dom.append
 import kotlinx.html.id
 import kotlinx.html.js.button
 import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
+import kotlinx.html.strong
 import react.*
 import react.dom.*
-import styled.css
-import styled.styledDiv
 
 val scope = MainScope()
 
-fun showNewToast(title: String, content: String) {
+fun showToast(title: String, content: String) {
     document.getElementById("notifications")!!.append {
         div("toast") {
             attributes["role"] = "alert"
             div("toast-header") {
-                +title
+                strong("me-auto") { +title }
                 button(type = ButtonType.button, classes = "btn-close") {
                     attributes["data-bs-dismiss"] = "toast"
                 }
@@ -49,16 +47,8 @@ val App = functionalComponent<RProps> {
         }
     }
 
-    styledDiv {
-        attrs {
-            this["className"] = "toast-container${this["className"]?.let { " $it" } ?: ""}"
-            id = "notifications"
-        }
-        css {
-            position = Position.fixed
-            bottom = 15.px
-            right = 15.px
-        }
+    div("toast-container") {
+        attrs { id = "notifications" }
     }
 
     div {

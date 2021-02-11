@@ -8,7 +8,7 @@ import styled.injectGlobal
 fun main() {
     injectGlobal {
         ".problem-list ul" {
-            maxHeight = 600.px
+            maxHeight = 700.px
             overflowY = Overflow.auto
             overflowX = Overflow.hidden
         }
@@ -21,6 +21,11 @@ fun main() {
         ".problem-list button.disabled" {
             color = Color("#842029")
             backgroundColor = Color("#f8d7da")
+        }
+        "#notifications" {
+            position = Position.fixed
+            bottom = 15.px
+            right = 15.px
         }
     }
 

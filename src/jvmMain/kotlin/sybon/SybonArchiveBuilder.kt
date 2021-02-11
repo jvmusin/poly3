@@ -34,14 +34,12 @@ class SybonArchiveBuilder(
 
     private suspend fun buildInternal(problemId: Int, properties: AdditionalProblemProperties): String {
         return coroutineScope {
-            val prefix = properties.prefix ?: ""
-            val suffix = properties.suffix ?: ""
             val problem = async { polygonApi.getProblem(problemId) }
             val packageId = async { polygonApi.getLatestPackage(problemId)!!.id }
             val unpackedPath = async { polygonApi.downloadPackage(problemId, packageId.await()) }
             val problemInfo = async { polygonApi.getInfo(problemId).result!! }
 
-            val fullName = "${prefix}${problem.await().name}${suffix}"
+            val fullName = properties.buildFullName(problem.await().name)
             val uuid = UUID.randomUUID().toString()
             val destinationPath = Paths.get(
                 "sybon-packages",

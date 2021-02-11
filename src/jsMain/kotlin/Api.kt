@@ -27,8 +27,6 @@ suspend fun getProblems(): List<Problem> = client.get("$endpoint/problems")
 
 suspend fun getProblemInfo(problemId: Int): ProblemInfo = client.get("$endpoint/problems/$problemId")
 
-fun downloadPackageLink(problemId: Int) = "$endpoint/problems/$problemId/download"
-
 suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties) {
     val bytes = client.post<HttpResponse>("$endpoint/problems/${problem.id}/download") {
         header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -38,8 +36,8 @@ suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties
     downloadZip(bytes, "$fullName.zip")
 }
 
-suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProperties): Int {
-    return client.post("$endpoint/problems/$problemId/transfer") {
+suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProperties) {
+    client.post<Unit>("$endpoint/problems/$problemId/transfer") {
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         body = props
     }

@@ -101,14 +101,19 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                 draw("Добавить суффикс", "suffix", suffix, setSuffix)
                 div("row") { div("col text-center") { +finalProblemName } }
             }
-            if (problemInfo != null) {
+            //todo add normal check
+            if (problemInfo != null && problem.accessType != Problem.AccessType.READ && problem.latestPackage != null) {
                 div("row my-3") {
                     div("col") {
                         button(type = ButtonType.button, classes = "btn btn-secondary btn-lg w-100") {
                             +"Скачать пакет"
                             attrs {
                                 onClickFunction = {
-                                    scope.launch { downloadPackage(problem, buildAdditionalProperties()) }
+                                    showToast(finalProblemName, "Начата сборка пакета")
+                                    scope.launch {
+                                        downloadPackage(problem, buildAdditionalProperties())
+                                        showToast(finalProblemName, "Пакет собран")
+                                    }
                                 }
                             }
                         }
@@ -118,7 +123,11 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             +"Закинуть в бакс"
                             attrs {
                                 onClickFunction = {
-                                    scope.launch { transferToBacsArchive(problem.id, buildAdditionalProperties()) }
+                                    showToast(finalProblemName, "Начата сборка пакета и загрузка задачи в архив")
+                                    scope.launch {
+                                        transferToBacsArchive(problem.id, buildAdditionalProperties())
+                                        showToast(finalProblemName, "Задача загружена в бакс")
+                                    }
                                 }
                             }
                         }

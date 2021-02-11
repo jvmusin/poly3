@@ -1,5 +1,6 @@
 import api.AdditionalProblemProperties
 import bacs.BacsArchiveServiceFactory
+import bacs.BacsProblemStatus
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -134,21 +135,30 @@ fun main() {
                         val zipName = sybonArchiveBuilder.build(problemId, properties)
                         bacsArchiveService.uploadProblem(Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName))
                         val problem = polygonApi.getProblem(problemId)
-                        val expectedName = "polybacs-${problem.name}"
-
-                        //todo move it out wtf
-                        for (i in 0 until 20) {
-                            val problems = sybonArchiveApi.getCollection(1).problems
-                            val importedProblem = problems.singleOrNull { it.internalProblemId == expectedName }
-                            if (importedProblem != null) {
-                                getLogger(javaClass).info("Problem $expectedName is imported with id ${importedProblem.id}")
-                                call.respond(importedProblem.id)
-                                return@post
+                        val fullName = properties.buildFullName(problem.name)
+                        repeat(20) {
+                            val status = bacsArchiveService.getProblemStatus(fullName)
+                            when (status.state) {
+                                BacsProblemStatus.State.PENDING_IMPORT -> {
+                                    getLogger(javaClass).info("Problem $fullName is still importing. Sleeping for 1s")
+                                    delay(1.seconds)
+                                }
+                                BacsProblemStatus.State.IMPORTED -> {
+                                    getLogger(javaClass).info("Problem $fullName imported")
+                                    call.respond(HttpStatusCode.OK)
+                                    return@post
+                                }
+                                else -> {
+                                    getLogger(javaClass).info("Something went wrong when checking problem $fullName")
+                                    call.respond(
+                                        HttpStatusCode.BadRequest,
+                                        "Something bad happened to bacs archive while checking problem $fullName"
+                                    )
+                                    return@post
+                                }
                             }
-                            getLogger(javaClass).info("Problem $expectedName is not in sybon list yet, sleeping for 3 seconds")
-                            delay(3.seconds)
                         }
-                        call.respond(-1)
+                        call.respond(HttpStatusCode.BadRequest, "It took too long for the problem $fullName to import")
                     }
                 }
             }
