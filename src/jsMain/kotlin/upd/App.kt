@@ -5,14 +5,38 @@ import api.ProblemInfo
 import getProblemInfo
 import getProblems
 import kotlinext.js.jsObject
+import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.css.*
 import kotlinx.html.ButtonType
+import kotlinx.html.dom.append
+import kotlinx.html.id
+import kotlinx.html.js.button
+import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import react.*
 import react.dom.*
+import styled.css
+import styled.styledDiv
 
 val scope = MainScope()
+
+fun showNewToast(title: String, content: String) {
+    document.getElementById("notifications")!!.append {
+        div("toast") {
+            attributes["role"] = "alert"
+            div("toast-header") {
+                +title
+                button(type = ButtonType.button, classes = "btn-close") {
+                    attributes["data-bs-dismiss"] = "toast"
+                }
+            }
+            div("toast-body") { +content }
+        }
+    }
+    js("new bootstrap.Toast(document.getElementsByClassName('toast-container')[0].lastChild).show()")
+}
 
 val App = functionalComponent<RProps> {
     val (problems, setProblems) = useState<List<Problem>>(emptyList())
@@ -22,6 +46,18 @@ val App = functionalComponent<RProps> {
     useEffect(emptyList()) {
         scope.launch {
             setProblems(getProblems().sortedByDescending { it.id })
+        }
+    }
+
+    styledDiv {
+        attrs {
+            this["className"] = "toast-container${this["className"]?.let { " $it" } ?: ""}"
+            id = "notifications"
+        }
+        css {
+            position = Position.fixed
+            bottom = 15.px
+            right = 15.px
         }
     }
 

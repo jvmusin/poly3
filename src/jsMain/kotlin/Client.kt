@@ -8,7 +8,7 @@ import styled.injectGlobal
 fun main() {
     injectGlobal {
         ".problem-list ul" {
-            maxHeight = 800.px
+            maxHeight = 600.px
             overflowY = Overflow.auto
             overflowX = Overflow.hidden
         }
