@@ -80,10 +80,15 @@ val App = functionalComponent<RProps> {
                                 }
                                 div("d-flex justify-content-between ${if (selectedProblem == p) "" else "text-secondary"}") {
                                     small { +p.id.toString() }
-                                    if (p.accessType == Problem.AccessType.READ) {
-                                        small { strong("text-dark") { +"Нет WRITE доступа" } }
-                                    } else {
-                                        small { +(p.latestPackage?.let { "rev. $it" } ?: "") }
+                                    small {
+                                        when {
+                                            p.accessType == Problem.AccessType.READ ->
+                                                strong("text-dark") { +"Нет WRITE доступа" }
+                                            p.latestPackage == null ->
+                                                strong("text-dark") { +"Не собран пакет" }
+                                            else ->
+                                                +"rev. ${p.latestPackage}"
+                                        }
                                     }
                                 }
                                 attrs {

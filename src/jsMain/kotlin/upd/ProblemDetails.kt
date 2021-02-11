@@ -90,11 +90,9 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
 
             draw("Название", "name", problem.name)
             draw("Автор", "author", problem.owner)
-            draw("Доступ", "access", problem.accessType.toString())
             if (problemInfo != null) {
                 draw("Ввод", "input", problemInfo.inputFile)
                 draw("Вывод", "output", problemInfo.outputFile)
-                draw("Интерактивная", "interactive", if (problemInfo.interactive) "Да" else "Нет")
                 draw("Ограничение времени (сек)", "tl", timeLimitSeconds, setTimeLimitSeconds)
                 draw("Ограничение памяти (MB)", "ml", memoryLimitMegabytes, setMemoryLimitMegabytes)
                 draw("Добавить префикс", "prefix", prefix, setPrefix)
@@ -109,7 +107,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             +"Скачать пакет"
                             attrs {
                                 onClickFunction = {
-                                    showToast(finalProblemName, "Начата сборка пакета")
+                                    showToast(finalProblemName, "Начата сборка архива")
                                     scope.launch {
                                         downloadPackage(problem, buildAdditionalProperties())
                                         showToast(finalProblemName, "Пакет собран")
@@ -123,7 +121,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             +"Закинуть в бакс"
                             attrs {
                                 onClickFunction = {
-                                    showToast(finalProblemName, "Начата сборка пакета и загрузка задачи в архив")
+                                    showToast(finalProblemName, "Начата сборка архива и загрузка его в бакс")
                                     scope.launch {
                                         transferToBacsArchive(problem.id, buildAdditionalProperties())
                                         showToast(finalProblemName, "Задача загружена в бакс")

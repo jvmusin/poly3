@@ -314,6 +314,8 @@ class BacsArchiveService(
             )
         }
 
+        getLogger(javaClass).debug(content)
+
         val row = Jsoup.parse(content).body()
             .getElementsByTag("table")[0]
             .getElementsByTag("tbody")[0]
@@ -331,7 +333,9 @@ class BacsArchiveService(
         val name = row[1]
         val revision = row[3]
         val flagsRaw = row[2].replace("\\s".toRegex(), "")
-        val flags = flagRegex.findAll(flagsRaw).map { "${it.groups["name"]}: ${it.groups["value"]}" }.toList()
+        val flags = flagRegex.findAll(flagsRaw)
+            .map { "${it.groups["name"]!!.value}: ${it.groups["value"]!!.value}" }
+            .toList()
         return BacsProblemStatus(name, flags, revision)
     }
 }
