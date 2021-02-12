@@ -1,5 +1,6 @@
 import api.Problem
 import api.ProblemInfo
+import io.ktor.http.cio.websocket.*
 import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
@@ -54,7 +55,16 @@ val App = functionalComponent<RProps> {
                 attrs {
                     onClickFunction = {
                         scope.launch {
-                            connectWS()
+                            connectWS("testws") {
+                                while (true) {
+                                    val v = incoming.receive()
+                                    if (v is Frame.Text) {
+                                        console.log(v.readText())
+                                    } else {
+                                        console.log("fail")
+                                    }
+                                }
+                            }
                         }
                     }
                 }

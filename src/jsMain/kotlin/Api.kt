@@ -43,21 +43,11 @@ suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProper
     }
 }
 
-suspend fun connectWS() {
+suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
     val protocol = window.location.protocol
     val ws = if (protocol == "https:") "wss:" else "ws:"
-    val url = "${endpoint.replace(protocol, ws)}/testws"
-    console.log(url)
-    client.webSocket(url) {
-        while (true) {
-            val v = incoming.receive()
-            if (v is Frame.Text) {
-                console.log(v.readText())
-            } else {
-                console.log("fail")
-            }
-        }
-    }
+    val url = "${endpoint.replace(protocol, ws)}/$path"
+    client.webSocket(url) { block() }
 }
 
 // https://stackoverflow.com/a/30832210/4296219
