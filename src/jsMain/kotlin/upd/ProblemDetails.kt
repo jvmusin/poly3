@@ -67,7 +67,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                 div("row align-items-center") {
                     label("col col-form-label text-end") {
                         +"$name:"
-                        attrs["for"] = "problem-$property"
+                        attrs["htmlFor"] = "problem-$property"
                     }
                     if (setValue != null) {
                         div("col") {
