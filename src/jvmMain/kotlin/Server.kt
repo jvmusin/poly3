@@ -68,12 +68,12 @@ fun main() {
         install(ContentNegotiation) {
             json()
         }
-        install(CORS) {
-            method(HttpMethod.Get)
-            method(HttpMethod.Post)
-            method(HttpMethod.Delete)
-            anyHost()
-        }
+//        install(CORS) {
+//            method(HttpMethod.Get)
+//            method(HttpMethod.Post)
+//            method(HttpMethod.Delete)
+//            anyHost()
+//        }
         install(Compression) {
             gzip()
         }
