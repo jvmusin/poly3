@@ -67,7 +67,7 @@ interface PolygonApi {
     ): ResponseBody
 
     @POST("problem.viewSolution")
-    suspend fun getSolution(
+    suspend fun getSolutionContent(
         @Query("problemId") problemId: Int,
         @Query("name") name: String
     ): ResponseBody

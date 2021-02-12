@@ -52,7 +52,3 @@ suspend fun PolygonApi.getLatestPackage(problemId: Int): Package? {
         ?.filter { it.state == Package.State.READY }
         ?.maxByOrNull { it.id }
 }
-
-suspend fun PolygonApi.getMainSolution(problemId: Int): Solution {
-    return getSolutions(problemId).result!!.single { it.tag == "MA" }
-}

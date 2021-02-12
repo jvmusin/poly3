@@ -16,15 +16,15 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import org.slf4j.event.Level
 import polygon.PolygonApiFactory
+import polygon.PolygonProblemDownloader
 import polygon.getProblem
 import polygon.toDto
-import sybon.SybonArchiveBuildException
-import sybon.SybonArchiveBuilder
+import sybon.*
 import util.getLogger
-import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.readBytes
+import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
+import kotlin.time.minutes
 import kotlin.time.seconds
 
 val index = """
@@ -59,7 +59,7 @@ val index = """
 fun main() {
     val polygonApi = PolygonApiFactory().create()
     val bacsArchiveService = BacsArchiveServiceFactory().create()
-    val sybonArchiveBuilder = SybonArchiveBuilder(polygonApi)
+    val sybonService = SybonServiceFactory(SybonApiFactory()).create()
 
     val port = System.getenv("PORT")?.toInt() ?: 8080
     embeddedServer(Netty, port = port) {
@@ -79,7 +79,6 @@ fun main() {
             }
         }
         install(DefaultHeaders)
-        install(WebSockets)
 
         routing {
             get {
@@ -102,23 +101,23 @@ fun main() {
                     post("download") {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
-                        val zipName = sybonArchiveBuilder.build(problemId, properties)
+                        val problem = PolygonProblemDownloader(polygonApi).download(problemId)
+                        val zip = SybonArchiveBuilderNew().build(problem, properties)
                         call.response.header(
                             HttpHeaders.ContentDisposition,
                             ContentDisposition.Attachment.withParameter(
                                 ContentDisposition.Parameters.FileName,
-                                zipName
+                                zip.name
                             ).toString()
                         )
-                        val bytes = Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName).readBytes()
-                        println(bytes.size / 1024)
-                        call.respondFile(Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName).toFile())
+                        call.respondFile(zip.toFile())
                     }
                     post("transfer") {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
-                        val zipName = sybonArchiveBuilder.build(problemId, properties)
-                        bacsArchiveService.uploadProblem(Paths.get(SybonArchiveBuilder.BUILT_PACKAGES_FOLDER, zipName))
+                        val irProblem = PolygonProblemDownloader(polygonApi).download(problemId)
+                        val zip = SybonArchiveBuilderNew().build(irProblem, properties)
+                        bacsArchiveService.uploadProblem(zip)
                         val problem = polygonApi.getProblem(problemId)
                         val fullName = properties.buildFullName(problem.name)
                         repeat(20) {

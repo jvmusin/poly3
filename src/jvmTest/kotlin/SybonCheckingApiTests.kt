@@ -12,6 +12,7 @@ import sybon.SubmissionResult.TestGroupResult.TestResult.ResourceUsage
 import sybon.SubmitSolution
 import sybon.SybonApiFactory
 import sybon.SybonCompilers
+import util.encodeBase64
 
 class SybonCheckingApiTests : StringSpec({
 
