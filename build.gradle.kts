@@ -75,12 +75,11 @@ kotlin {
                 // https://mvnrepository.com/artifact/org.jsoup/jsoup
                 implementation("org.jsoup:jsoup:1.13.1")
 
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation("io.ktor:ktor-client-auth:$ktorVersion")
-                implementation("io.ktor:ktor-client-logging:$ktorVersion")
-                implementation("io.ktor:ktor-client-features:$ktorVersion")
                 implementation("io.ktor:ktor-client-java:$ktorVersion")
+                implementation("io.ktor:ktor-client-cio-jvm:$ktorVersion")
+                implementation("io.ktor:ktor-client-auth-jvm:$ktorVersion")
+                implementation("io.ktor:ktor-client-logging-jvm:$ktorVersion")
+                implementation("io.ktor:ktor-client-features:$ktorVersion")
             }
         }
         val jvmTest by getting {
@@ -96,10 +95,10 @@ kotlin {
                 implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.144-kotlin-1.4.30")
                 implementation("org.jetbrains:kotlin-styled:5.2.0-pre.144-kotlin-1.4.30")
 
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
+                implementation("io.ktor:ktor-client-websockets-js:$ktorVersion")
             }
         }
         val jsTest by getting

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class)
+
 import api.AdditionalProblemProperties
 import bacs.BacsArchiveServiceFactory
 import bacs.BacsProblemStatus
@@ -14,18 +16,21 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.slf4j.event.Level
 import polygon.PolygonApiFactory
 import polygon.PolygonProblemDownloader
 import polygon.getProblem
 import polygon.toDto
-import sybon.*
+import sybon.SybonArchiveBuildException
+import sybon.SybonArchiveBuilderNew
 import util.getLogger
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
+import kotlin.time.milliseconds
 import kotlin.time.minutes
-import kotlin.time.seconds
 
 val index = """
     <!doctype html>
@@ -54,12 +59,10 @@ val index = """
     </html>
 """.trimIndent()
 
-@ExperimentalPathApi
-@OptIn(ExperimentalTime::class)
 fun main() {
     val polygonApi = PolygonApiFactory().create()
     val bacsArchiveService = BacsArchiveServiceFactory().create()
-    val sybonService = SybonServiceFactory(SybonApiFactory()).create()
+    val problemDownloader = PolygonProblemDownloader(polygonApi)
 
     val port = System.getenv("PORT")?.toInt() ?: 8080
     embeddedServer(Netty, port = port) {
@@ -79,13 +82,26 @@ fun main() {
             }
         }
         install(DefaultHeaders)
+        install(WebSockets)
 
         routing {
-            get {
-                call.respondText(index, ContentType.Text.Html)
-            }
             static("static") {
                 resources()
+            }
+            webSocket("testws") {
+                try {
+                    val now = TimeSource.Monotonic.markNow()
+                    while (true) {
+                        outgoing.send(Frame.Text("Passed ${now.elapsedNow()}"))
+                        delay(500.milliseconds)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    throw e
+                }
+            }
+            get {
+                call.respondText(index, ContentType.Text.Html)
             }
             route("problems") {
                 get {
@@ -101,8 +117,9 @@ fun main() {
                     post("download") {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
-                        val problem = PolygonProblemDownloader(polygonApi).download(problemId)
-                        val zip = SybonArchiveBuilderNew().build(problem, properties)
+                        val irProblem = problemDownloader.download(problemId)
+                        launch { println("Unit") }
+                        val zip = SybonArchiveBuilderNew().build(irProblem, properties)
                         call.response.header(
                             HttpHeaders.ContentDisposition,
                             ContentDisposition.Attachment.withParameter(
@@ -115,35 +132,31 @@ fun main() {
                     post("transfer") {
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
-                        val irProblem = PolygonProblemDownloader(polygonApi).download(problemId)
+                        val irProblem = problemDownloader.download(problemId)
                         val zip = SybonArchiveBuilderNew().build(irProblem, properties)
                         bacsArchiveService.uploadProblem(zip)
                         val problem = polygonApi.getProblem(problemId)
                         val fullName = properties.buildFullName(problem.name)
-                        repeat(20) {
-                            val status = bacsArchiveService.getProblemStatus(fullName)
-                            when (status.state) {
-                                BacsProblemStatus.State.PENDING_IMPORT -> {
-                                    getLogger(javaClass).info("Problem $fullName is still importing. Sleeping for 1s")
-                                    delay(1.seconds)
-                                }
-                                BacsProblemStatus.State.IMPORTED -> {
-                                    getLogger(javaClass).info("Problem $fullName imported")
-                                    call.respond(HttpStatusCode.OK)
-                                    return@post
-                                }
-                                else -> {
-                                    getLogger(javaClass).info("Something went wrong when checking problem $fullName")
-                                    call.respond(
-                                        HttpStatusCode.BadRequest,
-                                        "Something bad happened to bacs archive while checking problem $fullName"
-                                    )
-                                    return@post
-                                }
-                            }
+                        val status = bacsArchiveService.waitTillProblemIsImported(fullName, 5.minutes)
+                        if (status.state == BacsProblemStatus.State.IMPORTED) {
+                            getLogger(javaClass).info("Problem $fullName imported")
+                            call.respond(HttpStatusCode.OK)
+                        } else {
+                            val message = "Problem $fullName not imported, status: $status"
+                            getLogger(javaClass).info(message)
+                            call.respond(HttpStatusCode.BadRequest, message)
                         }
-                        call.respond(HttpStatusCode.BadRequest, "It took too long for the problem $fullName to import")
                     }
+//                    post("test") {
+//                        val problemId = call.parameters["problemId"]!!.toInt()
+//                        val properties = call.receive<AdditionalProblemProperties>()
+//                        val irProblem = transfer(problemId, properties, false, call)
+//                        val bacsProblemName = properties.buildFullName(irProblem.name)
+//                        val sybonProblemName = sybonService.getProblemByBacsProblemId(bacsProblemName, 5.minutes)
+//                        val solutions = irProblem.solutions
+//                        //submit all the solutions and wait for verdicts
+//                        //send info about all solutions abd their verdicts, say if everything is ok
+//                    }
                 }
             }
         }

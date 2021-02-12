@@ -31,7 +31,7 @@ fun main() {
 
     window.onload = {
         render(document.getElementById("root")) {
-            child(upd.App)
+            child(App)
         }
     }
 }

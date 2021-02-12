@@ -43,6 +43,21 @@ suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProper
     }
 }
 
+suspend fun connectWS() {
+    val url = "${endpoint.replace(window.location.protocol, "ws:")}/testws"
+    console.log(url)
+    client.webSocket(url) {
+        while (true) {
+            val v = incoming.receive()
+            if (v is Frame.Text) {
+                console.log(v.readText())
+            } else {
+                console.log("fail")
+            }
+        }
+    }
+}
+
 // https://stackoverflow.com/a/30832210/4296219
 fun downloadZip(content: ByteArray, filename: String) {
     @Suppress("UNUSED_VARIABLE") val jsArray = Uint8Array(content.toTypedArray())

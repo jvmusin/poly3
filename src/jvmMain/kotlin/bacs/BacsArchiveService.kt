@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package bacs
 
 import io.ktor.client.*
@@ -10,6 +12,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.delay
 import org.jsoup.Jsoup
 import util.getLogger
 import java.nio.file.Path
@@ -19,6 +22,10 @@ import kotlin.io.path.readBytes
 import kotlin.io.use
 import kotlin.random.Random
 import kotlin.text.toByteArray
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
+import kotlin.time.milliseconds
 
 class BacsArchiveService(
     private val client: HttpClient
@@ -337,5 +344,17 @@ class BacsArchiveService(
             .map { "${it.groups["name"]!!.value}: ${it.groups["value"]!!.value}" }
             .toList()
         return BacsProblemStatus(name, flags, revision)
+    }
+
+    suspend fun waitTillProblemIsImported(problemId: String, waitFor: Duration): BacsProblemStatus {
+        val start = TimeSource.Monotonic.markNow()
+        var lastStatus: BacsProblemStatus? = null
+        while (lastStatus == null || start.elapsedNow() < waitFor) {
+            val status = getProblemStatus(problemId)
+            if (status.state != BacsProblemStatus.State.PENDING_IMPORT) return status
+            lastStatus = status
+            delay(100.milliseconds)
+        }
+        return lastStatus
     }
 }

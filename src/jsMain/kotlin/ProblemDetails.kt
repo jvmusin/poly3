@@ -1,9 +1,6 @@
-package upd
-
 import api.AdditionalProblemProperties
 import api.Problem
 import api.ProblemInfo
-import downloadPackage
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -16,7 +13,6 @@ import react.dom.*
 import react.functionalComponent
 import react.useEffect
 import react.useState
-import transferToBacsArchive
 import kotlin.math.roundToInt
 
 external interface ProblemDetailsProps : RProps {

@@ -1,9 +1,5 @@
-package upd
-
 import api.Problem
 import api.ProblemInfo
-import getProblemInfo
-import getProblems
 import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
@@ -55,6 +51,13 @@ val App = functionalComponent<RProps> {
         header("navbar navbar-light bg-light shadow-sm flex-column") {
             h1("m-0 display-4 text-center") {
                 +"Это конвертер задач из полигона в бакс Полибакс"
+                attrs {
+                    onClickFunction = {
+                        scope.launch {
+                            connectWS()
+                        }
+                    }
+                }
             }
             span("navbar-brand m-0") {
                 +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin"
