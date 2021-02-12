@@ -18,7 +18,6 @@ import org.slf4j.event.Level
 import polygon.PolygonApiFactory
 import polygon.getProblem
 import polygon.toDto
-import sybon.SybonApiFactory
 import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
 import util.getLogger
@@ -59,7 +58,6 @@ val index = """
 @OptIn(ExperimentalTime::class)
 fun main() {
     val polygonApi = PolygonApiFactory().create()
-    val sybonArchiveApi = SybonApiFactory().createArchiveApi()
     val bacsArchiveService = BacsArchiveServiceFactory().create()
     val sybonArchiveBuilder = SybonArchiveBuilder(polygonApi)
 
@@ -84,13 +82,6 @@ fun main() {
         install(WebSockets)
 
         routing {
-            webSocket("ws") {
-                getLogger(javaClass).info("CONNECTED")
-                repeat(5) {
-                    outgoing.send(Frame.Text("Test $it"))
-                    delay(5.seconds)
-                }
-            }
             get {
                 call.respondText(index, ContentType.Text.Html)
             }

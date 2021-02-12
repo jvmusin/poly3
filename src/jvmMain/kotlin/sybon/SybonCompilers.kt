@@ -108,8 +108,6 @@ object SybonCompilers {
         PASCAL,
         PYTHON2,
         PYTHON3,
-        JAVA,
-//        JAVA.copy(args = "fff")
+        JAVA
     )
 }
-

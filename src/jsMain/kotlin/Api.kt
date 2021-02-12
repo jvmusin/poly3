@@ -43,26 +43,6 @@ suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProper
     }
 }
 
-suspend fun ws() {
-    console.log(endpoint)
-    console.log(window.location.hostname)
-    console.log(window.location.protocol)
-    val urlString = "${endpoint.replace("^${window.location.protocol}".toRegex(), "ws:")}/ws"
-    console.log(urlString)
-    client.ws(urlString) {
-        console.log("STARTED WS")
-        while (true) {
-            val receive = incoming.receive()
-            if (receive.frameType == FrameType.TEXT) {
-                console.log(receive.data.decodeToString())
-            } else {
-                console.log("over")
-                break
-            }
-        }
-    }
-}
-
 // https://stackoverflow.com/a/30832210/4296219
 fun downloadZip(content: ByteArray, filename: String) {
     @Suppress("UNUSED_VARIABLE") val jsArray = Uint8Array(content.toTypedArray())

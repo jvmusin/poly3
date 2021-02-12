@@ -74,7 +74,6 @@ kotlin {
 
                 // https://mvnrepository.com/artifact/org.jsoup/jsoup
                 implementation("org.jsoup:jsoup:1.13.1")
-                implementation("io.ktor:ktor-websockets:$ktorVersion")
 
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
@@ -101,7 +100,6 @@ kotlin {
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
-                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             }
         }
         val jsTest by getting
