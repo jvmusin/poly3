@@ -44,7 +44,9 @@ suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProper
 }
 
 suspend fun connectWS() {
-    val url = "${endpoint.replace(window.location.protocol, "ws:")}/testws"
+    val protocol = window.location.protocol
+    val ws = if (protocol == "https:") "wss:" else "ws:"
+    val url = "${endpoint.replace(protocol, ws)}/testws"
     console.log(url)
     client.webSocket(url) {
         while (true) {
