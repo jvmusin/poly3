@@ -104,7 +104,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             attrs {
                                 onClickFunction = {
                                     scope.launch {
-                                        downloadPackage(problem, buildAdditionalProperties())
+                                        Api.downloadPackage(problem, buildAdditionalProperties())
                                     }
                                 }
                             }
@@ -116,7 +116,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             attrs {
                                 onClickFunction = {
                                     scope.launch {
-                                        transferToBacsArchive(problem, buildAdditionalProperties())
+                                        Api.transferToBacsArchive(problem, buildAdditionalProperties())
                                     }
                                 }
                             }

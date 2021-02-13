@@ -26,74 +26,78 @@ import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 
-val client = HttpClient {
-    install(JsonFeature) { serializer = KotlinxSerializer() }
-    install(WebSockets)
-    defaultRequest {
-        port = URL(window.location.origin).port.toInt()
-    }
-}
-
-suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
-    val proto = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
-    val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
-    client.webSocket(path, { url { protocol = wsProtocol } }) {
-        block()
-    }
-}
-
-suspend fun postRequest(path: String, block: HttpRequestBuilder.() -> Unit = {}) =
-    client.post<HttpResponse>(path, block)
-
-suspend fun getRequest(path: String, block: HttpRequestBuilder.() -> Unit = {}) =
-    client.get<HttpResponse>(path, block)
-
-suspend fun getProblems(): List<Problem> = getRequest("problems").receive()
-
-suspend fun getProblemInfo(problemId: Int): ProblemInfo = getRequest("problems/$problemId").receive()
-
-suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties) {
-    val fullName = props.buildFullName(problem.name)
-    val bytes = postRequest("problems/${problem.id}/download?fullName=$fullName") {
-        header(HttpHeaders.ContentType, ContentType.Application.Json)
-        body = props
-        parameter("fullName", fullName)
-    }.readBytes()
-    downloadZip(bytes, "$fullName.zip")
-}
-
-suspend fun transferToBacsArchive(problem: Problem, props: AdditionalProblemProperties) {
-    val fullName = props.buildFullName(problem.name)
-    postRequest("problems/${problem.id}/transfer") {
-        header(HttpHeaders.ContentType, ContentType.Application.Json)
-        body = props
-        parameter("fullName", fullName)
-    }
-}
-
-suspend fun registerNotifications() {
-    getRequest("register-session")
-    scope.launch {
-        connectWS("subscribe") {
-            incoming.consumeAsFlow()
-                .takeWhile { it is Frame.Text }
-                .map { it as Frame.Text }
-                .map { it.readText() }
-                .map { Json.decodeFromString<Toast>(it) }
-                .collect { showToast(it) }
+object Api {
+    private val client = HttpClient {
+        install(JsonFeature) { serializer = KotlinxSerializer() }
+        install(WebSockets)
+        defaultRequest {
+            port = URL(window.location.origin).port.toInt()
         }
     }
-}
 
-// https://stackoverflow.com/a/30832210/4296219
-fun downloadZip(content: ByteArray, filename: String) {
-    @Suppress("UNUSED_VARIABLE") val jsArray = Uint8Array(content.toTypedArray())
-    val file = js("new Blob([jsArray],{type:'application/zip'})") as Blob
-    val a = document.createElement("a")
-    val url = URL.createObjectURL(file)
-    a.setAttribute("href", url)
-    a.setAttribute("download", filename)
-    document.body!!.appendChild(a)
-    (a as HTMLAnchorElement).click()
-    document.body!!.removeChild(a)
+    private suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
+        val proto = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
+        val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
+        client.webSocket(path, { url { protocol = wsProtocol } }) {
+            block()
+        }
+    }
+
+    private suspend fun postRequest(path: String, block: HttpRequestBuilder.() -> Unit = {}) =
+        client.post<HttpResponse>(path, block)
+
+    private suspend fun getRequest(path: String, block: HttpRequestBuilder.() -> Unit = {}) =
+        client.get<HttpResponse>(path, block)
+
+    suspend fun getProblems(): List<Problem> = getRequest("problems").receive()
+
+    suspend fun getProblemInfo(problemId: Int): ProblemInfo = getRequest("problems/$problemId").receive()
+
+    suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties) {
+        val fullName = props.buildFullName(problem.name)
+        val bytes = postRequest("problems/${problem.id}/download?fullName=$fullName") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            body = props
+            parameter("fullName", fullName)
+        }.readBytes()
+        downloadZip(bytes, "$fullName.zip")
+    }
+
+    suspend fun transferToBacsArchive(problem: Problem, props: AdditionalProblemProperties) {
+        val fullName = props.buildFullName(problem.name)
+        postRequest("problems/${problem.id}/transfer") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            body = props
+            parameter("fullName", fullName)
+        }
+    }
+
+    suspend fun registerNotifications() {
+        getRequest("register-session")
+        scope.launch {
+            connectWS("subscribe") {
+                incoming.consumeAsFlow()
+                    .takeWhile { it is Frame.Text }
+                    .map { it as Frame.Text }
+                    .map { it.readText() }
+                    .map { Json.decodeFromString<Toast>(it) }
+                    .collect { showToast(it) }
+            }
+        }
+    }
+
+    // https://stackoverflow.com/a/30832210/4296219
+    fun downloadZip(content: ByteArray, filename: String) {
+        @Suppress("UNUSED_VARIABLE") val jsArray = Uint8Array(content.toTypedArray())
+        val file = js("new Blob([jsArray],{type:'application/zip'})") as Blob
+        val a = document.createElement("a")
+        val url = URL.createObjectURL(file)
+        a.setAttribute("href", url)
+        a.setAttribute("download", filename)
+        document.body!!.appendChild(a)
+        (a as HTMLAnchorElement).click()
+        document.body!!.removeChild(a)
+    }
+
+    suspend fun bumpTestNotification() = postRequest("bump-test-notification")
 }

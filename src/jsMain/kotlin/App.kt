@@ -43,8 +43,8 @@ val App = functionalComponent<RProps> {
 
     useEffect(emptyList()) {
         scope.launch {
-            registerNotifications()
-            setProblems(getProblems().sortedByDescending { it.id })
+            Api.registerNotifications()
+            setProblems(Api.getProblems().sortedByDescending { it.id })
         }
     }
 
@@ -59,7 +59,7 @@ val App = functionalComponent<RProps> {
                 attrs {
                     onClickFunction = {
                         scope.launch {
-                            postRequest("bump-test-notification")
+                            Api.bumpTestNotification()
                         }
                     }
                 }
@@ -105,7 +105,7 @@ val App = functionalComponent<RProps> {
                                         setSelectedProblem(p)
                                         setSelectedProblemInfo(null)
                                         scope.launch {
-                                            setSelectedProblemInfo(getProblemInfo(p.id))
+                                            setSelectedProblemInfo(Api.getProblemInfo(p.id))
                                         }
                                     }
                                 }
