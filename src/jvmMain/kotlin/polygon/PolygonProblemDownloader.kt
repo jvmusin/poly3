@@ -15,34 +15,32 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
         //eagerly check for access
         val problem = polygonApi.getProblem(problemId).apply {
             if (accessType == Problem.AccessType.READ) {
-                throw PolygonProblemDownloaderException("No WRITE access (only READ)")
+                throw PolygonProblemDownloaderException("Нет доступа на запись. Дайте WRITE доступ пользователю Musin")
             }
             if (modified) {
                 throw PolygonProblemDownloaderException(
-                    "Problem is modified. Commit changes and build a new package or discard the changes"
+                    "Файлы задачи изменены. Сначала откатите изменения или закоммитьте их и соберите новый пакет " +
+                            "(скорее всего (99.9%) косяк Рустама)"
                 )
             }
             if (latestPackage == null) {
-                throw PolygonProblemDownloaderException("Problem has no build packages")
+                throw PolygonProblemDownloaderException("У задачи нет собранных пакетов. Соберите пакет")
             }
             if (latestPackage != revision) {
-                throw PolygonProblemDownloaderException("Problem doesn't have package for the latest revision. Build the package to fix it")
+                throw PolygonProblemDownloaderException("Последний собранный пакет для задачи не актуален. Соберите новый")
             }
         }
 
         val packageId = async {
-            polygonApi.getLatestPackage(problemId)?.id
-                ?: throw PolygonProblemDownloaderException("Problem has no build packages")
+            polygonApi.getLatestPackage(problemId)!!.id
         }
 
         val statement = async {
             polygonApi.getStatement(problemId)?.let { (language, statement) ->
                 val content = polygonApi.getStatementRaw(problemId, packageId.await(), "pdf", language)
-                    ?: throw PolygonProblemDownloaderException(
-                        "There is no pdf version of the statement ${statement.name} in $language language"
-                    )
+                    ?: throw PolygonProblemDownloaderException("Не найдено pdf версия условия")
                 IRStatement(statement.name, content)
-            } ?: throw PolygonProblemDownloaderException("There are no statements for problem $problemId")
+            } ?: throw PolygonProblemDownloaderException("Не найдено условие")
         }
 
         val checker = async {
@@ -50,7 +48,7 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             val file = polygonApi.downloadPackage(problemId, packageId.await()).resolve(name)
             if (file.notExists())
                 throw PolygonProblemDownloaderException(
-                    "There is no $name checker. Other kinds of checkers are not supported"
+                    "Не найден чекер $name checker. Другие чекеры не поддерживаются"
                 )
             IRChecker(name, file.readBytes().decodeToString())
         }

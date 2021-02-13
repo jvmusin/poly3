@@ -3,6 +3,7 @@
 import api.Problem
 import api.ProblemInfo
 import api.Toast
+import api.ToastKind
 import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
@@ -22,7 +23,12 @@ val scope = MainScope()
 
 fun showToast(toast: Toast) {
     document.getElementById("notifications")!!.append {
-        div("toast") {
+        val extraClasses = when (toast.kind) {
+            ToastKind.INFORMATION -> "toast-info"
+            ToastKind.SUCCESS -> "toast-success"
+            ToastKind.FAILURE -> "toast-failure"
+        }
+        div("toast $extraClasses") {
             attributes["role"] = "alert"
             div("toast-header") {
                 strong("me-auto") { +toast.title }
@@ -33,7 +39,7 @@ fun showToast(toast: Toast) {
             div("toast-body") { +toast.content }
         }
     }
-    js("new bootstrap.Toast(document.getElementsByClassName('toast-container')[0].lastChild,{animation:true,autohide:true,delay:60000}).show()")
+    js("new bootstrap.Toast(document.getElementsByClassName('toast-container')[0].lastChild,{animation:true,autohide:false,delay:60000}).show()")
 }
 
 val App = functionalComponent<RProps> {

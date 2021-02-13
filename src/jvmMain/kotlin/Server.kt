@@ -2,6 +2,8 @@
 
 import api.AdditionalProblemProperties
 import api.Toast
+import api.ToastKind
+import api.ToastKind.*
 import bacs.BacsArchiveServiceFactory
 import bacs.BacsProblemStatus
 import io.ktor.application.*
@@ -21,26 +23,23 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import polygon.PolygonApiFactory
 import polygon.PolygonProblemDownloader
+import polygon.PolygonProblemDownloaderException
 import polygon.toDto
-import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilder
 import util.getLogger
-import java.time.LocalDateTime
+import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
-import kotlin.time.TimeSource
-import kotlin.time.milliseconds
 import kotlin.time.minutes
 
 val index = """
@@ -79,18 +78,46 @@ fun main() {
     val sybonArchiveBuilder = SybonArchiveBuilder()
 
     val wsBySession = ConcurrentHashMap<String, CopyOnWriteArrayList<SendChannel<Frame>>>()
-    fun PipelineContext<Unit, ApplicationCall>.sendMessage(title: String, content: String) {
+    fun PipelineContext<Unit, ApplicationCall>.sendMessage(
+        title: String,
+        content: String,
+        kind: ToastKind = INFORMATION
+    ) {
         val list = wsBySession[call.sessions.get<Session>()!!.str]!!
         list.removeIf { it.isClosedForSend }
         list.map { out ->
             launch {
                 try {
-                    out.send(Frame.Text(Json.encodeToString(Toast(title, content))))
+                    out.send(Frame.Text(Json.encodeToString(Toast(title, content, kind))))
                 } catch (e: Exception) {
                     getLogger(javaClass).warn(e.message)
                 }
             }
         }
+    }
+
+    suspend fun PipelineContext<Unit, ApplicationCall>.downloadProblemAndBuildArchive(
+        fullName: String,
+        problemId: Int,
+        properties: AdditionalProblemProperties
+    ): Path? {
+        val irProblem = run {
+            try {
+                sendMessage(fullName, "Начато скачивание задачи из полигона")
+                return@run problemDownloader.download(problemId)
+            } catch (e: PolygonProblemDownloaderException) {
+                sendMessage(fullName, e.message!!, FAILURE)
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Не удалось скачать задачу из полигона: ${e.message}"
+                )
+                return null
+            }
+        }
+        sendMessage(fullName, "Задача скачана, собирается архив")
+        val zip = sybonArchiveBuilder.build(irProblem, properties)
+        sendMessage(fullName, "Архив собран")
+        return zip
     }
 
     val port = System.getenv("PORT")?.toInt() ?: 8080
@@ -105,7 +132,7 @@ fun main() {
             level = Level.DEBUG
         }
         install(StatusPages) {
-            exception<SybonArchiveBuildException> { cause ->
+            exception<PolygonProblemDownloaderException> { cause ->
                 call.respond(HttpStatusCode.BadRequest, cause.message ?: "No message provided")
                 throw cause
             }
@@ -127,10 +154,10 @@ fun main() {
                 call.respond(HttpStatusCode.OK, session.str)
             }
             webSocket("subscribe") {
-                getLogger(javaClass).info("Subscribing ws")
+                getLogger(javaClass).info("Subscribing WS")
                 wsBySession.computeIfAbsent(call.sessions.get<Session>()!!.str) { CopyOnWriteArrayList() }
                     .add(outgoing)
-                getLogger(javaClass).info("Subscribed ws")
+                getLogger(javaClass).info("Subscribed WS")
                 try {
                     incoming.receive()
                 } catch (e: ClosedReceiveChannelException) {
@@ -138,20 +165,8 @@ fun main() {
                 }
             }
             post("bump-test-notification") {
-                sendMessage("Привет", "Сейчас ${LocalDateTime.now()}")
+                sendMessage("Привет!", "Хорошо сейчас на улице, выйди прогуляйся")
                 call.respond(HttpStatusCode.OK)
-            }
-            webSocket("testws") {
-                try {
-                    val now = TimeSource.Monotonic.markNow()
-                    while (true) {
-                        outgoing.send(Frame.Text("Passed ${now.elapsedNow()}"))
-                        delay(500.milliseconds)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    throw e
-                }
             }
             get {
                 call.respondText(index, ContentType.Text.Html)
@@ -171,11 +186,8 @@ fun main() {
                         val fullName = call.parameters["fullName"].toString()
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
-                        sendMessage(fullName, "Начато скачивание задачи из полигона")
-                        val irProblem = problemDownloader.download(problemId)
-                        sendMessage(fullName, "Задача скачана, собирается архив")
-                        val zip = sybonArchiveBuilder.build(irProblem, properties)
-                        sendMessage(fullName, "Архив собран, скачиваем")
+                        val zip = downloadProblemAndBuildArchive(fullName, problemId, properties) ?: return@post
+                        sendMessage(fullName, "Скачиваем архив", SUCCESS)
                         call.response.header(
                             HttpHeaders.ContentDisposition,
                             ContentDisposition.Attachment.withParameter(
@@ -189,22 +201,16 @@ fun main() {
                         val fullName = call.parameters["fullName"].toString()
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
-                        sendMessage(fullName, "Начато скачивание задачи из полигона")
-                        val irProblem = problemDownloader.download(problemId)
-                        sendMessage(fullName, "Задача скачана, собирается архив")
-                        val zip = SybonArchiveBuilder().build(irProblem, properties)
-                        sendMessage(fullName, "Архив собран, закидываем в бакс")
+                        val zip = downloadProblemAndBuildArchive(fullName, problemId, properties) ?: return@post
+                        sendMessage(fullName, "Закидываем архив в бакс")
                         bacsArchiveService.uploadProblem(zip)
                         val status = bacsArchiveService.waitTillProblemIsImported(fullName, 5.minutes)
                         if (status.state == BacsProblemStatus.State.IMPORTED) {
-                            getLogger(javaClass).info("Problem $fullName imported")
-                            sendMessage(fullName, "Готово! Задача в баксе")
+                            sendMessage(fullName, "Готово! Задача в баксе", SUCCESS)
                             call.respond(HttpStatusCode.OK)
                         } else {
-                            val message = "Problem $fullName not imported, status: $status"
-                            getLogger(javaClass).info(message)
-                            sendMessage(fullName, "Не получилось закинуть в бакс: $status")
-                            call.respond(HttpStatusCode.BadRequest, message)
+                            sendMessage(fullName, "Не получилось закинуть в бакс: $status", FAILURE)
+                            call.respond(HttpStatusCode.BadRequest, "Не получилось закинуть в бакс: $status")
                         }
                     }
 //                    post("test") {

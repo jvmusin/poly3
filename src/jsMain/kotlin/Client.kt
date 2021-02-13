@@ -27,6 +27,27 @@ fun main() {
             bottom = 15.px
             right = 15.px
         }
+        ".toast-info .toast-header" {
+            backgroundColor = Color("#00AC6B")
+        }
+        ".toast-info .toast-body" {
+            backgroundColor = Color("#35D699")
+        }
+        ".toast-success .toast-header" {
+            backgroundColor = Color("#7CE700")
+        }
+        ".toast-success .toast-body" {
+            backgroundColor = Color("#B5F36D")
+        }
+        ".toast-failure .toast-header" {
+            backgroundColor = Color("#FF8C00")
+        }
+        ".toast-failure .toast-body" {
+            backgroundColor = Color("#FFA940")
+        }
+        ".toast-header" {
+            color = Color("#212529")
+        }
     }
 
     window.onload = {
