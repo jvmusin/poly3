@@ -53,18 +53,21 @@ suspend fun getProblems(): List<Problem> = getRequest("problems").receive()
 suspend fun getProblemInfo(problemId: Int): ProblemInfo = getRequest("problems/$problemId").receive()
 
 suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties) {
-    val bytes = postRequest("problems/${problem.id}/download") {
+    val fullName = props.buildFullName(problem.name)
+    val bytes = postRequest("problems/${problem.id}/download?fullName=$fullName") {
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         body = props
+        parameter("fullName", fullName)
     }.readBytes()
-    val fullName = "${props.prefix.orEmpty()}${problem.name}${props.suffix.orEmpty()}"
     downloadZip(bytes, "$fullName.zip")
 }
 
-suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProperties) {
-    postRequest("problems/$problemId/transfer") {
+suspend fun transferToBacsArchive(problem: Problem, props: AdditionalProblemProperties) {
+    val fullName = props.buildFullName(problem.name)
+    postRequest("problems/${problem.id}/transfer") {
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         body = props
+        parameter("fullName", fullName)
     }
 }
 

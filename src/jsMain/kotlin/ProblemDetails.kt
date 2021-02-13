@@ -1,7 +1,6 @@
 import api.AdditionalProblemProperties
 import api.Problem
 import api.ProblemInfo
-import api.Toast
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -104,10 +103,8 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             +"Скачать пакет"
                             attrs {
                                 onClickFunction = {
-                                    showToast(Toast(finalProblemName, "Начата сборка архива"))
                                     scope.launch {
                                         downloadPackage(problem, buildAdditionalProperties())
-                                        showToast(Toast(finalProblemName, "Пакет собран"))
                                     }
                                 }
                             }
@@ -118,10 +115,8 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             +"Закинуть в бакс"
                             attrs {
                                 onClickFunction = {
-                                    showToast(Toast(finalProblemName, "Начата сборка архива и загрузка его в бакс"))
                                     scope.launch {
-                                        transferToBacsArchive(problem.id, buildAdditionalProperties())
-                                        showToast(Toast(finalProblemName, "Задача загружена в бакс"))
+                                        transferToBacsArchive(problem, buildAdditionalProperties())
                                     }
                                 }
                             }

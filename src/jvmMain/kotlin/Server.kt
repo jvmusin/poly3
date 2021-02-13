@@ -28,10 +28,9 @@ import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import polygon.PolygonApiFactory
 import polygon.PolygonProblemDownloader
-import polygon.getProblem
 import polygon.toDto
 import sybon.SybonArchiveBuildException
-import sybon.SybonArchiveBuilderNew
+import sybon.SybonArchiveBuilder
 import util.getLogger
 import java.time.LocalDateTime
 import java.util.*
@@ -77,6 +76,7 @@ fun main() {
     val polygonApi = PolygonApiFactory().create()
     val bacsArchiveService = BacsArchiveServiceFactory().create()
     val problemDownloader = PolygonProblemDownloader(polygonApi)
+    val sybonArchiveBuilder = SybonArchiveBuilder()
 
     val wsBySession = ConcurrentHashMap<String, CopyOnWriteArrayList<SendChannel<Frame>>>()
     fun PipelineContext<Unit, ApplicationCall>.sendMessage(title: String, content: String) {
@@ -168,11 +168,14 @@ fun main() {
                         call.respond(HttpStatusCode.OK, problemInfo.toDto())
                     }
                     post("download") {
+                        val fullName = call.parameters["fullName"].toString()
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
+                        sendMessage(fullName, "Начато скачивание задачи из полигона")
                         val irProblem = problemDownloader.download(problemId)
-                        launch { println("Unit") }
-                        val zip = SybonArchiveBuilderNew().build(irProblem, properties)
+                        sendMessage(fullName, "Задача скачана, собирается архив")
+                        val zip = sybonArchiveBuilder.build(irProblem, properties)
+                        sendMessage(fullName, "Архив собран, скачиваем")
                         call.response.header(
                             HttpHeaders.ContentDisposition,
                             ContentDisposition.Attachment.withParameter(
@@ -183,20 +186,24 @@ fun main() {
                         call.respondFile(zip.toFile())
                     }
                     post("transfer") {
+                        val fullName = call.parameters["fullName"].toString()
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
+                        sendMessage(fullName, "Начато скачивание задачи из полигона")
                         val irProblem = problemDownloader.download(problemId)
-                        val zip = SybonArchiveBuilderNew().build(irProblem, properties)
+                        sendMessage(fullName, "Задача скачана, собирается архив")
+                        val zip = SybonArchiveBuilder().build(irProblem, properties)
+                        sendMessage(fullName, "Архив собран, закидываем в бакс")
                         bacsArchiveService.uploadProblem(zip)
-                        val problem = polygonApi.getProblem(problemId)
-                        val fullName = properties.buildFullName(problem.name)
                         val status = bacsArchiveService.waitTillProblemIsImported(fullName, 5.minutes)
                         if (status.state == BacsProblemStatus.State.IMPORTED) {
                             getLogger(javaClass).info("Problem $fullName imported")
+                            sendMessage(fullName, "Готово! Задача в баксе")
                             call.respond(HttpStatusCode.OK)
                         } else {
                             val message = "Problem $fullName not imported, status: $status"
                             getLogger(javaClass).info(message)
+                            sendMessage(fullName, "Не получилось закинуть в бакс: $status")
                             call.respond(HttpStatusCode.BadRequest, message)
                         }
                     }

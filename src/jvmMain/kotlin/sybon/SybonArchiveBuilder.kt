@@ -14,7 +14,7 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writeText
 
-class SybonArchiveBuilderNew {
+class SybonArchiveBuilder {
 
     companion object {
         private const val BUILT_PACKAGES_FOLDER = "ready"
