@@ -1,6 +1,8 @@
+@file:OptIn(ExperimentalTime::class)
+
 import api.Problem
 import api.ProblemInfo
-import io.ktor.http.cio.websocket.*
+import api.Toast
 import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
@@ -14,20 +16,21 @@ import kotlinx.html.js.onClickFunction
 import kotlinx.html.strong
 import react.*
 import react.dom.*
+import kotlin.time.ExperimentalTime
 
 val scope = MainScope()
 
-fun showToast(title: String, content: String) {
+fun showToast(toast: Toast) {
     document.getElementById("notifications")!!.append {
         div("toast") {
             attributes["role"] = "alert"
             div("toast-header") {
-                strong("me-auto") { +title }
+                strong("me-auto") { +toast.title }
                 button(type = ButtonType.button, classes = "btn-close") {
                     attributes["data-bs-dismiss"] = "toast"
                 }
             }
-            div("toast-body") { +content }
+            div("toast-body") { +toast.content }
         }
     }
     js("new bootstrap.Toast(document.getElementsByClassName('toast-container')[0].lastChild).show()")
@@ -40,6 +43,7 @@ val App = functionalComponent<RProps> {
 
     useEffect(emptyList()) {
         scope.launch {
+            registerNotifications()
             setProblems(getProblems().sortedByDescending { it.id })
         }
     }
@@ -55,16 +59,7 @@ val App = functionalComponent<RProps> {
                 attrs {
                     onClickFunction = {
                         scope.launch {
-                            connectWS("testws") {
-                                while (true) {
-                                    val v = incoming.receive()
-                                    if (v is Frame.Text) {
-                                        console.log(v.readText())
-                                    } else {
-                                        console.log("fail")
-                                    }
-                                }
-                            }
+                            postRequest("bump-test-notification")
                         }
                     }
                 }

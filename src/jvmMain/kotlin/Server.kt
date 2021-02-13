@@ -1,6 +1,7 @@
-@file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class)
+@file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class, ExperimentalCoroutinesApi::class)
 
 import api.AdditionalProblemProperties
+import api.Toast
 import bacs.BacsArchiveServiceFactory
 import bacs.BacsProblemStatus
 import io.ktor.application.*
@@ -14,9 +15,16 @@ import io.ktor.routing.*
 import io.ktor.serialization.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.sessions.*
+import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
 import polygon.PolygonApiFactory
 import polygon.PolygonProblemDownloader
@@ -25,6 +33,10 @@ import polygon.toDto
 import sybon.SybonArchiveBuildException
 import sybon.SybonArchiveBuilderNew
 import util.getLogger
+import java.time.LocalDateTime
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
@@ -59,10 +71,27 @@ val index = """
     </html>
 """.trimIndent()
 
+data class Session(val str: String)
+
 fun main() {
     val polygonApi = PolygonApiFactory().create()
     val bacsArchiveService = BacsArchiveServiceFactory().create()
     val problemDownloader = PolygonProblemDownloader(polygonApi)
+
+    val wsBySession = ConcurrentHashMap<String, CopyOnWriteArrayList<SendChannel<Frame>>>()
+    fun PipelineContext<Unit, ApplicationCall>.sendMessage(title: String, content: String) {
+        val list = wsBySession[call.sessions.get<Session>()!!.str]!!
+        list.removeIf { it.isClosedForSend }
+        list.map { out ->
+            launch {
+                try {
+                    out.send(Frame.Text(Json.encodeToString(Toast(title, content))))
+                } catch (e: Exception) {
+                    getLogger(javaClass).warn(e.message)
+                }
+            }
+        }
+    }
 
     val port = System.getenv("PORT")?.toInt() ?: 8080
     embeddedServer(Netty, port = port) {
@@ -83,10 +112,34 @@ fun main() {
         }
         install(DefaultHeaders)
         install(WebSockets)
+        install(Sessions) {
+            cookie<Session>("SESSION")
+        }
 
         routing {
             static("static") {
                 resources()
+            }
+            get("register-session") {
+                getLogger(javaClass).info("Registering session")
+                val session = call.sessions.getOrSet { Session(UUID.randomUUID().toString()) }
+                getLogger(javaClass).info("Registered session")
+                call.respond(HttpStatusCode.OK, session.str)
+            }
+            webSocket("subscribe") {
+                getLogger(javaClass).info("Subscribing ws")
+                wsBySession.computeIfAbsent(call.sessions.get<Session>()!!.str) { CopyOnWriteArrayList() }
+                    .add(outgoing)
+                getLogger(javaClass).info("Subscribed ws")
+                try {
+                    incoming.receive()
+                } catch (e: ClosedReceiveChannelException) {
+                    getLogger(javaClass).info("WS connection closed")
+                }
+            }
+            post("bump-test-notification") {
+                sendMessage("Привет", "Сейчас ${LocalDateTime.now()}")
+                call.respond(HttpStatusCode.OK)
             }
             webSocket("testws") {
                 try {

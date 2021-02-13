@@ -28,7 +28,7 @@ class BacsArchiveServiceFactory {
             }
             install(Logging) { level = LogLevel.INFO }
             defaultRequest {
-                this.url {
+                url {
                     protocol = PROTOCOL
                     host = HOST
                     encodedPath = "$BASE_PATH/$encodedPath"

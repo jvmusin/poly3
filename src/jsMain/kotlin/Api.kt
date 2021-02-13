@@ -1,7 +1,10 @@
 import api.AdditionalProblemProperties
 import api.Problem
 import api.ProblemInfo
+import api.Toast
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.client.features.websocket.*
@@ -11,24 +14,46 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import org.khronos.webgl.Uint8Array
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 
-val endpoint = window.location.origin // only needed until https://github.com/ktorio/ktor/issues/1695 is resolved
-
 val client = HttpClient {
     install(JsonFeature) { serializer = KotlinxSerializer() }
     install(WebSockets)
+    defaultRequest {
+        port = URL(window.location.origin).port.toInt()
+    }
 }
 
-suspend fun getProblems(): List<Problem> = client.get("$endpoint/problems")
+suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
+    val proto = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
+    val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
+    client.webSocket(path, { url { protocol = wsProtocol } }) {
+        block()
+    }
+}
 
-suspend fun getProblemInfo(problemId: Int): ProblemInfo = client.get("$endpoint/problems/$problemId")
+suspend fun postRequest(path: String, block: HttpRequestBuilder.() -> Unit = {}) =
+    client.post<HttpResponse>(path, block)
+
+suspend fun getRequest(path: String, block: HttpRequestBuilder.() -> Unit = {}) =
+    client.get<HttpResponse>(path, block)
+
+suspend fun getProblems(): List<Problem> = getRequest("problems").receive()
+
+suspend fun getProblemInfo(problemId: Int): ProblemInfo = getRequest("problems/$problemId").receive()
 
 suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties) {
-    val bytes = client.post<HttpResponse>("$endpoint/problems/${problem.id}/download") {
+    val bytes = postRequest("problems/${problem.id}/download") {
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         body = props
     }.readBytes()
@@ -37,17 +62,24 @@ suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties
 }
 
 suspend fun transferToBacsArchive(problemId: Int, props: AdditionalProblemProperties) {
-    client.post<Unit>("$endpoint/problems/$problemId/transfer") {
+    postRequest("problems/$problemId/transfer") {
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         body = props
     }
 }
 
-suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
-    val protocol = window.location.protocol
-    val ws = if (protocol == "https:") "wss:" else "ws:"
-    val url = "${endpoint.replace(protocol, ws)}/$path"
-    client.webSocket(url) { block() }
+suspend fun registerNotifications() {
+    getRequest("register-session")
+    scope.launch {
+        connectWS("subscribe") {
+            incoming.consumeAsFlow()
+                .takeWhile { it is Frame.Text }
+                .map { it as Frame.Text }
+                .map { it.readText() }
+                .map { Json.decodeFromString<Toast>(it) }
+                .collect { showToast(it) }
+        }
+    }
 }
 
 // https://stackoverflow.com/a/30832210/4296219
