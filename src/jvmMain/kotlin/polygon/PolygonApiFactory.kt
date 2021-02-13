@@ -1,7 +1,8 @@
+@file:OptIn(ExperimentalTime::class, ExperimentalSerializationApi::class)
+
 package polygon
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import util.getLogger
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Dispatcher
@@ -13,8 +14,12 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import util.getLogger
 import util.sha512
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.minutes
 
 class PolygonApiFactory {
 
@@ -51,7 +56,7 @@ class PolygonApiFactory {
     }
 
     private class TooManyRequestsRetryInterceptor(
-        private val periodSeconds: Int = 60,
+        private val period: Duration = 1.minutes,
         private val retries: Int = 10
     ) : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
@@ -62,9 +67,9 @@ class PolygonApiFactory {
                     val body = res.body!!.bytes().decodeToString()
                     if (body.contains("Too many requests. Please, wait few seconds and try again")) {
                         getLogger(javaClass).warn(
-                            "Too many requests to Polygon API. Now sleep for $periodSeconds seconds and make try #${done + 1}"
+                            "Too many requests to Polygon API. Now sleep for $period and make try #${done + 1} of $retries"
                         )
-                        Thread.sleep(periodSeconds * 1000L) // we can't delay coroutine here since it's not a suspend function =(
+                        Thread.sleep(period.toLongMilliseconds()) // we can't delay the coroutine here since intercept is not a suspend function =(
                         continue
                     }
                     return res.newBuilder().body(body.toResponseBody()).build()
@@ -74,20 +79,43 @@ class PolygonApiFactory {
         }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
+    private class Error500RetryInterceptor(
+        private val period: Duration = 1.minutes,
+        private val retries: Int = 10
+    ) : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            var done = 0
+            while (true) {
+                val res = chain.proceed(chain.request())
+                if ((res.code in 500..599) && done++ < retries) {
+                    getLogger(javaClass).warn(
+                        "Polygon API responded with ${res.code} error. Now sleep for $period and make try #${done + 1} of $retries"
+                    )
+                    val body = res.body!!.bytes().decodeToString()
+                    getLogger(javaClass).warn(
+                        "Responded with this text: $body"
+                    )
+                    continue
+                }
+                return res
+            }
+        }
+    }
+
     fun create(): PolygonApi {
         val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
             getLogger(HttpLoggingInterceptor::class.java).debug(message)
         }.setLevel(HttpLoggingInterceptor.Level.BASIC)
         val dispatcher = Dispatcher().apply {
-            maxRequests = 100
-            maxRequestsPerHost = 100
+            maxRequests = 15
+            maxRequestsPerHost = 15
         }
         val client = OkHttpClient().newBuilder()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(2, TimeUnit.MINUTES)
+            .readTimeout(2, TimeUnit.MINUTES)
+            .writeTimeout(2, TimeUnit.MINUTES)
             .addInterceptor(TooManyRequestsRetryInterceptor())
+            .addInterceptor(Error500RetryInterceptor())
             .addInterceptor(ApiSigAddingInterceptor())
             .addInterceptor(httpLoggingInterceptor)
             .dispatcher(dispatcher)

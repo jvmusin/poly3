@@ -98,7 +98,9 @@ data class Solution(
     val length: Int,
     val sourceType: String,
     val tag: String
-)
+) {
+    val isMain get() = tag == "MA"
+}
 
 @Serializable
 data class PolygonTest(

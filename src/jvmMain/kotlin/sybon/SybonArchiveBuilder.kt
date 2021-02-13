@@ -28,7 +28,7 @@ class SybonArchiveBuilder {
                 "$fullName-${UUID.randomUUID()}",
                 fullName
             )
-            check(destinationPath.toFile().deleteRecursively()) { "Destination directory was not deleted =(" }
+            check(destinationPath.toFile().deleteRecursively()) { "Destination directory was not deleted" }
 
             val checkerPath = destinationPath.resolve("checker")
             val miscPath = destinationPath.resolve("misc")
