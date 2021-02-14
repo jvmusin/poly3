@@ -149,9 +149,9 @@ fun main() {
             }
             get("register-session") {
                 getLogger(javaClass).info("Registering session")
-                val session = call.sessions.getOrSet { Session(UUID.randomUUID().toString()) }
+                call.sessions.getOrSet { Session(UUID.randomUUID().toString()) }
                 getLogger(javaClass).info("Registered session")
-                call.respond(HttpStatusCode.OK, session.str)
+                call.respond(HttpStatusCode.OK)
             }
             webSocket("subscribe") {
                 getLogger(javaClass).info("Subscribing WS")
