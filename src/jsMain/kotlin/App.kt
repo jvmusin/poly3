@@ -16,7 +16,10 @@ import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.strong
 import react.*
-import react.dom.*
+import react.dom.div
+import react.dom.h1
+import react.dom.header
+import react.dom.span
 import kotlin.time.ExperimentalTime
 
 val scope = MainScope()
@@ -80,46 +83,18 @@ val App = functionalComponent<RProps> {
         div("container") {
             div("row") {
                 div("col-4 problem-list") {
-                    h2("my-3 text-center") { +"Доступные задачи" }
-                    ul("list-group") {
-                        for (p in problems) {
-                            val classes = mutableListOf("list-group-item", "list-group-item-action")
-                            when {
-                                selectedProblem == p -> classes += "active"
-                                p.accessType.notSufficient -> classes += "disabled"
-                                p.latestPackage == null -> classes += "list-group-item-warning"
-                            }
-                            button(type = ButtonType.button, classes = classes.joinToString(" ")) {
-                                div("d-flex justify-content-between") {
-                                    span { +p.name }
-                                    span("text-nowrap") { i("bi bi-person-fill") { }; +p.owner }
-                                }
-                                div("d-flex justify-content-between ${if (selectedProblem == p) "" else "text-secondary"}") {
-                                    small { +p.id.toString() }
-                                    small {
-                                        when {
-                                            p.accessType.notSufficient ->
-                                                strong("text-dark") { +"Нет WRITE доступа" }
-                                            p.latestPackage == null ->
-                                                strong("text-dark") { +"Не собран пакет" }
-                                            else ->
-                                                +"rev. ${p.latestPackage}"
-                                        }
-                                    }
-                                }
-                                attrs {
-                                    onClickFunction = {
-                                        setSelectedProblem(null)
-                                        setSelectedProblem(p)
-                                        setSelectedProblemInfo(null)
-                                        scope.launch {
-                                            setSelectedProblemInfo(Api.getProblemInfo(p.id))
-                                        }
-                                    }
-                                }
+                    child(ProblemList, jsObject {
+                        this.problems = problems
+                        this.selectedProblem = selectedProblem
+                        this.setSelectedProblem = { problem ->
+                            setSelectedProblem(null)
+                            setSelectedProblem(problem)
+                            setSelectedProblemInfo(null)
+                            scope.launch {
+                                setSelectedProblemInfo(Api.getProblemInfo(problem.id))
                             }
                         }
-                    }
+                    })
                 }
                 div("col-8 problem-details") {
                     child(ProblemDetails, jsObject {

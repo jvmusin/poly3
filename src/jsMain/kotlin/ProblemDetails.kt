@@ -1,5 +1,6 @@
 import api.AdditionalProblemProperties
 import api.BacsNameAvailability
+import api.BacsNameAvailability.CHECK_FAILED
 import api.Problem
 import api.ProblemInfo
 import kotlinx.coroutines.launch
@@ -51,7 +52,15 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
 
     useEffect(listOf(finalProblemName)) {
         setNameAvailability(BacsNameAvailability.LOADING)
-        scope.launch { setNameAvailability(Api.getNameAvailability(finalProblemName)) }
+        scope.launch {
+            val availability = try {
+                Api.getNameAvailability(finalProblemName)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                CHECK_FAILED
+            }
+            setNameAvailability(availability)
+        }
     }
 
     useEffect(listOf(problemInfo)) {
@@ -107,7 +116,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                             BacsNameAvailability.AVAILABLE -> "bg-success"
                             BacsNameAvailability.TAKEN -> "bg-warning text-dark"
                             BacsNameAvailability.LOADING -> "bg-secondary"
-                            BacsNameAvailability.CHECK_FAILED -> "bg-danger"
+                            CHECK_FAILED -> "bg-danger"
                         }
                         span("badge $classes") { +nameAvailability.description }
                     }

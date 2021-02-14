@@ -8,7 +8,9 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.zip.ZipFile
 import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.notExists
 import kotlin.io.path.readBytes
+import kotlin.io.path.writeBytes
 
 @Suppress("BlockingMethodInNonBlockingContext")
 suspend fun PolygonApi.downloadPackage(problemId: Int, packageId: Int): Path {
@@ -17,7 +19,7 @@ suspend fun PolygonApi.downloadPackage(problemId: Int, packageId: Int): Path {
         getPackage(problemId, packageId).use { archive ->
             val tempDir = Files.createTempDirectory("${destination.fileName}-")
             val archivePath = tempDir.resolve("archive.zip")
-            Files.write(archivePath, archive.bytes())
+            archivePath.writeBytes(archive.bytes())
             ZipFile(archivePath.toFile()).use { it.extract(destination) }
             Files.delete(archivePath)
         }
@@ -37,7 +39,7 @@ suspend fun PolygonApi.getStatementRaw(
         .resolve(".$type")
         .resolve(language)
         .resolve("problem.$type")
-    if (Files.notExists(filePath)) return null
+    if (filePath.notExists()) return null
     return filePath.readBytes()
 }
 

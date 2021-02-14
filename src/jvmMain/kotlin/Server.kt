@@ -104,18 +104,16 @@ fun main() {
         problemId: Int,
         properties: AdditionalProblemProperties
     ): Path? {
-        val irProblem = run {
-            try {
-                sendMessage(fullName, "Начато скачивание задачи из полигона")
-                return@run problemDownloader.download(problemId)
-            } catch (e: PolygonProblemDownloaderException) {
-                sendMessage(fullName, e.message!!, FAILURE)
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Не удалось скачать задачу из полигона: ${e.message}"
-                )
-                return null
-            }
+        val irProblem = try {
+            sendMessage(fullName, "Начато скачивание задачи из полигона")
+            problemDownloader.download(problemId)
+        } catch (e: PolygonProblemDownloaderException) {
+            sendMessage(fullName, e.message!!, FAILURE)
+            call.respond(
+                HttpStatusCode.BadRequest,
+                "Не удалось скачать задачу из полигона: ${e.message}"
+            )
+            return null
         }
         sendMessage(fullName, "Задача скачана, собирается архив")
         val zip = sybonArchiveBuilder.build(irProblem, properties)
@@ -182,8 +180,7 @@ fun main() {
                 }
                 get("get-name-availability") {
                     val name = call.parameters["name"]!!
-                    val state = bacsArchiveService.getProblemStatus(name).state
-                    val availability = when (state) {
+                    val availability = when (bacsArchiveService.getProblemStatus(name).state) {
                         NOT_FOUND -> AVAILABLE
                         IMPORTED, PENDING_IMPORT -> TAKEN
                         UNKNOWN -> CHECK_FAILED
