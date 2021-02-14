@@ -31,7 +31,15 @@ object Api {
         install(JsonFeature) { serializer = KotlinxSerializer() }
         install(WebSockets)
         defaultRequest {
-            port = URL(window.location.origin).port.toInt()
+            console.log(window.location)
+
+            url {
+                console.log(this)
+                host = window.location.hostname
+                window.location.port.let { p -> if (p.isNotEmpty()) port = p.toInt() }
+                if (!protocol.isWebsocket())
+                    protocol = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
+            }
         }
     }
 

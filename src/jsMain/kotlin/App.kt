@@ -39,7 +39,7 @@ fun showToast(toast: Toast) {
             div("toast-body") { +toast.content }
         }
     }
-    js("new bootstrap.Toast(document.getElementsByClassName('toast-container')[0].lastChild,{animation:true,autohide:false,delay:60000}).show()")
+    js("new bootstrap.Toast(document.getElementsByClassName('toast-container')[0].lastChild,{animation:true,autohide:true,delay:60000}).show()")
 }
 
 val App = functionalComponent<RProps> {
