@@ -13,7 +13,12 @@ import kotlin.io.path.readBytes
 
 class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
 
-    private val cache = ConcurrentHashMap<Int, IRProblem>()
+    data class FullPackageId(
+        val packageId: Int,
+        val withTests: Boolean
+    )
+
+    private val cache = ConcurrentHashMap<FullPackageId, IRProblem>()
 
     suspend fun download(problemId: Int, skipTests: Boolean = false) = coroutineScope {
         //eagerly check for access
@@ -59,7 +64,10 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
         statement.await()
         checker.await()
 
-        cache[packageId].let { if (it != null) return@coroutineScope it }
+        cache[FullPackageId(packageId, skipTests)].also { if (it != null) return@coroutineScope it }
+        if (skipTests)
+            cache[FullPackageId(packageId, false)]
+                .also { if (it != null) return@coroutineScope it.copy(tests = emptyList()) }
 
         val tests = async {
             if (skipTests) return@async emptyList<IRTest>()
@@ -93,6 +101,6 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             tests.await(),
             checker.await(),
             solutions.await()
-        ).also { if (!skipTests) cache[packageId] = it }
+        ).also { if (!skipTests) cache[FullPackageId(packageId, skipTests)] = it }
     }
 }
