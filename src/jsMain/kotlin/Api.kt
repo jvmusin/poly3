@@ -63,7 +63,7 @@ object Api {
 
     suspend fun downloadPackage(problem: Problem, props: AdditionalProblemProperties) {
         val fullName = props.buildFullName(problem.name)
-        val bytes = postRequest("problems/${problem.id}/download?fullName=$fullName") {
+        val bytes = postRequest("problems/${problem.id}/download") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             body = props
             parameter("fullName", fullName)
