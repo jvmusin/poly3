@@ -15,12 +15,12 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
 
     data class FullPackageId(
         val packageId: Int,
-        val withTests: Boolean
+        val onlyEssentials: Boolean
     )
 
     private val cache = ConcurrentHashMap<FullPackageId, IRProblem>()
 
-    suspend fun download(problemId: Int, skipTests: Boolean = false) = coroutineScope {
+    suspend fun download(problemId: Int, onlyEssentials: Boolean = false) = coroutineScope {
         //eagerly check for access
         val problem = polygonApi.getProblem(problemId).apply {
             if (accessType == Problem.AccessType.READ) {
@@ -64,13 +64,14 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
         statement.await()
         checker.await()
 
-        cache[FullPackageId(packageId, skipTests)].also { if (it != null) return@coroutineScope it }
-        if (skipTests)
+        cache[FullPackageId(packageId, onlyEssentials)]
+            .also { if (it != null) return@coroutineScope it }
+        if (onlyEssentials)
             cache[FullPackageId(packageId, false)]
-                .also { if (it != null) return@coroutineScope it.copy(tests = emptyList()) }
+                .also { if (it != null) return@coroutineScope it }
 
         val tests = async {
-            if (skipTests) return@async emptyList<IRTest>()
+            if (onlyEssentials) return@async emptyList<IRTest>()
             val tests = polygonApi.getTests(problemId).result!!.sortedBy { it.index }
             val inputs = tests.map { async { polygonApi.getTestInput(problemId, it.index) } }
             val answers = tests.map { async { polygonApi.getTestAnswer(problemId, it.index) } }
@@ -84,7 +85,10 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
 
         val solutions = async {
             polygonApi.getSolutions(problemId).result!!.map { solution ->
-                val content = polygonApi.getSolutionContent(problemId, solution.name).bytes().decodeToString()
+                val content = when {
+                    onlyEssentials -> ""
+                    else -> polygonApi.getSolutionContent(problemId, solution.name).bytes().decodeToString()
+                }
                 IRSolution(solution.name, solution.tag, solution.sourceType, content)
             }
         }
@@ -101,6 +105,6 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             tests.await(),
             checker.await(),
             solutions.await()
-        ).also { cache[FullPackageId(packageId, skipTests)] = it }
+        ).also { cache[FullPackageId(packageId, onlyEssentials)] = it }
     }
 }
