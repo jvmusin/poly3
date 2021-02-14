@@ -6,25 +6,25 @@ import util.extract
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipFile
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
 import kotlin.io.path.readBytes
 import kotlin.io.path.writeBytes
 
+private val packagesCache = ConcurrentHashMap<Int, Path>()
+
 @Suppress("BlockingMethodInNonBlockingContext")
 suspend fun PolygonApi.downloadPackage(problemId: Int, packageId: Int): Path {
-    val destination = Paths.get("polygon-problems").resolve("id$problemId-package$packageId")
-    if (Files.notExists(destination)) {
-        getPackage(problemId, packageId).use { archive ->
-            val tempDir = Files.createTempDirectory("${destination.fileName}-")
-            val archivePath = tempDir.resolve("archive.zip")
-            archivePath.writeBytes(archive.bytes())
-            ZipFile(archivePath.toFile()).use { it.extract(destination) }
-            Files.delete(archivePath)
-        }
-    }
-    return destination
+    if (packagesCache.containsKey(packageId)) return packagesCache[packageId]!!
+    val destination = Paths.get("polygon-problems").resolve("id$problemId-package$packageId-${UUID.randomUUID()}")
+    val archivePath = Files.createTempDirectory("${destination.fileName}-").resolve("archive.zip")
+    archivePath.writeBytes(getPackage(problemId, packageId).bytes())
+    ZipFile(archivePath.toFile()).use { it.extract(destination) }
+    Files.delete(archivePath)
+    return destination.also { packagesCache[packageId] = it }
 }
 
 @Suppress("BlockingMethodInNonBlockingContext")
