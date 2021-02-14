@@ -101,6 +101,6 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             tests.await(),
             checker.await(),
             solutions.await()
-        ).also { if (!skipTests) cache[FullPackageId(packageId, skipTests)] = it }
+        ).also { cache[FullPackageId(packageId, skipTests)] = it }
     }
 }

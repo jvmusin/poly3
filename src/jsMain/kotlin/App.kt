@@ -1,9 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-import api.Problem
-import api.ProblemInfo
-import api.Toast
-import api.ToastKind
+import api.*
 import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
@@ -16,10 +13,7 @@ import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.strong
 import react.*
-import react.dom.div
-import react.dom.h1
-import react.dom.header
-import react.dom.span
+import react.dom.*
 import kotlin.time.ExperimentalTime
 
 val scope = MainScope()
@@ -49,6 +43,7 @@ val App = functionalComponent<RProps> {
     val (problems, setProblems) = useState<List<Problem>>(emptyList())
     val (selectedProblem, setSelectedProblem) = useState<Problem?>(null)
     val (selectedProblemInfo, setSelectedProblemInfo) = useState<ProblemInfo?>(null)
+    val (solutions, setSolutions) = useState<List<Solution>>(emptyList())
 
     useEffect(emptyList()) {
         scope.launch {
@@ -57,6 +52,23 @@ val App = functionalComponent<RProps> {
         scope.launch {
             setProblems(Api.getProblems().sortedByDescending { it.id })
         }
+    }
+
+    useEffectWithCleanup(listOf(selectedProblem)) {
+        var cancelled = false
+        if (selectedProblem != null) {
+            setSelectedProblemInfo(null)
+            setSolutions(emptyList())
+            scope.launch {
+                val problemInfo = Api.getProblemInfo(selectedProblem.id)
+                if (!cancelled) setSelectedProblemInfo(problemInfo)
+            }
+            scope.launch {
+                val newSolutions = Api.getSolutions(selectedProblem)
+                if (!cancelled) setSolutions(newSolutions)
+            }
+        }
+        return@useEffectWithCleanup { cancelled = true }
     }
 
     div("toast-container") {
@@ -86,14 +98,7 @@ val App = functionalComponent<RProps> {
                     child(ProblemList, jsObject {
                         this.problems = problems
                         this.selectedProblem = selectedProblem
-                        this.setSelectedProblem = { problem ->
-                            setSelectedProblem(null)
-                            setSelectedProblem(problem)
-                            setSelectedProblemInfo(null)
-                            scope.launch {
-                                setSelectedProblemInfo(Api.getProblemInfo(problem.id))
-                            }
-                        }
+                        this.setSelectedProblem = { problem -> setSelectedProblem(problem) }
                     })
                 }
                 div("col-8 problem-details") {
@@ -101,6 +106,12 @@ val App = functionalComponent<RProps> {
                         problem = selectedProblem
                         problemInfo = selectedProblemInfo
                     })
+                    if (solutions.isNotEmpty()) {
+                        hr { }
+                        child(ProblemSolutions, jsObject {
+                            this.solutions = solutions
+                        })
+                    }
                 }
             }
         }

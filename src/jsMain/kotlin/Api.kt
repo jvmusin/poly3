@@ -72,7 +72,7 @@ object Api {
         val bytes = postRequest("problems/${problem.id}/download") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             body = props
-            parameter("fullName", fullName)
+            parameter("full-name", fullName)
         }.readBytes()
         downloadZip(bytes, "$fullName.zip")
     }
@@ -82,7 +82,7 @@ object Api {
         postRequest("problems/${problem.id}/transfer") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             body = props
-            parameter("fullName", fullName)
+            parameter("full-name", fullName)
         }
     }
 
@@ -134,6 +134,12 @@ object Api {
                 }
             }
         }
+    }
+
+    suspend fun getSolutions(problem: Problem): List<Solution> {
+        return getRequest("problems/${problem.id}/solutions") {
+            parameter("name", problem.name)
+        }.receive()
     }
 
     // https://stackoverflow.com/a/30832210/4296219

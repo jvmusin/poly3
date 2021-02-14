@@ -1,9 +1,7 @@
 @file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class, ExperimentalCoroutinesApi::class)
 
-import api.AdditionalProblemProperties
+import api.*
 import api.BacsNameAvailability.*
-import api.Toast
-import api.ToastKind
 import api.ToastKind.*
 import bacs.BacsArchiveServiceFactory
 import bacs.BacsProblemState.*
@@ -188,15 +186,15 @@ fun main() {
                     call.respond(HttpStatusCode.OK, availability)
                     bacsArchiveService.getProblemStatus(name)
                 }
-                route("{problemId}") {
+                route("{problem-id}") {
                     get {
-                        val problemId = call.parameters["problemId"]!!.toInt()
+                        val problemId = call.parameters["problem-id"]!!.toInt()
                         val problemInfo = polygonApi.getInfo(problemId).result!!
                         call.respond(HttpStatusCode.OK, problemInfo.toDto())
                     }
                     post("download") {
-                        val fullName = call.parameters["fullName"]!!
-                        val problemId = call.parameters["problemId"]!!.toInt()
+                        val fullName = call.parameters["full-name"]!!
+                        val problemId = call.parameters["problem-id"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
                         val zip = downloadProblemAndBuildArchive(fullName, problemId, properties) ?: return@post
                         sendMessage(fullName, "Скачиваем архив", SUCCESS)
@@ -210,8 +208,8 @@ fun main() {
                         call.respondFile(zip.toFile())
                     }
                     post("transfer") {
-                        val fullName = call.parameters["fullName"].toString()
-                        val problemId = call.parameters["problemId"]!!.toInt()
+                        val fullName = call.parameters["full-name"].toString()
+                        val problemId = call.parameters["problem-id"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
                         val zip = downloadProblemAndBuildArchive(fullName, problemId, properties) ?: return@post
                         sendMessage(fullName, "Закидываем архив в бакс")
@@ -224,6 +222,23 @@ fun main() {
                             sendMessage(fullName, "Не получилось закинуть в бакс: $status", FAILURE)
                             call.respond(HttpStatusCode.BadRequest, "Не получилось закинуть в бакс: $status")
                         }
+                    }
+                    get("solutions") {
+                        val problemId = call.parameters["problem-id"]!!.toInt()
+                        val name = call.parameters["name"]!!
+                        val irProblem = try {
+                            problemDownloader.download(problemId, true)
+                        } catch (e: PolygonProblemDownloaderException) {
+                            sendMessage(name, e.message!!, FAILURE)
+                            call.respond(
+                                HttpStatusCode.BadRequest,
+                                "Не удалось скачать решения из полигона: ${e.message}"
+                            )
+                            return@get
+                        }
+                        call.respond(HttpStatusCode.OK, irProblem.solutions.map {
+                            Solution(it.name, it.language, it.verdict)
+                        })
                     }
 //                    post("test") {
 //                        val problemId = call.parameters["problemId"]!!.toInt()

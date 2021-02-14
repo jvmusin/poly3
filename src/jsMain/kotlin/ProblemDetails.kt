@@ -10,11 +10,8 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.HTMLInputElement
-import react.RProps
+import react.*
 import react.dom.*
-import react.functionalComponent
-import react.useEffect
-import react.useState
 import kotlin.math.roundToInt
 
 external interface ProblemDetailsProps : RProps {
@@ -41,17 +38,16 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
     val (nameAvailability, setNameAvailability) = useState(BacsNameAvailability.LOADING)
 
     useEffect(listOf(problem, prefix, suffix)) {
-        scope.launch {
-            if (problem == null) {
-                setFinalProblemName("")
-            } else {
-                setFinalProblemName("$prefix${problem.name}$suffix")
-            }
+        if (problem == null) {
+            setFinalProblemName("")
+        } else {
+            setFinalProblemName("$prefix${problem.name}$suffix")
         }
     }
 
-    useEffect(listOf(finalProblemName)) {
+    useEffectWithCleanup(listOf(finalProblemName)) {
         setNameAvailability(BacsNameAvailability.LOADING)
+        var cancelled = false
         scope.launch {
             val availability = try {
                 Api.getNameAvailability(finalProblemName)
@@ -59,16 +55,16 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                 e.printStackTrace()
                 CHECK_FAILED
             }
-            setNameAvailability(availability)
+            if (!cancelled)
+                setNameAvailability(availability)
         }
+        return@useEffectWithCleanup { cancelled = true }
     }
 
     useEffect(listOf(problemInfo)) {
         if (problemInfo != null) {
-            scope.launch {
-                setTimeLimitSeconds((problemInfo.timeLimitMillis / 1000.0).toString())
-                setMemoryLimitMegabytes(problemInfo.memoryLimitMegabytes.toString())
-            }
+            setTimeLimitSeconds((problemInfo.timeLimitMillis / 1000.0).toString())
+            setMemoryLimitMegabytes(problemInfo.memoryLimitMegabytes.toString())
         }
     }
 
