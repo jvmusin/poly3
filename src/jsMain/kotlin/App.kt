@@ -72,7 +72,7 @@ val App = functionalComponent<RProps> {
                     }
                 }
             }
-            h5 {
+            span("navbar-brand m-0") {
                 +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin"
             }
         }
