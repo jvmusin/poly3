@@ -41,6 +41,8 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
+import kotlin.time.seconds
+import kotlin.time.toJavaDuration
 
 val index = """
     <!doctype html>
@@ -154,6 +156,7 @@ fun main() {
                 call.respond(HttpStatusCode.OK)
             }
             webSocket("subscribe") {
+                pingInterval = 10.seconds.toJavaDuration()
                 getLogger(javaClass).info("Subscribing WS")
                 wsBySession.computeIfAbsent(call.sessions.get<Session>()!!.str) { CopyOnWriteArrayList() }
                     .add(outgoing)

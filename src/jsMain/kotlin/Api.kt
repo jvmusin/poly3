@@ -14,10 +14,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -46,7 +42,11 @@ object Api {
     private suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
         val proto = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
         val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
-        client.webSocket(path, { url { protocol = wsProtocol } }) {
+        client.webSocket(path, {
+            url {
+                protocol = wsProtocol
+            }
+        }) {
             block()
         }
     }
@@ -86,12 +86,21 @@ object Api {
             try {
                 console.log("Connecting to WS")
                 connectWS("subscribe") {
-                    incoming.consumeAsFlow()
-                        .takeWhile { it is Frame.Text }
-                        .map { it as Frame.Text }
-                        .map { it.readText() }
-                        .map { Json.decodeFromString<Toast>(it) }
-                        .collect { showToast(it) }
+                    for (x in incoming) {
+                        when (x) {
+                            is Frame.Close -> {
+                                console.log("Got close command")
+                                return@connectWS
+                            }
+                            is Frame.Text -> {
+                                console.log("Got text command")
+                                showToast(Json.decodeFromString<Toast>(x.readText()))
+                            }
+                            else -> {
+                                console.log("Got !!${x.frameType}!! command")
+                            }
+                        }
+                    }
                 }
             } finally {
                 console.log("Disconnected from WS")
