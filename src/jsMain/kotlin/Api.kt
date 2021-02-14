@@ -104,7 +104,7 @@ object Api {
                             .mapNotNull { it as? Frame.Text }
                             .collect { showToast(Json.decodeFromString(it.readText())) }
                     }
-                } catch (e: Error) {
+                } catch (e: Throwable) {
                     console.log("Exception occurred: ${e.message}")
                     e.printStackTrace()
                 } finally {
