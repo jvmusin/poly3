@@ -1,11 +1,12 @@
 @file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class, ExperimentalCoroutinesApi::class)
 
 import api.AdditionalProblemProperties
+import api.BacsNameAvailability.*
 import api.Toast
 import api.ToastKind
 import api.ToastKind.*
 import bacs.BacsArchiveServiceFactory
-import bacs.BacsProblemStatus
+import bacs.BacsProblemState.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -179,6 +180,17 @@ fun main() {
                     val problems = polygonApi.getProblems().result!!
                     call.respond(HttpStatusCode.OK, problems.map { it.toDto() })
                 }
+                get("get-name-availability") {
+                    val name = call.parameters["name"]!!
+                    val state = bacsArchiveService.getProblemStatus(name).state
+                    val availability = when (state) {
+                        NOT_FOUND -> AVAILABLE
+                        IMPORTED, PENDING_IMPORT -> TAKEN
+                        UNKNOWN -> CHECK_FAILED
+                    }
+                    call.respond(HttpStatusCode.OK, availability)
+                    bacsArchiveService.getProblemStatus(name)
+                }
                 route("{problemId}") {
                     get {
                         val problemId = call.parameters["problemId"]!!.toInt()
@@ -186,7 +198,7 @@ fun main() {
                         call.respond(HttpStatusCode.OK, problemInfo.toDto())
                     }
                     post("download") {
-                        val fullName = call.parameters["fullName"].toString()
+                        val fullName = call.parameters["fullName"]!!
                         val problemId = call.parameters["problemId"]!!.toInt()
                         val properties = call.receive<AdditionalProblemProperties>()
                         val zip = downloadProblemAndBuildArchive(fullName, problemId, properties) ?: return@post
@@ -208,7 +220,7 @@ fun main() {
                         sendMessage(fullName, "Закидываем архив в бакс")
                         bacsArchiveService.uploadProblem(zip)
                         val status = bacsArchiveService.waitTillProblemIsImported(fullName, 5.minutes)
-                        if (status.state == BacsProblemStatus.State.IMPORTED) {
+                        if (status.state == IMPORTED) {
                             sendMessage(fullName, "Готово! Задача в баксе", SUCCESS)
                             call.respond(HttpStatusCode.OK)
                         } else {

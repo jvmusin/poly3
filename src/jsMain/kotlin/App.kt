@@ -86,7 +86,7 @@ val App = functionalComponent<RProps> {
                             val classes = mutableListOf("list-group-item", "list-group-item-action")
                             when {
                                 selectedProblem == p -> classes += "active"
-                                p.accessType == Problem.AccessType.READ -> classes += "disabled"
+                                p.accessType.notSufficient -> classes += "disabled"
                                 p.latestPackage == null -> classes += "list-group-item-warning"
                             }
                             button(type = ButtonType.button, classes = classes.joinToString(" ")) {
@@ -98,7 +98,7 @@ val App = functionalComponent<RProps> {
                                     small { +p.id.toString() }
                                     small {
                                         when {
-                                            p.accessType == Problem.AccessType.READ ->
+                                            p.accessType.notSufficient ->
                                                 strong("text-dark") { +"Нет WRITE доступа" }
                                             p.latestPackage == null ->
                                                 strong("text-dark") { +"Не собран пакет" }

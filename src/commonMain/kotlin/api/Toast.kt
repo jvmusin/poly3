@@ -8,10 +8,3 @@ data class Toast(
     val content: String,
     val kind: ToastKind = ToastKind.INFORMATION
 )
-
-@Serializable
-enum class ToastKind {
-    INFORMATION,
-    SUCCESS,
-    FAILURE,
-}

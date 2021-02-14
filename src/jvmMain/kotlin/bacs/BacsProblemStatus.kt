@@ -5,16 +5,17 @@ data class BacsProblemStatus(
     val flags: List<String>,
     val revision: String
 ) {
-    enum class State {
-        PENDING_IMPORT,
-        IMPORTED,
-        NOT_FOUND,
-        UNKNOWN
+    val state: BacsProblemState = when {
+        name == "OK" && flags.any { it == "reserved: PENDING_IMPORT" } -> BacsProblemState.PENDING_IMPORT
+        name == "OK" && flags.isEmpty() -> BacsProblemState.IMPORTED
+        name == "code: NOT_FOUND" -> BacsProblemState.NOT_FOUND
+        else -> BacsProblemState.UNKNOWN
     }
-    val state: State = when {
-        name == "OK" && flags.any { it == "reserved: PENDING_IMPORT" } -> State.PENDING_IMPORT
-        name == "OK" && flags.isEmpty() -> State.IMPORTED
-        name == "code: NOT_FOUND" -> State.NOT_FOUND
-        else -> State.UNKNOWN
-    }
+}
+
+enum class BacsProblemState {
+    PENDING_IMPORT,
+    IMPORTED,
+    NOT_FOUND,
+    UNKNOWN
 }

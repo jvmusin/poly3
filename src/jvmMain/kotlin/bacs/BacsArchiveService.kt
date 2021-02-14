@@ -351,7 +351,7 @@ class BacsArchiveService(
         var lastStatus: BacsProblemStatus? = null
         while (lastStatus == null || start.elapsedNow() < waitFor) {
             val status = getProblemStatus(problemId)
-            if (status.state != BacsProblemStatus.State.PENDING_IMPORT) return status
+            if (status.state != BacsProblemState.PENDING_IMPORT) return status
             lastStatus = status
             delay(100.milliseconds)
         }

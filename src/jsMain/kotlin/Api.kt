@@ -86,6 +86,12 @@ object Api {
         }
     }
 
+    suspend fun getNameAvailability(name: String): BacsNameAvailability {
+        return getRequest("problems/get-name-availability") {
+            parameter("name", name)
+        }.receive()
+    }
+
     suspend fun registerNotifications() {
         val delayDuration = 1.seconds
         scope.launch {
@@ -99,7 +105,14 @@ object Api {
                     connectWS("subscribe") {
                         console.log("Connected to WS")
                         if (!first.value)
-                            showToast(Toast("Соединение", "Соединение восстановлено", ToastKind.SUCCESS))
+                            showToast(
+                                Toast(
+                                    "Соединение",
+                                    "Соединение восстановлено. " +
+                                            "С некоторой долей вероятности есть смысл перезагрузить страницу, чтобы подгрузить обновления",
+                                    ToastKind.SUCCESS
+                                )
+                            )
                         incoming.consumeAsFlow()
                             .mapNotNull { it as? Frame.Text }
                             .collect { showToast(Json.decodeFromString(it.readText())) }

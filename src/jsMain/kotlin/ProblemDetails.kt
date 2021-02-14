@@ -1,4 +1,5 @@
 import api.AdditionalProblemProperties
+import api.BacsNameAvailability
 import api.Problem
 import api.ProblemInfo
 import kotlinx.coroutines.launch
@@ -36,6 +37,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
     fun buildAdditionalProperties() = AdditionalProblemProperties(
         prefix, suffix, (timeLimitSeconds.toDouble() * 1000).roundToInt(), memoryLimitMegabytes.toInt()
     )
+    val (nameAvailability, setNameAvailability) = useState(BacsNameAvailability.LOADING)
 
     useEffect(listOf(problem, prefix, suffix)) {
         scope.launch {
@@ -45,6 +47,11 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                 setFinalProblemName("$prefix${problem.name}$suffix")
             }
         }
+    }
+
+    useEffect(listOf(finalProblemName)) {
+        setNameAvailability(BacsNameAvailability.LOADING)
+        scope.launch { setNameAvailability(Api.getNameAvailability(finalProblemName)) }
     }
 
     useEffect(listOf(problemInfo)) {
@@ -93,10 +100,21 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                 draw("Ограничение памяти (MB)", "ml", memoryLimitMegabytes, setMemoryLimitMegabytes)
                 draw("Добавить префикс", "prefix", prefix, setPrefix)
                 draw("Добавить суффикс", "suffix", suffix, setSuffix)
-                div("row") { div("col text-center") { +finalProblemName } }
+                div("row mt-1") {
+                    div("col text-center") {
+                        span("me-2") { +finalProblemName }
+                        val classes = when (nameAvailability) {
+                            BacsNameAvailability.AVAILABLE -> "bg-success"
+                            BacsNameAvailability.TAKEN -> "bg-warning text-dark"
+                            BacsNameAvailability.LOADING -> "bg-secondary"
+                            BacsNameAvailability.CHECK_FAILED -> "bg-danger"
+                        }
+                        span("badge $classes") { +nameAvailability.description }
+                    }
+                }
             }
             //todo add normal check
-            if (problemInfo != null && problem.accessType != Problem.AccessType.READ && problem.latestPackage != null) {
+            if (problemInfo != null && problem.accessType.isSufficient && problem.latestPackage != null) {
                 div("row my-3") {
                     div("col") {
                         button(type = ButtonType.button, classes = "btn btn-secondary btn-lg w-100") {
