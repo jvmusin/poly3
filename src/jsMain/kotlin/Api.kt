@@ -1,7 +1,6 @@
-import api.AdditionalProblemProperties
-import api.Problem
-import api.ProblemInfo
-import api.Toast
+@file:OptIn(ExperimentalTime::class)
+
+import api.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.features.*
@@ -12,8 +11,13 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import kotlinx.atomicfu.atomic
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -21,6 +25,8 @@ import org.khronos.webgl.Uint8Array
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 object Api {
     private val client = HttpClient {
@@ -81,29 +87,38 @@ object Api {
     }
 
     suspend fun registerNotifications() {
-        getRequest("register-session")
+        val delayDuration = 1.seconds
         scope.launch {
-            try {
-                console.log("Connecting to WS")
-                connectWS("subscribe") {
-                    for (x in incoming) {
-                        when (x) {
-                            is Frame.Close -> {
-                                console.log("Got close command")
-                                return@connectWS
-                            }
-                            is Frame.Text -> {
-                                console.log("Got text command")
-                                showToast(Json.decodeFromString<Toast>(x.readText()))
-                            }
-                            else -> {
-                                console.log("Got !!${x.frameType}!! command")
-                            }
-                        }
+            val first = atomic(true)
+            while (true) {
+                try {
+                    console.log("Registering session")
+                    getRequest("register-session")
+                    console.log("Session registered")
+                    console.log("Connecting to WS")
+                    connectWS("subscribe") {
+                        console.log("Connected to WS")
+                        if (!first.value)
+                            showToast(Toast("Соединение", "Соединение восстановлено", ToastKind.SUCCESS))
+                        incoming.consumeAsFlow()
+                            .mapNotNull { it as? Frame.Text }
+                            .collect { showToast(Json.decodeFromString(it.readText())) }
                     }
+                } catch (e: Error) {
+                    console.log("Exception occurred: ${e.message}")
+                    e.printStackTrace()
+                } finally {
+                    first.compareAndSet(expect = true, update = false)
+                    showToast(
+                        Toast(
+                            "Соединение",
+                            "Проблемы с соединением. Попробую переподключиться через $delayDuration",
+                            ToastKind.FAILURE
+                        )
+                    )
+                    console.log("Disconnected from WS. Reconnect in $delayDuration")
+                    delay(delayDuration)
                 }
-            } finally {
-                console.log("Disconnected from WS")
             }
         }
     }
