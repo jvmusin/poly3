@@ -6,11 +6,15 @@ import ir.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
 import kotlin.io.path.readBytes
 
 class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
+
+    private val cache = ConcurrentHashMap<Int, IRProblem>()
+
     suspend fun download(problemId: Int, skipTests: Boolean = false) = coroutineScope {
         //eagerly check for access
         val problem = polygonApi.getProblem(problemId).apply {
@@ -31,21 +35,19 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             }
         }
 
-        val packageId = async {
-            polygonApi.getLatestPackage(problemId)!!.id
-        }
+        val packageId = polygonApi.getLatestPackage(problemId)!!.id
 
         val statement = async {
             polygonApi.getStatement(problemId)?.let { (language, statement) ->
-                val content = polygonApi.getStatementRaw(problemId, packageId.await(), "pdf", language)
-                    ?: throw PolygonProblemDownloaderException("Не найдено pdf версия условия")
+                val content = polygonApi.getStatementRaw(problemId, packageId, "pdf", language)
+                    ?: throw PolygonProblemDownloaderException("Не найдена pdf версия условия")
                 IRStatement(statement.name, content)
             } ?: throw PolygonProblemDownloaderException("Не найдено условие")
         }
 
         val checker = async {
             val name = "check.cpp"
-            val file = polygonApi.downloadPackage(problemId, packageId.await()).resolve(name)
+            val file = polygonApi.downloadPackage(problemId, packageId).resolve(name)
             if (file.notExists())
                 throw PolygonProblemDownloaderException(
                     "Не найден чекер $name checker. Другие чекеры не поддерживаются"
@@ -53,10 +55,11 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             IRChecker(name, file.readBytes().decodeToString())
         }
 
-        // fail fast before downloading tests
-        packageId.await()
+        // fail fast
         statement.await()
         checker.await()
+
+        cache[packageId].let { if (it != null) return@coroutineScope it }
 
         val tests = async {
             if (skipTests) return@async emptyList<IRTest>()
@@ -90,6 +93,6 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             tests.await(),
             checker.await(),
             solutions.await()
-        )
+        ).also { if (!skipTests) cache[packageId] = it }
     }
 }
