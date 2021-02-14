@@ -61,8 +61,8 @@ val App = functionalComponent<RProps> {
     }
 
     div {
-        header("navbar navbar-light bg-light shadow-sm flex-column") {
-            h1("m-0 display-4 text-center") {
+        header("navbar navbar-light bg-light shadow-sm flex-column text-center") {
+            h1("m-0 display-4") {
                 +"Это конвертер задач из полигона в бакс Полибакс"
                 attrs {
                     onClickFunction = {
@@ -72,7 +72,7 @@ val App = functionalComponent<RProps> {
                     }
                 }
             }
-            span("navbar-brand m-0") {
+            h5 {
                 +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin"
             }
         }
