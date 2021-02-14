@@ -50,6 +50,8 @@ val App = functionalComponent<RProps> {
     useEffect(emptyList()) {
         scope.launch {
             Api.registerNotifications()
+        }
+        scope.launch {
             setProblems(Api.getProblems().sortedByDescending { it.id })
         }
     }
