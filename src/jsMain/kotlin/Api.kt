@@ -83,19 +83,24 @@ object Api {
     suspend fun registerNotifications() {
         getRequest("register-session")
         scope.launch {
-            connectWS("subscribe") {
-                incoming.consumeAsFlow()
-                    .takeWhile { it is Frame.Text }
-                    .map { it as Frame.Text }
-                    .map { it.readText() }
-                    .map { Json.decodeFromString<Toast>(it) }
-                    .collect { showToast(it) }
+            try {
+                console.log("Connecting to WS")
+                connectWS("subscribe") {
+                    incoming.consumeAsFlow()
+                        .takeWhile { it is Frame.Text }
+                        .map { it as Frame.Text }
+                        .map { it.readText() }
+                        .map { Json.decodeFromString<Toast>(it) }
+                        .collect { showToast(it) }
+                }
+            } finally {
+                console.log("Disconnected from WS")
             }
         }
     }
 
     // https://stackoverflow.com/a/30832210/4296219
-    fun downloadZip(content: ByteArray, filename: String) {
+    private fun downloadZip(content: ByteArray, filename: String) {
         @Suppress("UNUSED_VARIABLE") val jsArray = Uint8Array(content.toTypedArray())
         val file = js("new Blob([jsArray],{type:'application/zip'})") as Blob
         val a = document.createElement("a")
