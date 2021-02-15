@@ -20,7 +20,7 @@ import kotlin.time.ExperimentalTime
 val scope = MainScope()
 
 fun showToast(toast: Toast) {
-    document.getElementsByTagName("toast-container")[0]!!.append {
+    document.getElementsByClassName("toast-container")[0]!!.append {
         val extraClasses = when (toast.kind) {
             ToastKind.INFORMATION -> "toast-info"
             ToastKind.SUCCESS -> "toast-success"

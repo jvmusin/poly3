@@ -83,7 +83,8 @@ class SybonArchiveBuilder {
             }
 
             fun writeMainSolution() {
-                solutionPath.resolve(problem.mainSolution!!.name).writeText(problem.mainSolution!!.content)
+                val mainSolution = problem.mainSolution
+                solutionPath.resolve(mainSolution.name).writeText(mainSolution.content)
             }
 
             fun writeStatement() {

@@ -6,6 +6,8 @@ import ir.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import polygon.converter.PolygonSourceTypeToIRLanguageConverter
+import polygon.converter.PolygonTagToIRVerdictConverter
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
