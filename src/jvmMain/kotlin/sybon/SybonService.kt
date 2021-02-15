@@ -1,10 +1,11 @@
+@file:OptIn(ExperimentalTime::class)
+
 package sybon
 
 import kotlinx.coroutines.delay
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
-import kotlin.time.TimeSource
-import kotlin.time.milliseconds
+import sybon.SubmissionResult.BuildResult.Status.*
+import util.encodeBase64
+import kotlin.time.*
 
 class SybonService(
     private val sybonArchiveApi: SybonArchiveApi,
@@ -20,14 +21,13 @@ class SybonService(
     suspend fun submitSolutions(solutions: List<SubmitSolution>) = sybonCheckingApi.submitSolutions(solutions)
     suspend fun rejudge(ids: List<Int>) = sybonCheckingApi.rejudge(ids)
     suspend fun getResults(ids: String) = sybonCheckingApi.getResults(ids)
-    suspend fun getResult(id: Int) = sybonCheckingApi.getResults(id.toString())
+    suspend fun getResult(id: Int) = sybonCheckingApi.getResults(id.toString()).single()
 
     suspend fun getAllProblems() = getCollection(1).problems
 
     suspend fun getProblemByBacsProblemId(bacsId: String) =
         getAllProblems().singleOrNull { it.internalProblemId == bacsId }
 
-    @OptIn(ExperimentalTime::class)
     suspend fun getProblemByBacsProblemId(bacsId: String, tryFor: Duration): Problem? {
         val start = TimeSource.Monotonic.markNow()
         while (start.elapsedNow() < tryFor) {
@@ -36,5 +36,39 @@ class SybonService(
             delay(100.milliseconds)
         }
         return null
+    }
+
+    suspend fun submitSolution(problemId: Int, solution: String, compiler: Compiler): SybonFinalSubmissionResult {
+        val submissionId = submitSolution(
+            SubmitSolution(
+                compilerId = compiler.id,
+                problemId = problemId,
+                solution = solution.encodeBase64(),
+                continueCondition = SubmitSolution.ContinueCondition.WhileOk
+            )
+        )
+
+        val result = run<SubmissionResult> {
+            while (true) {
+                delay(1.seconds)
+                val result = getResult(submissionId)
+                if (result.buildResult.status != PENDING) return@run result
+            }
+            @Suppress("ThrowableNotThrown", "UNREACHABLE_CODE")
+            throw Error("Never here")
+        }
+
+        val failedGroupIndex = result.testGroupResults.indexOfFirst { group ->
+            !group.executed || group.testResults.any { testResult ->
+                testResult.status != SubmissionResult.TestGroupResult.TestResult.Status.OK
+            }
+        }
+        if (failedGroupIndex == -1) return SybonFinalSubmissionResult(true, null, null)
+        val indexInGroup = result.testGroupResults[failedGroupIndex].testResults.indexOfFirst {
+            it.status != SubmissionResult.TestGroupResult.TestResult.Status.OK
+        }
+        val testIndex = result.testGroupResults.take(failedGroupIndex).sumOf { it.testResults.size } + indexInGroup
+        val testStatus = result.testGroupResults[failedGroupIndex].testResults[indexInGroup].status
+        return SybonFinalSubmissionResult(true, testIndex, testStatus)
     }
 }

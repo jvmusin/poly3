@@ -1,6 +1,6 @@
 import api.AdditionalProblemProperties
-import api.BacsNameAvailability
-import api.BacsNameAvailability.CHECK_FAILED
+import api.NameAvailability
+import api.NameAvailability.CHECK_FAILED
 import api.Problem
 import api.ProblemInfo
 import kotlinx.coroutines.launch
@@ -35,7 +35,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
     fun buildAdditionalProperties() = AdditionalProblemProperties(
         prefix, suffix, (timeLimitSeconds.toDouble() * 1000).roundToInt(), memoryLimitMegabytes.toInt()
     )
-    val (nameAvailability, setNameAvailability) = useState(BacsNameAvailability.LOADING)
+    val (nameAvailability, setNameAvailability) = useState(NameAvailability.LOADING)
 
     useEffect(listOf(problem, prefix, suffix)) {
         if (problem == null) {
@@ -46,7 +46,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
     }
 
     useEffectWithCleanup(listOf(finalProblemName)) {
-        setNameAvailability(BacsNameAvailability.LOADING)
+        setNameAvailability(NameAvailability.LOADING)
         var cancelled = false
         scope.launch {
             val availability = try {
@@ -109,9 +109,9 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                     div("col text-center") {
                         span("me-2") { +finalProblemName }
                         val classes = when (nameAvailability) {
-                            BacsNameAvailability.AVAILABLE -> "bg-success"
-                            BacsNameAvailability.TAKEN -> "bg-warning text-dark"
-                            BacsNameAvailability.LOADING -> "bg-secondary"
+                            NameAvailability.AVAILABLE -> "bg-success"
+                            NameAvailability.TAKEN -> "bg-warning text-dark"
+                            NameAvailability.LOADING -> "bg-secondary"
                             CHECK_FAILED -> "bg-danger"
                         }
                         span("badge $classes") { +nameAvailability.description }

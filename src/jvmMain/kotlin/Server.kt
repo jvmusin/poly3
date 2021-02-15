@@ -1,7 +1,7 @@
 @file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class, ExperimentalCoroutinesApi::class)
 
 import api.*
-import api.BacsNameAvailability.*
+import api.NameAvailability.*
 import api.ToastKind.*
 import bacs.BacsArchiveServiceFactory
 import bacs.BacsProblemState.*
@@ -20,6 +20,8 @@ import io.ktor.sessions.*
 import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
@@ -30,7 +32,11 @@ import polygon.PolygonApiFactory
 import polygon.PolygonProblemDownloader
 import polygon.PolygonProblemDownloaderException
 import polygon.toDto
+import sybon.SybonApiFactory
 import sybon.SybonArchiveBuilder
+import sybon.SybonServiceFactory
+import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
+import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
 import util.getLogger
 import java.nio.file.Path
 import java.util.*
@@ -77,6 +83,7 @@ fun main() {
     val bacsArchiveService = BacsArchiveServiceFactory().create()
     val problemDownloader = PolygonProblemDownloader(polygonApi)
     val sybonArchiveBuilder = SybonArchiveBuilder()
+    val sybonService = SybonServiceFactory(SybonApiFactory()).create()
 
     val wsBySession = ConcurrentHashMap<String, CopyOnWriteArrayList<SendChannel<Frame>>>()
     fun PipelineContext<Unit, ApplicationCall>.sendMessage(
@@ -178,13 +185,12 @@ fun main() {
                 }
                 get("get-name-availability") {
                     val name = call.parameters["name"]!!
-                    val availability = when (bacsArchiveService.getProblemStatus(name).state) {
+                    val availability = when (bacsArchiveService.getProblemState(name)) {
                         NOT_FOUND -> AVAILABLE
                         IMPORTED, PENDING_IMPORT -> TAKEN
                         UNKNOWN -> CHECK_FAILED
                     }
                     call.respond(HttpStatusCode.OK, availability)
-                    bacsArchiveService.getProblemStatus(name)
                 }
                 route("{problem-id}") {
                     get {
@@ -223,33 +229,50 @@ fun main() {
                             call.respond(HttpStatusCode.BadRequest, "Не получилось закинуть в бакс: $status")
                         }
                     }
-                    get("solutions") {
-                        val problemId = call.parameters["problem-id"]!!.toInt()
-                        val name = call.parameters["name"]!!
-                        val irProblem = try {
-                            problemDownloader.download(problemId, true)
-                        } catch (e: PolygonProblemDownloaderException) {
-                            sendMessage(name, e.message!!, FAILURE)
-                            call.respond(
-                                HttpStatusCode.BadRequest,
-                                "Не удалось скачать решения из полигона: ${e.message}"
-                            )
-                            return@get
+                    route("solutions") {
+                        get {
+                            val problemId = call.parameters["problem-id"]!!.toInt()
+                            val name = call.parameters["name"]!!
+                            val irProblem = try {
+                                problemDownloader.download(problemId, true)
+                            } catch (e: PolygonProblemDownloaderException) {
+                                sendMessage(name, e.message!!, FAILURE)
+                                call.respond(
+                                    HttpStatusCode.BadRequest,
+                                    "Не удалось скачать решения из полигона: ${e.message}"
+                                )
+                                return@get
+                            }
+                            call.respond(HttpStatusCode.OK, irProblem.solutions.map {
+                                Solution(it.name, Language.valueOf(it.language.name), Verdict.valueOf(it.verdict.name))
+                            })
                         }
-                        call.respond(HttpStatusCode.OK, irProblem.solutions.map {
-                            Solution(it.name, it.language, it.verdict)
-                        })
+                        // We need web sockets here to hold a connection longer than 1m on Heroku
+                        webSocket("test-all") {
+                            pingInterval = 10.seconds.toJavaDuration()
+                            val problemId = call.parameters["problem-id"]!!.toInt()
+                            val problem = problemDownloader.download(problemId, true)
+                            val testProblemId = "polybacs-${problem.name}"
+                            val sybonProblem = sybonService.getProblemByBacsProblemId(testProblemId, 5.minutes)!!
+                            val result = problem.solutions.map { solution ->
+                                async {
+                                    val compiler = solution.language.toSybonCompiler()
+                                    val result = if (compiler == null) {
+                                        SubmissionResult(false, null, null)
+                                    } else {
+                                        val result = sybonService.submitSolution(
+                                            problemId = sybonProblem.id,
+                                            solution = solution.content,
+                                            compiler = compiler
+                                        )
+                                        result.toSubmissionResult()
+                                    }
+                                    solution.name to result.overallVerdict
+                                }
+                            }.awaitAll().toMap()
+                            outgoing.send(Frame.Text(Json.encodeToString(result)))
+                        }
                     }
-//                    post("test") {
-//                        val problemId = call.parameters["problemId"]!!.toInt()
-//                        val properties = call.receive<AdditionalProblemProperties>()
-//                        val irProblem = transfer(problemId, properties, false, call)
-//                        val bacsProblemName = properties.buildFullName(irProblem.name)
-//                        val sybonProblemName = sybonService.getProblemByBacsProblemId(bacsProblemName, 5.minutes)
-//                        val solutions = irProblem.solutions
-//                        //submit all the solutions and wait for verdicts
-//                        //send info about all solutions abd their verdicts, say if everything is ok
-//                    }
                 }
             }
         }

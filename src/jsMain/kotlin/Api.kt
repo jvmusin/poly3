@@ -48,11 +48,7 @@ object Api {
     private suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
         val proto = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
         val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
-        client.webSocket(path, {
-            url {
-                protocol = wsProtocol
-            }
-        }) {
+        client.webSocket(path, { url { protocol = wsProtocol } }) {
             block()
         }
     }
@@ -86,7 +82,7 @@ object Api {
         }
     }
 
-    suspend fun getNameAvailability(name: String): BacsNameAvailability {
+    suspend fun getNameAvailability(name: String): NameAvailability {
         return getRequest("problems/get-name-availability") {
             parameter("name", name)
         }.receive()
@@ -140,6 +136,19 @@ object Api {
         return getRequest("problems/${problem.id}/solutions") {
             parameter("name", problem.name)
         }.receive()
+    }
+
+    suspend fun testAllSolutions(problem: Problem, block: (Map<String, Verdict>) -> Unit) {
+        connectWS("problems/${problem.id}/solutions/test-all") {
+            val receive = incoming.receive()
+            console.log("[INFO] ${receive.frameType}")
+            val m = receive as Frame.Text
+            val string = m.readText()
+            console.log("[INFO] $string")
+            val decodeFromString = Json.decodeFromString<Map<String, Verdict>>(string)
+            console.log("[INFO] $decodeFromString")
+            block(decodeFromString)
+        }
     }
 
     // https://stackoverflow.com/a/30832210/4296219

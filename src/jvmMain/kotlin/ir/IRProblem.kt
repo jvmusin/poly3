@@ -11,11 +11,36 @@ data class IRProblem(
     val checker: IRChecker,
     val solutions: List<IRSolution>
 ) {
-    val mainSolution get() = solutions.singleOrNull { it.verdict == "MA" } //todo maybe make some normal verdicts
+    val mainSolution get() = solutions.single { it.isMain }
 }
 
 data class IRStatement(val name: String, val content: ByteArray)
 data class IRTest(val index: Int, val isSample: Boolean, val input: String, val output: String)
 data class IRChecker(val name: String, val content: String)
 data class IRLimits(val timeLimitMillis: Int, val memoryLimitMegabytes: Int)
-data class IRSolution(val name: String, val verdict: String, val language: String, val content: String)
+data class IRSolution(
+    val name: String,
+    val verdict: IRVerdict,
+    val isMain: Boolean,
+    val language: IRLanguage,
+    val content: String
+)
+
+enum class IRVerdict {
+    OK,
+    WRONG_ANSWER,
+    TIME_LIMIT_EXCEEDED,
+    MEMORY_LIMIT_EXCEEDED,
+    PRESENTATION_ERROR,
+    INCORRECT,
+    OTHER
+}
+
+enum class IRLanguage {
+    CPP,
+    JAVA,
+    KOTLIN,
+    PYTHON2,
+    PYTHON3,
+    OTHER
+}

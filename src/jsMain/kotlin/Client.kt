@@ -22,10 +22,11 @@ fun main() {
             color = Color("#842029")
             backgroundColor = Color("#f8d7da")
         }
-        "#notifications" {
+        ".toast-container" {
             position = Position.fixed
             bottom = 15.px
             right = 15.px
+            zIndex = 1
         }
         ".toast-info .toast-header" {
             backgroundColor = Color("#00AC6B")

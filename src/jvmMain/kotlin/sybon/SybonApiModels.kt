@@ -118,7 +118,7 @@ data class SubmissionResult(
         @Serializable
         data class TestResult(
             val status: Status,
-            val judgeMessage: String,
+            val judgeMessage: String? = null,
             val resourceUsage: ResourceUsage,
             val input: String? = null,
             val actualResult: String? = null,

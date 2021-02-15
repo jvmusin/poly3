@@ -12,6 +12,7 @@ import kotlinx.html.js.button
 import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.strong
+import org.w3c.dom.get
 import react.*
 import react.dom.*
 import kotlin.time.ExperimentalTime
@@ -19,7 +20,7 @@ import kotlin.time.ExperimentalTime
 val scope = MainScope()
 
 fun showToast(toast: Toast) {
-    document.getElementById("notifications")!!.append {
+    document.getElementsByTagName("toast-container")[0]!!.append {
         val extraClasses = when (toast.kind) {
             ToastKind.INFORMATION -> "toast-info"
             ToastKind.SUCCESS -> "toast-success"
@@ -94,23 +95,30 @@ val App = functionalComponent<RProps> {
 
         div("container") {
             div("row") {
-                div("col-4 problem-list") {
-                    child(ProblemList, jsObject {
-                        this.problems = problems
-                        this.selectedProblem = selectedProblem
-                        this.setSelectedProblem = { problem -> setSelectedProblem(problem) }
-                    })
-                }
-                div("col-8 problem-details") {
-                    child(ProblemDetails, jsObject {
-                        problem = selectedProblem
-                        problemInfo = selectedProblemInfo
-                    })
-                    if (solutions.isNotEmpty()) {
-                        hr { }
-                        child(ProblemSolutions, jsObject {
-                            this.solutions = solutions
+                div("col-4") {
+                    div("problem-list") {
+                        child(ProblemList, jsObject {
+                            this.problems = problems
+                            this.selectedProblem = selectedProblem
+                            this.setSelectedProblem = { problem -> setSelectedProblem(problem) }
                         })
+                    }
+                }
+                div("col-8") {
+                    div("problem-details") {
+                        child(ProblemDetails, jsObject {
+                            problem = selectedProblem
+                            problemInfo = selectedProblemInfo
+                        })
+                    }
+                    if (solutions.isNotEmpty()) {
+                        div("problem-solutions") {
+                            hr { }
+                            child(ProblemSolutions, jsObject {
+                                this.problem = selectedProblem!!
+                                this.solutions = solutions
+                            })
+                        }
                     }
                 }
             }

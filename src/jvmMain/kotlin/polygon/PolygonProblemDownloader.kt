@@ -36,7 +36,7 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
                 throw PolygonProblemDownloaderException("У задачи нет собранных пакетов. Соберите пакет")
             }
             if (latestPackage != revision) {
-                throw PolygonProblemDownloaderException("Последний собранный пакет для задачи не актуален. Соберите новый")
+                throw PolygonProblemDownloaderException("Последний собранный для задачи пакет не актуален. Соберите новый")
             }
         }
 
@@ -55,7 +55,7 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
             val file = polygonApi.downloadPackage(problemId, packageId).resolve(name)
             if (file.notExists())
                 throw PolygonProblemDownloaderException(
-                    "Не найден чекер $name checker. Другие чекеры не поддерживаются"
+                    "Не найден чекер '$name'. Другие чекеры не поддерживаются"
                 )
             IRChecker(name, file.readBytes().decodeToString())
         }
@@ -85,11 +85,16 @@ class PolygonProblemDownloader(private val polygonApi: PolygonApi) {
 
         val solutions = async {
             polygonApi.getSolutions(problemId).result!!.map { solution ->
-                val content = when {
-                    onlyEssentials -> ""
-                    else -> polygonApi.getSolutionContent(problemId, solution.name).bytes().decodeToString()
+                val content = polygonApi.getSolutionContent(problemId, solution.name).use {
+                    it.bytes().decodeToString()
                 }
-                IRSolution(solution.name, solution.tag, solution.sourceType, content)
+                IRSolution(
+                    name = solution.name,
+                    verdict = PolygonTagToIRVerdictConverter.convert(solution.tag),
+                    isMain = solution.tag == "MA",
+                    language = PolygonSourceTypeToIRLanguageConverter.convert(solution.sourceType),
+                    content = content
+                )
             }
         }
 

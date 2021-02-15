@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package bacs
 
 import io.ktor.client.*
@@ -7,6 +9,8 @@ import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.features.logging.*
 import io.ktor.http.*
+import kotlin.time.ExperimentalTime
+import kotlin.time.minutes
 
 class BacsArchiveServiceFactory {
     companion object {
@@ -33,6 +37,9 @@ class BacsArchiveServiceFactory {
                     host = HOST
                     encodedPath = "$BASE_PATH/$encodedPath"
                 }
+            }
+            engine {
+                this.requestTimeout = 2.minutes.toLongMilliseconds()
             }
         }
         return BacsArchiveService(client)

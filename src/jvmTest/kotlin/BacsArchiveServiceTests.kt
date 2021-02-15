@@ -7,10 +7,10 @@ class BacsArchiveServiceTests : StringSpec({
     val client = BacsArchiveServiceFactory().create()
 
     "Get status of correctly imported problem" {
-        client.getProblemStatus("polybacs-frog-and-polygon-ok").state shouldBe BacsProblemState.IMPORTED
+        client.getProblemState("polybacs-frog-and-polygon-ok") shouldBe BacsProblemState.IMPORTED
     }
 
     "Get status of not existing problem" {
-        client.getProblemStatus("not-existing-problem").state shouldBe BacsProblemState.NOT_FOUND
+        client.getProblemState("not-existing-problem") shouldBe BacsProblemState.NOT_FOUND
     }
 })

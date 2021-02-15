@@ -104,7 +104,7 @@ class PolygonApiFactory {
 
     fun create(): PolygonApi {
         val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
-            getLogger(HttpLoggingInterceptor::class.java).debug(message)
+            getLogger(HttpLoggingInterceptor::class.java).info(message)
         }.setLevel(HttpLoggingInterceptor.Level.BASIC)
         val dispatcher = Dispatcher().apply {
             maxRequests = 15

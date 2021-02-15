@@ -33,7 +33,7 @@ class SybonApiFactory {
 
     private fun buildClient(): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
-            getLogger(HttpLoggingInterceptor::class.java).debug(message)
+            getLogger(HttpLoggingInterceptor::class.java).info(message)
         }.setLevel(HttpLoggingInterceptor.Level.BASIC)
         val dispatcher = Dispatcher().apply {
             maxRequests = 100

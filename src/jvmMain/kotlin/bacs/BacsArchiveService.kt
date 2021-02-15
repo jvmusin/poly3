@@ -310,7 +310,7 @@ class BacsArchiveService(
         throw BacsArchiveUploadException("Flag $PENDING_IMPORT not found, $extra")
     }
 
-    suspend fun getProblemStatus(problemId: String): BacsProblemStatus {
+    private suspend fun getProblemStatus(problemId: String): BacsProblemStatus {
         val content = client.post<String>("/status") {
             body = MultiPartFormDataContent(
                 formData {
@@ -331,7 +331,6 @@ class BacsArchiveService(
             .map { it.text().trim() }
 
         if (row.size == 2) {
-            //todo test it
             return BacsProblemStatus(row[1], emptyList(), "")
         }
 
@@ -344,6 +343,15 @@ class BacsArchiveService(
             .map { "${it.groups["name"]!!.value}: ${it.groups["value"]!!.value}" }
             .toList()
         return BacsProblemStatus(name, flags, revision)
+    }
+
+    suspend fun getProblemState(problemId: String): BacsProblemState {
+        return try {
+            getProblemStatus(problemId).state
+        } catch (e: Exception) {
+            getLogger(javaClass).trace("Failed to get problem status", e)
+            BacsProblemState.UNKNOWN
+        }
     }
 
     suspend fun waitTillProblemIsImported(problemId: String, waitFor: Duration): BacsProblemStatus {

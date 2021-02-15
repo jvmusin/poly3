@@ -4,6 +4,8 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.ktor.util.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import sybon.SubmissionResult
 import sybon.SubmissionResult.BuildResult
 import sybon.SubmissionResult.TestGroupResult
@@ -72,6 +74,12 @@ class SybonCheckingApiTests : StringSpec({
         val ids = listOf(467018, 467020, 467019)
         val s = ids.joinToString(",")
         api.getResults(s).map { it.id } shouldBe ids.sorted()
+    }
+
+    "Test getResults test groups results for accepted C++ solution" {
+        val submissionId = 466994
+        val result = api.getResults(submissionId.toString()).single()
+        println(Json { prettyPrint = true }.encodeToString(result))
     }
 }) {
     companion object {
