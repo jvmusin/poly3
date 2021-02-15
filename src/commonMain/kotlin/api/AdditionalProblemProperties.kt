@@ -9,5 +9,5 @@ data class AdditionalProblemProperties(
     val timeLimitMillis: Int? = null,
     val memoryLimitMegabytes: Int? = null
 ) {
-    fun buildFullName(problemName: String) = "$prefix$problemName$suffix"
+    fun buildFullName(problemName: String) = "${prefix.orEmpty()}$problemName${suffix.orEmpty()}"
 }

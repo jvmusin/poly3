@@ -140,14 +140,8 @@ object Api {
 
     suspend fun testAllSolutions(problem: Problem, block: (Map<String, Verdict>) -> Unit) {
         connectWS("problems/${problem.id}/solutions/test-all") {
-            val receive = incoming.receive()
-            console.log("[INFO] ${receive.frameType}")
-            val m = receive as Frame.Text
-            val string = m.readText()
-            console.log("[INFO] $string")
-            val decodeFromString = Json.decodeFromString<Map<String, Verdict>>(string)
-            console.log("[INFO] $decodeFromString")
-            block(decodeFromString)
+            val map = incoming.receive() as Frame.Text
+            block(Json.decodeFromString(map.readText()))
         }
     }
 

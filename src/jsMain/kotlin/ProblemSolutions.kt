@@ -25,8 +25,6 @@ val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
         scope.launch {
             try {
                 Api.testAllSolutions(props.problem) {
-                    console.log("[INFO] cancelled = $cancelled")
-                    console.log("[INFO] new verdicts = $it")
                     if (!cancelled) {
                         setVerdicts(it)
                     }
@@ -44,8 +42,6 @@ val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
         }
     }
 
-    console.log("[INFO] verdicts = $verdicts")
-
     h3("my-3 text-center") {
         span("me-2") { +"Решения" }
         if (isRunning) {
@@ -54,12 +50,8 @@ val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
             }
         } else {
             span("btn btn-primary") {
-                +"Протестировать все"
-                attrs {
-                    onClickFunction = {
-                        setRunning(true)
-                    }
-                }
+                +"Протестировать все решения в баксе на ограничениях из полигона"
+                attrs { onClickFunction = { setRunning(true) } }
             }
         }
     }

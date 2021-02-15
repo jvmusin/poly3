@@ -1,5 +1,4 @@
-@file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class, ExperimentalCoroutinesApi::class)
-
+import api.ToastKind
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -9,11 +8,7 @@ import io.ktor.serialization.*
 import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.slf4j.event.Level
-import polygon.PolygonProblemDownloaderException
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.time.ExperimentalTime
 
 val index = """
     <!doctype html>
@@ -46,6 +41,7 @@ data class Session(val str: String)
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
+@Suppress("unused")
 fun Application.module() {
     install(ContentNegotiation) {
         json()
@@ -54,10 +50,11 @@ fun Application.module() {
         gzip()
     }
     install(CallLogging) {
-        level = Level.DEBUG
+        level = Level.INFO
     }
     install(StatusPages) {
-        exception<PolygonProblemDownloaderException> { cause ->
+        exception<Exception> { cause ->
+            MessageSenderFactory.createMessageSender(call)("Ошибка", cause.message.orEmpty(), ToastKind.FAILURE)
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "No message provided")
             throw cause
         }
