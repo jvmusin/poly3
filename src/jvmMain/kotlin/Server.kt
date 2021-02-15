@@ -53,7 +53,7 @@ fun Application.module() {
         level = Level.INFO
     }
     install(StatusPages) {
-        exception<Exception> { cause ->
+        exception<Throwable> { cause ->
             MessageSenderFactory.createMessageSender(call)("Ошибка", cause.message.orEmpty(), ToastKind.FAILURE)
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "No message provided")
             throw cause
