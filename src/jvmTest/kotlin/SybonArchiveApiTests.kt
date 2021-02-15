@@ -1,18 +1,22 @@
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.koin.KoinListener
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
-import sybon.Collection
-import sybon.Problem
-import sybon.ResourceLimits
-import sybon.SybonApiFactory
+import org.koin.java.KoinJavaComponent.inject
+import org.koin.test.KoinTest
+import sybon.api.ResourceLimits
+import sybon.api.SybonArchiveApi
+import sybon.api.SybonCollection
+import sybon.api.SybonProblem
+import sybon.sybonModule
 
 class SybonArchiveApiTests : StringSpec({
-    val api = SybonApiFactory().createArchiveApi()
+    val api by inject(SybonArchiveApi::class.java)
 
     "getCollections should return single collection" {
-        val expected = Collection(
+        val expected = SybonCollection(
             id = 1,
             name = "Global",
             description = "Only Admins",
@@ -28,7 +32,7 @@ class SybonArchiveApiTests : StringSpec({
 
     "getCollection should return the only 'Only Admins' collection" {
         val collectionId = 1
-        val expected = Collection(
+        val expected = SybonCollection(
             id = collectionId,
             name = "Global",
             description = "Only Admins",
@@ -43,7 +47,7 @@ class SybonArchiveApiTests : StringSpec({
 
     "getProblem should return the correct problem" {
         val problemId = 72147
-        val expected = Problem(
+        val expected = SybonProblem(
             id = problemId,
             name = "Лягушка и многоугольник",
             author = "Musin",
@@ -69,4 +73,6 @@ class SybonArchiveApiTests : StringSpec({
         val url = api.getProblemStatementUrl(problemId)
         url shouldBe "http://statement.bacs.cs.istu.ru/statement/get/CkhiYWNzL3Byb2JsZW0vbXVuaWNpcGFsMjAyMC05MTEtZnJvZy1hbmQtcG9seWdvbi9zdGF0ZW1lbnQvdmVyc2lvbnMvQy9wZGYSBgoEMc68zg/bacs/RRtTY4-b81yftuSQdorVUh5w7Z8m-bDUtKdT172cGv9dSMFpF95pNdlbElEyfpMPVmgnokw-yaNEJ2tFgPvCYUvrQaxyYdpvMcFc-MklPkxvooZWcdDm3Xvu4MbD8bOmyn1JwzrydffH1vzBs3CaA-AzO89PP4Di1mu1-IScfN4-JDNN4TIe9RqdtJUGKc61XX96Zh7sVmukRBeiUUILcc3Eem3HPGm9xrKDQcxexSM9B0heJxWqVvKbGv11m1ojTdU-fO5Vi1oOif9WCMGU47oCV6upmk57_Fq-HyuQt1b2s5xGyZ1ToFSwicDF4Z9MlqsMPhOPMuWV9KCr4_GC7A"
     }
-})
+}), KoinTest {
+    override fun listeners() = listOf(KoinListener(sybonModule))
+}

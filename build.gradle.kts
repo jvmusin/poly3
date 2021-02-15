@@ -3,6 +3,12 @@
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val ktorVersion = "1.5.1"
+val retrofitVersion = "2.9.0"
+val serializationVersion = "1.0.1"
+val kotestVersion = "4.4.1"
+val koinVersion = "2.2.2"
+
 plugins {
     kotlin("multiplatform") version "1.4.30"
     application
@@ -11,11 +17,6 @@ plugins {
 
 group = "jvmusin"
 version = "1.0-SNAPSHOT"
-
-val ktorVersion = "1.5.1"
-val retrofitVersion = "2.9.0"
-val serializationVersion = "1.0.1"
-val kotestVersion = "4.4.1"
 
 repositories {
     jcenter()
@@ -81,6 +82,10 @@ kotlin {
                 implementation("io.ktor:ktor-client-auth-jvm:$ktorVersion")
                 implementation("io.ktor:ktor-client-logging-jvm:$ktorVersion")
                 implementation("io.ktor:ktor-client-features:$ktorVersion")
+
+                implementation("org.koin:koin-core:$koinVersion")
+                implementation("org.koin:koin-core-ext:$koinVersion")
+                implementation("org.koin:koin-ktor:$koinVersion")
             }
         }
         val jvmTest by getting {
@@ -88,6 +93,9 @@ kotlin {
                 implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
                 implementation("io.kotest:kotest-assertions-core:$kotestVersion")
                 implementation("io.kotest:kotest-property:$kotestVersion")
+
+                implementation("org.koin:koin-test:$koinVersion")
+                implementation("io.kotest:kotest-extensions-koin:$kotestVersion")
             }
         }
         val jsMain by getting {

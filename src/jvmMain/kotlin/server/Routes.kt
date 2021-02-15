@@ -1,10 +1,12 @@
 @file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class, ExperimentalCoroutinesApi::class)
 
-import MessageSenderFactory.createMessageSender
-import MessageSenderFactory.registerClient
+package server
+
+import Session
 import api.*
 import bacs.BacsArchiveServiceFactory
 import bacs.BacsProblemState
+import index
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -20,13 +22,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.koin.ktor.ext.inject
 import polygon.PolygonApiFactory
 import polygon.PolygonProblemDownloader
 import polygon.PolygonProblemDownloaderException
 import polygon.toDto
-import sybon.SybonApiFactory
+import server.MessageSenderFactory.createMessageSender
+import server.MessageSenderFactory.registerClient
 import sybon.SybonArchiveBuilder
-import sybon.SybonServiceFactory
+import sybon.SybonService
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
 import util.getLogger
@@ -43,8 +47,8 @@ fun Route.routes() {
     val polygonApi = PolygonApiFactory().create()
     val bacsArchiveService = BacsArchiveServiceFactory().create()
     val problemDownloader = PolygonProblemDownloader(polygonApi)
-    val sybonArchiveBuilder = SybonArchiveBuilder()
-    val sybonService = SybonServiceFactory(SybonApiFactory()).create()
+    val sybonArchiveBuilder: SybonArchiveBuilder by inject()
+    val sybonService: SybonService by inject()
 
     suspend fun downloadProblemAndBuildArchive(
         call: ApplicationCall,
@@ -116,7 +120,7 @@ fun Route.routes() {
                 println(receive.readBytes().decodeToString())
             }
         } catch (e: ClosedReceiveChannelException) {
-            getLogger(javaClass).info("WS connection closed", e)
+            getLogger(javaClass).info("WS connection closed: ${e.message}")
         }
     }
     post("bump-test-notification") {

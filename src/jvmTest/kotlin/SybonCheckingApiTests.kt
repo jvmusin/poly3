@@ -1,4 +1,5 @@
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.koin.KoinListener
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
@@ -6,19 +7,22 @@ import io.kotest.matchers.shouldBe
 import io.ktor.util.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import sybon.SubmissionResult
-import sybon.SubmissionResult.BuildResult
-import sybon.SubmissionResult.TestGroupResult
-import sybon.SubmissionResult.TestGroupResult.TestResult
-import sybon.SubmissionResult.TestGroupResult.TestResult.ResourceUsage
-import sybon.SubmitSolution
-import sybon.SybonApiFactory
+import org.koin.java.KoinJavaComponent.inject
+import org.koin.test.KoinTest
 import sybon.SybonCompilers
+import sybon.api.SybonCheckingApi
+import sybon.api.SybonSubmissionResult
+import sybon.api.SybonSubmissionResult.BuildResult
+import sybon.api.SybonSubmissionResult.TestGroupResult
+import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult
+import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult.ResourceUsage
+import sybon.api.SybonSubmitSolution
+import sybon.sybonModule
 import util.encodeBase64
 
 class SybonCheckingApiTests : StringSpec({
 
-    val api = SybonApiFactory().createCheckingApi()
+    val api by inject(SybonCheckingApi::class.java)
 
     "getCompilers should return all known compilers" {
         val compilers = api.getCompilers()
@@ -27,7 +31,7 @@ class SybonCheckingApiTests : StringSpec({
 
     "submitSolution should submit a correct solution and receive submission id" {
         val submissionId = api.submitSolution(
-            SubmitSolution(
+            SybonSubmitSolution(
                 SybonCompilers.CPP.id,
                 A_PLUS_B_PROBLEM_ID,
                 OK_CPP_SOLUTION
@@ -39,7 +43,7 @@ class SybonCheckingApiTests : StringSpec({
     "getResults should return correct result for accepted C++ submission" {
         val submissionId = 466994
 
-        val expectedSubmissionResult = SubmissionResult(
+        val expectedSubmissionResult = SybonSubmissionResult(
             id = submissionId,
             buildResult = BuildResult(status = BuildResult.Status.OK, output = ""),
             testGroupResults = emptyList()
@@ -81,7 +85,7 @@ class SybonCheckingApiTests : StringSpec({
         val result = api.getResults(submissionId.toString()).single()
         println(Json { prettyPrint = true }.encodeToString(result))
     }
-}) {
+}), KoinTest {
     companion object {
         const val A_PLUS_B_PROBLEM_ID = 8716
 
@@ -96,4 +100,6 @@ class SybonCheckingApiTests : StringSpec({
         }
         """.trimIndent().encodeBase64()
     }
+
+    override fun listeners() = listOf(KoinListener(sybonModule))
 }

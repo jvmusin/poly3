@@ -1,20 +1,20 @@
 @file:Suppress("unused")
 
-package sybon
+package sybon.api
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Collection(
+data class SybonCollection(
     val id: Int,
     val name: String,
     val description: String,
-    val problems: List<Problem>,
+    val problems: List<SybonProblem>,
     val problemsCount: Int
 )
 
 @Serializable
-data class Problem(
+data class SybonProblem(
     val id: Int,
     val name: String,
     val author: String,
@@ -43,7 +43,7 @@ data class ResourceLimits(
 )
 
 @Serializable
-data class Compiler(
+data class SybonCompiler(
     val id: Int,
     val type: Type,
     val name: String,
@@ -67,7 +67,7 @@ data class Compiler(
 }
 
 @Serializable
-data class SubmitSolution(
+data class SybonSubmitSolution(
     val compilerId: Int,
     val problemId: Int,
     val solution: String,
@@ -90,7 +90,7 @@ data class SubmitSolution(
 }
 
 @Serializable
-data class SubmissionResult(
+data class SybonSubmissionResult(
     val id: Int,
     val buildResult: BuildResult,
     val testGroupResults: List<TestGroupResult>

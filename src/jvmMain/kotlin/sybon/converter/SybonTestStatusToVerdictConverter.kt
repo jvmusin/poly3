@@ -1,11 +1,11 @@
 package sybon.converter
 
 import api.Verdict
-import sybon.SubmissionResult
-import sybon.SubmissionResult.TestGroupResult.TestResult.Status.*
+import sybon.api.SybonSubmissionResult
+import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult.Status.*
 
 object SybonTestStatusToVerdictConverter {
-    private fun convert(status: SubmissionResult.TestGroupResult.TestResult.Status): Verdict {
+    private fun convert(status: SybonSubmissionResult.TestGroupResult.TestResult.Status): Verdict {
         return when (status) {
             OK -> Verdict.OK
             WRONG_ANSWER -> Verdict.WRONG_ANSWER
@@ -16,5 +16,5 @@ object SybonTestStatusToVerdictConverter {
         }
     }
 
-    fun SubmissionResult.TestGroupResult.TestResult.Status.toVerdict() = convert(this)
+    fun SybonSubmissionResult.TestGroupResult.TestResult.Status.toVerdict() = convert(this)
 }

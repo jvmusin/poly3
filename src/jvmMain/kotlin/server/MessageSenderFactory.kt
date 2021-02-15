@@ -1,5 +1,8 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
+package server
+
+import Session
 import api.Toast
 import api.ToastKind
 import io.ktor.application.*
@@ -24,7 +27,7 @@ object MessageSenderFactory {
         override fun invoke(title: String, content: String, kind: ToastKind) {
             val list = wsBySession[call.sessions.get<Session>()!!.str]!!
             list.removeIf { it.isClosedForSend }
-            list.map { out ->
+            for (out in list) {
                 launch {
                     try {
                         out.send(Frame.Text(Json.encodeToString(Toast(title, content, kind))))

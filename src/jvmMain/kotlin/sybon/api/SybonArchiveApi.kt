@@ -1,4 +1,4 @@
-package sybon
+package sybon.api
 
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -10,13 +10,13 @@ interface SybonArchiveApi {
     suspend fun getCollections(
         @Query("Offset") offset: Int = 0,
         @Query("Limit") limit: Int = 100
-    ): List<Collection>
+    ): List<SybonCollection>
 
     @GET("Collections/{collectionId}")
-    suspend fun getCollection(@Path("collectionId") collectionId: Int): Collection
+    suspend fun getCollection(@Path("collectionId") collectionId: Int): SybonCollection
 
     @GET("Problems/{problemId}")
-    suspend fun getProblem(@Path("problemId") problemId: Int): Problem
+    suspend fun getProblem(@Path("problemId") problemId: Int): SybonProblem
 
     @GET("Problems/{problemId}/statement")
     suspend fun getProblemStatementUrl(@Path("problemId") problemId: Int): String

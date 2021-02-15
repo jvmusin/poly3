@@ -1,3 +1,5 @@
+package server
+
 import api.ToastKind
 
 interface MessageSender {

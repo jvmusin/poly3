@@ -2,10 +2,12 @@
 
 package sybon
 
+import sybon.api.SybonCompiler
+
 object SybonCompilers {
-    val C = Compiler(
+    val C = SybonCompiler(
         id = 1,
-        type = Compiler.Type.gcc,
+        type = SybonCompiler.Type.gcc,
         name = "C",
         description = "C11",
         args = "lang=c,optimize=2,std=c11,fno-stack-limit,lm",
@@ -15,9 +17,9 @@ object SybonCompilers {
         outputLimitBytes = 536870912,
         realTimeLimitMillis = 120000
     )
-    val CPP = Compiler(
+    val CPP = SybonCompiler(
         id = 2,
-        type = Compiler.Type.gcc,
+        type = SybonCompiler.Type.gcc,
         name = "C++",
         description = "C++11",
         args = "lang=c++,optimize=2,std=c++11,fno-stack-limit",
@@ -27,9 +29,9 @@ object SybonCompilers {
         outputLimitBytes = 536870912,
         realTimeLimitMillis = 120000
     )
-    val CSHARP = Compiler(
+    val CSHARP = SybonCompiler(
         id = 3,
-        type = Compiler.Type.mono,
+        type = SybonCompiler.Type.mono,
         name = "C#",
         description = "mono",
         args = "lang=d",
@@ -39,9 +41,9 @@ object SybonCompilers {
         outputLimitBytes = 536870912,
         realTimeLimitMillis = 120000
     )
-    val DELPHI = Compiler(
+    val DELPHI = SybonCompiler(
         id = 4,
-        type = Compiler.Type.fpc,
+        type = SybonCompiler.Type.fpc,
         name = "Delphi",
         description = "FreePascal PascalABC",
         args = "lang=delphi,optimize=2",
@@ -51,9 +53,9 @@ object SybonCompilers {
         outputLimitBytes = 536870912,
         realTimeLimitMillis = 120000
     )
-    val PASCAL = Compiler(
+    val PASCAL = SybonCompiler(
         id = 5,
-        type = Compiler.Type.fpc,
+        type = SybonCompiler.Type.fpc,
         name = "Pascal",
         description = "FreePascal",
         args = "lang=fpc,optimize=2",
@@ -63,9 +65,9 @@ object SybonCompilers {
         outputLimitBytes = 536870912,
         realTimeLimitMillis = 120000
     )
-    val PYTHON2 = Compiler(
+    val PYTHON2 = SybonCompiler(
         id = 6,
-        type = Compiler.Type.python,
+        type = SybonCompiler.Type.python,
         name = "Python 2",
         description = "Python 2",
         args = "lang=2",
@@ -75,9 +77,9 @@ object SybonCompilers {
         outputLimitBytes = 536870912,
         realTimeLimitMillis = 120000
     )
-    val PYTHON3 = Compiler(
+    val PYTHON3 = SybonCompiler(
         id = 7,
-        type = Compiler.Type.python,
+        type = SybonCompiler.Type.python,
         name = "Python 3",
         description = "Python 3",
         args = "lang=3",
@@ -87,9 +89,9 @@ object SybonCompilers {
         outputLimitBytes = 536870912,
         realTimeLimitMillis = 120000
     )
-    val JAVA = Compiler(
+    val JAVA = SybonCompiler(
         id = 8,
-        type = Compiler.Type.java,
+        type = SybonCompiler.Type.java,
         name = "Java",
         description = "Java",
         args = "",

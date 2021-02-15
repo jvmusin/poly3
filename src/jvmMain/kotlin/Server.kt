@@ -8,7 +8,11 @@ import io.ktor.serialization.*
 import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.websocket.*
+import org.koin.ktor.ext.Koin
 import org.slf4j.event.Level
+import server.MessageSenderFactory
+import server.routes
+import sybon.sybonModule
 
 val index = """
     <!doctype html>
@@ -63,6 +67,9 @@ fun Application.module() {
     install(WebSockets)
     install(Sessions) {
         cookie<Session>("SESSION")
+    }
+    install(Koin) {
+        modules(sybonModule)
     }
 
     routing {
