@@ -96,7 +96,7 @@ fun Route.problems() {
             val fullName = call.parameters["full-name"]!!
             val problemId = call.parameters["problem-id"]!!.toInt()
             val properties = call.receive<AdditionalProblemProperties>()
-            val sendMessage = messageSenderFactory.createMessageSender(call)
+            val sendMessage = messageSenderFactory.create(this)
             val irProblem = downloadProblem(sendMessage, fullName, problemId)
             val zip = irProblem.toZipArchive(properties)
             sendMessage(fullName, "Задача выкачана из полигона, скачиваем архив", ToastKind.SUCCESS)
@@ -113,7 +113,7 @@ fun Route.problems() {
             val fullName = call.parameters["full-name"].toString()
             val problemId = call.parameters["problem-id"]!!.toInt()
             val properties = call.receive<AdditionalProblemProperties>()
-            transferProblemToBacs(messageSenderFactory.createMessageSender(call), fullName, problemId, properties)
+            transferProblemToBacs(messageSenderFactory.create(this), fullName, problemId, properties)
             call.respond(HttpStatusCode.OK)
         }
         route("solutions") {
@@ -123,7 +123,7 @@ fun Route.problems() {
                 val irProblem = try {
                     problemDownloader.download(problemId, true)
                 } catch (e: PolygonProblemDownloaderException) {
-                    messageSenderFactory.createMessageSender(call)(name, e.message!!, ToastKind.FAILURE)
+                    messageSenderFactory.create(this)(name, e.message!!, ToastKind.FAILURE)
                     call.respond(
                         HttpStatusCode.BadRequest,
                         "Не удалось скачать решения из полигона: ${e.message}"
@@ -147,7 +147,7 @@ fun Route.problems() {
                     memoryLimitMegabytes = null
                 )
 
-                val sendMessage = messageSenderFactory.createMessageSender(call)
+                val sendMessage = messageSenderFactory.create(this)
                 val fullName = properties.buildFullName(problem.name)
                 transferProblemToBacs(sendMessage, fullName, problemId, properties)
 

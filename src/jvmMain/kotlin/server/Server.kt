@@ -37,7 +37,7 @@ fun Application.module() {
     install(StatusPages) {
         exception<Throwable> { cause ->
             val msg = cause.message.orEmpty()
-            get<MessageSenderFactory>().createMessageSender(call)("Ошибка", msg, ToastKind.FAILURE)
+            get<MessageSenderFactory>().create(this)("Ошибка", msg, ToastKind.FAILURE)
             call.respond(HttpStatusCode.BadRequest, msg)
             throw cause
         }
