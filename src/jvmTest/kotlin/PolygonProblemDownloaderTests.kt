@@ -10,6 +10,7 @@ import polygon.PolygonProblemDownloader
 import polygon.PolygonProblemDownloaderException
 import polygon.polygonModule
 import util.getLogger
+import util.retrofitModule
 import kotlin.time.ExperimentalTime
 
 class PolygonProblemDownloaderTests : StringSpec({
@@ -70,5 +71,5 @@ class PolygonProblemDownloaderTests : StringSpec({
         }
     }
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(polygonModule))
+    override fun listeners() = listOf(KoinListener(polygonModule + retrofitModule))
 }

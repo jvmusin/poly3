@@ -6,6 +6,7 @@ import org.koin.test.KoinTest
 import polygon.PolygonApi
 import polygon.PolygonTest
 import polygon.polygonModule
+import util.retrofitModule
 
 class PolygonApiTests : StringSpec({
     val api by inject(PolygonApi::class.java)
@@ -15,5 +16,5 @@ class PolygonApiTests : StringSpec({
         tests shouldBeSortedWith compareBy(PolygonTest::index)
     }
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(polygonModule))
+    override fun listeners() = listOf(KoinListener(retrofitModule + polygonModule))
 }

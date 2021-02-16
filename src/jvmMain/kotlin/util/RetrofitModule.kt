@@ -2,6 +2,6 @@ package util
 
 import org.koin.dsl.module
 
-val utilModule = module {
+val retrofitModule = module {
     single { RetrofitClientFactory() }
 }

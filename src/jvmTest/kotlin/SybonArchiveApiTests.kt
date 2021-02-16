@@ -11,11 +11,12 @@ import sybon.api.SybonArchiveApi
 import sybon.api.SybonCollection
 import sybon.api.SybonProblem
 import sybon.sybonModule
+import util.retrofitModule
 
 class SybonArchiveApiTests : StringSpec({
     val api by inject(SybonArchiveApi::class.java)
 
-    "getCollections should return single collection" {
+    "getCollections should return many collections" {
         val expected = SybonCollection(
             id = 1,
             name = "Global",
@@ -24,13 +25,14 @@ class SybonArchiveApiTests : StringSpec({
             problemsCount = 0
         )
         val collections = api.getCollections()
-        collections shouldHaveSize 1
+        println(collections.first { it.name == "Polybacs Testing" })
+        collections shouldHaveAtLeastSize 17
         val collection = collections.first()
         collection.problemsCount shouldBeGreaterThanOrEqual 7022
         collection.copy(problemsCount = 0) shouldBe expected
     }
 
-    "getCollection should return the only 'Only Admins' collection" {
+    "getCollection with id 1 should return 'Only Admins' collection" {
         val collectionId = 1
         val expected = SybonCollection(
             id = collectionId,
@@ -74,5 +76,5 @@ class SybonArchiveApiTests : StringSpec({
         url shouldBe "http://statement.bacs.cs.istu.ru/statement/get/CkhiYWNzL3Byb2JsZW0vbXVuaWNpcGFsMjAyMC05MTEtZnJvZy1hbmQtcG9seWdvbi9zdGF0ZW1lbnQvdmVyc2lvbnMvQy9wZGYSBgoEMc68zg/bacs/RRtTY4-b81yftuSQdorVUh5w7Z8m-bDUtKdT172cGv9dSMFpF95pNdlbElEyfpMPVmgnokw-yaNEJ2tFgPvCYUvrQaxyYdpvMcFc-MklPkxvooZWcdDm3Xvu4MbD8bOmyn1JwzrydffH1vzBs3CaA-AzO89PP4Di1mu1-IScfN4-JDNN4TIe9RqdtJUGKc61XX96Zh7sVmukRBeiUUILcc3Eem3HPGm9xrKDQcxexSM9B0heJxWqVvKbGv11m1ojTdU-fO5Vi1oOif9WCMGU47oCV6upmk57_Fq-HyuQt1b2s5xGyZ1ToFSwicDF4Z9MlqsMPhOPMuWV9KCr4_GC7A"
     }
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(sybonModule))
+    override fun listeners() = listOf(KoinListener(retrofitModule + sybonModule))
 }

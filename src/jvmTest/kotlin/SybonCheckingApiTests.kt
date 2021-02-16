@@ -19,6 +19,7 @@ import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult.ResourceUsage
 import sybon.api.SybonSubmitSolution
 import sybon.sybonModule
 import util.encodeBase64
+import util.retrofitModule
 
 class SybonCheckingApiTests : StringSpec({
 
@@ -101,5 +102,5 @@ class SybonCheckingApiTests : StringSpec({
         """.trimIndent().encodeBase64()
     }
 
-    override fun listeners() = listOf(KoinListener(sybonModule))
+    override fun listeners() = listOf(KoinListener(retrofitModule + sybonModule))
 }

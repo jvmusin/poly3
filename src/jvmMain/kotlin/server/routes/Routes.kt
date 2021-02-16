@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class, ExperimentalPathApi::class, ExperimentalCoroutinesApi::class)
 
-package server
+package server.routes
 
 import api.*
 import api.Solution
@@ -18,18 +18,16 @@ import io.ktor.sessions.*
 import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 import polygon.*
+import server.MessageSender
 import server.MessageSenderFactory.createMessageSender
-import server.MessageSenderFactory.registerClient
 import sybon.SybonArchiveBuilder
 import sybon.SybonService
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
-import util.getLogger
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.ExperimentalPathApi
@@ -70,7 +68,7 @@ fun Route.routes() {
         return zip
     }
 
-    suspend fun transfer(
+    suspend fun transferProblemToBacs(
         call: ApplicationCall,
         sendMessage: MessageSender,
         fullName: String,
@@ -95,37 +93,10 @@ fun Route.routes() {
         }
     }
 
-    static("static") {
-        resources()
-    }
-    get("register-session") {
-        getLogger(javaClass).info("Registering session")
-        call.sessions.getOrSet { Session(UUID.randomUUID().toString()) }
-        getLogger(javaClass).info("Registered session")
-        call.respond(HttpStatusCode.OK)
-    }
-    webSocket("subscribe") {
-        pingInterval = 10.seconds.toJavaDuration()
-        getLogger(javaClass).info("Subscribing WS")
-        registerClient(this)
-        getLogger(javaClass).info("Subscribed WS")
-        try {
-            val receive = incoming.receive()
-            println(receive.frameType)
-            if (receive.frameType == FrameType.TEXT) {
-                println(receive.readBytes().decodeToString())
-            }
-        } catch (e: ClosedReceiveChannelException) {
-            getLogger(javaClass).info("WS connection closed: ${e.message}")
-        }
-    }
-    post("bump-test-notification") {
-        createMessageSender()("Привет!", "Хорошо сейчас на улице, выйди прогуляйся")
-        call.respond(HttpStatusCode.OK)
-    }
-    get {
-        call.respondText(index, ContentType.Text.Html)
-    }
+    static("static") { resources() }
+    notifications()
+    home()
+    bumpTestNotification()
     route("problems") {
         get {
             val problems = polygonApi.getProblems().result!!
@@ -166,7 +137,7 @@ fun Route.routes() {
                 val fullName = call.parameters["full-name"].toString()
                 val problemId = call.parameters["problem-id"]!!.toInt()
                 val properties = call.receive<AdditionalProblemProperties>()
-                transfer(call, createMessageSender(), fullName, problemId, properties)
+                transferProblemToBacs(call, createMessageSender(), fullName, problemId, properties)
                 call.respond(HttpStatusCode.OK)
             }
             route("solutions") {
@@ -202,7 +173,7 @@ fun Route.routes() {
 
                     val sendMessage = createMessageSender()
                     val fullName = properties.buildFullName(problem.name)
-                    transfer(call, sendMessage, fullName, problemId, properties)
+                    transferProblemToBacs(call, sendMessage, fullName, problemId, properties)
 
                     sendMessage(fullName, "Ждём, пока задача появится в сайбоне (может занять минуты две)")
                     val sybonProblem = sybonService.getProblemByBacsProblemId(fullName, 5.minutes)

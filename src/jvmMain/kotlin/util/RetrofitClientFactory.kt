@@ -1,6 +1,7 @@
 package util
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Dispatcher
 import okhttp3.MediaType.Companion.toMediaType
@@ -12,6 +13,7 @@ import retrofit2.create
 import java.util.concurrent.TimeUnit
 
 class RetrofitClientFactory {
+    @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> create(baseUrl: String, builder: OkHttpClient.Builder.() -> Unit): T {
         val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
             getLogger(HttpLoggingInterceptor::class.java).info(message)
