@@ -1,6 +1,7 @@
 package sybon.api
 
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -20,4 +21,10 @@ interface SybonArchiveApi {
 
     @GET("Problems/{problemId}/statement")
     suspend fun getProblemStatementUrl(@Path("problemId") problemId: Int): String
+
+    @POST("Collections/{collectionId}/problems")
+    suspend fun postProblem(
+        @Path("collectionId") collectionId: Int,
+        @Query("internalProblemId") internalProblemId: String
+    ): Int
 }
