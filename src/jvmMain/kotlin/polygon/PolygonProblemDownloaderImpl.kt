@@ -11,7 +11,9 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
 import kotlin.io.path.readBytes
 
-class PolygonProblemDownloaderImpl(private val polygonApi: PolygonApi) : PolygonProblemDownloader {
+class PolygonProblemDownloaderImpl(
+    private val polygonApi: PolygonApi
+) : PolygonProblemDownloader {
 
     data class FullPackageId(
         val packageId: Int,

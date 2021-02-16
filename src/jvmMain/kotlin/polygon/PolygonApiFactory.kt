@@ -2,26 +2,20 @@
 
 package polygon
 
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import okhttp3.Dispatcher
 import okhttp3.Interceptor
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.scalars.ScalarsConverterFactory
+import util.RetrofitClientFactory
 import util.getLogger
 import util.sha512
-import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
-class PolygonApiFactory {
+class PolygonApiFactory(
+    private val retrofitClientFactory: RetrofitClientFactory
+) {
 
     companion object {
         private const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
@@ -102,31 +96,9 @@ class PolygonApiFactory {
         }
     }
 
-    fun create(): PolygonApi {
-        val httpLoggingInterceptor = HttpLoggingInterceptor { message ->
-            getLogger(HttpLoggingInterceptor::class.java).info(message)
-        }.setLevel(HttpLoggingInterceptor.Level.BASIC)
-        val dispatcher = Dispatcher().apply {
-            maxRequests = 15
-            maxRequestsPerHost = 15
-        }
-        val client = OkHttpClient().newBuilder()
-            .connectTimeout(2, TimeUnit.MINUTES)
-            .readTimeout(2, TimeUnit.MINUTES)
-            .writeTimeout(2, TimeUnit.MINUTES)
-            .addInterceptor(TooManyRequestsRetryInterceptor())
-            .addInterceptor(Error500RetryInterceptor())
-            .addInterceptor(ApiSigAddingInterceptor())
-            .addInterceptor(httpLoggingInterceptor)
-            .dispatcher(dispatcher)
-            .build()
-        val contentType = "application/json".toMediaType()
-        val retrofit = Retrofit.Builder()
-            .baseUrl(POLYGON_URL)
-            .client(client)
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(Json { isLenient = true }.asConverterFactory(contentType))
-            .build()
-        return retrofit.create(PolygonApi::class.java)
+    fun create(): PolygonApi = retrofitClientFactory.create(POLYGON_URL) {
+        addInterceptor(TooManyRequestsRetryInterceptor())
+        addInterceptor(Error500RetryInterceptor())
+        addInterceptor(ApiSigAddingInterceptor())
     }
 }

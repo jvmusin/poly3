@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
-
 package server
 
 import api.Toast
@@ -22,6 +20,8 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 object MessageSenderFactory {
     private val wsBySession = ConcurrentHashMap<String, CopyOnWriteArrayList<SendChannel<Frame>>>()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun CoroutineScope.createMessageSender(call: ApplicationCall) = object : MessageSender {
         override fun invoke(title: String, content: String, kind: ToastKind) {
             val list = wsBySession[call.sessions.get<Session>()!!.str]!!

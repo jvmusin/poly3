@@ -15,6 +15,7 @@ import org.koin.ktor.ext.Koin
 import org.slf4j.event.Level
 import polygon.polygonModule
 import sybon.sybonModule
+import util.utilModule
 
 val index = """
     <!doctype html>
@@ -71,7 +72,7 @@ fun Application.module() {
         cookie<Session>("SESSION")
     }
     install(Koin) {
-        modules(sybonModule, bacsModule, polygonModule)
+        modules(utilModule, sybonModule, bacsModule, polygonModule)
     }
 
     routing {

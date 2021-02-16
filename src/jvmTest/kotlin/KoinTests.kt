@@ -5,7 +5,7 @@ import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
 
 class KoinTests : StringSpec({
-    val x: String by inject(String::class.java)
+    val x by inject(String::class.java)
 
     "Print x" {
         println(x)

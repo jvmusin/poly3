@@ -5,10 +5,9 @@ import org.koin.experimental.builder.singleBy
 import sybon.api.SybonApiFactory
 
 val sybonModule = module {
-    SybonApiFactory().run {
-        single { createArchiveApi() }
-        single { createCheckingApi() }
-    }
+    single { SybonApiFactory(get()) }
+    single { get<SybonApiFactory>().createArchiveApi() }
+    single { get<SybonApiFactory>().createCheckingApi() }
 
     singleBy<SybonService, SybonServiceImpl>()
     singleBy<SybonArchiveBuilder, SybonArchiveBuilderImpl>()
