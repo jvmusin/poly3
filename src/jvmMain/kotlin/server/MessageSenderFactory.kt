@@ -2,7 +2,6 @@
 
 package server
 
-import Session
 import api.Toast
 import api.ToastKind
 import io.ktor.application.*
