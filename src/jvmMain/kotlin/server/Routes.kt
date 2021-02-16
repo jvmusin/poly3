@@ -3,7 +3,7 @@
 package server
 
 import api.*
-import bacs.BacsArchiveServiceFactory
+import bacs.BacsArchiveService
 import bacs.BacsProblemState
 import io.ktor.application.*
 import io.ktor.features.*
@@ -43,7 +43,7 @@ import kotlin.time.toJavaDuration
 
 fun Route.routes() {
     val polygonApi = PolygonApiFactory().create()
-    val bacsArchiveService = BacsArchiveServiceFactory().create()
+    val bacsArchiveService:BacsArchiveService by inject()
     val problemDownloader = PolygonProblemDownloader(polygonApi)
     val sybonArchiveBuilder: SybonArchiveBuilder by inject()
     val sybonService: SybonService by inject()

@@ -1,6 +1,7 @@
 package server
 
 import api.ToastKind
+import bacs.bacsModule
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -69,7 +70,7 @@ fun Application.module() {
         cookie<Session>("SESSION")
     }
     install(Koin) {
-        modules(sybonModule)
+        modules(sybonModule, bacsModule)
     }
 
     routing {

@@ -8,20 +8,20 @@ import io.ktor.client.features.*
 import io.ktor.client.features.auth.*
 import io.ktor.client.features.auth.providers.*
 import io.ktor.client.features.logging.*
-import io.ktor.http.*
+import io.ktor.http.URLProtocol.Companion.HTTPS
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
 class BacsArchiveServiceFactory {
     companion object {
-        private val PROTOCOL = URLProtocol.HTTPS
+        private val PROTOCOL = HTTPS
         private const val HOST = "archive.bacs.cs.istu.ru"
         private const val BASE_PATH = "repository"
         private const val AUTH_USERNAME = "sybon"
         private const val AUTH_PASSWORD = "wjh\$42ds09"
     }
 
-    fun create(): BacsArchiveService {
+    fun create(): BacsArchiveServiceImpl {
         val client = HttpClient(CIO) {
             install(Auth) {
                 basic {
@@ -42,6 +42,6 @@ class BacsArchiveServiceFactory {
                 this.requestTimeout = 2.minutes.toLongMilliseconds()
             }
         }
-        return BacsArchiveService(client)
+        return BacsArchiveServiceImpl(client)
     }
 }
