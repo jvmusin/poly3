@@ -49,7 +49,7 @@ class SybonArchiveBuilderImpl : SybonArchiveBuilder {
                         maintainers = ${setOf(problem.owner, "Musin").joinToString(" ")}
                         
                         [resource_limits]
-                        time = ${"%.2f".format(timeLimitMillis / 1000.0)}s
+                        time = ${"%.2f".format(Locale.ENGLISH, timeLimitMillis / 1000.0)}s
                         memory = ${memoryLimitMegabytes}MiB
                         
                         [tests]
