@@ -12,6 +12,7 @@ import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.websocket.*
 import org.koin.ktor.ext.Koin
+import org.koin.ktor.ext.get
 import org.slf4j.event.Level
 import polygon.polygonModule
 import server.routes.routes
@@ -35,8 +36,9 @@ fun Application.module() {
     }
     install(StatusPages) {
         exception<Throwable> { cause ->
-            MessageSenderFactory.createMessageSender(call)("Ошибка", cause.message.orEmpty(), ToastKind.FAILURE)
-            call.respond(HttpStatusCode.BadRequest, cause.message ?: "No message provided")
+            val msg = cause.message.orEmpty()
+            get<MessageSenderFactory>().createMessageSender(call)("Ошибка", msg, ToastKind.FAILURE)
+            call.respond(HttpStatusCode.BadRequest, msg)
             throw cause
         }
     }
@@ -46,7 +48,7 @@ fun Application.module() {
         cookie<Session>("SESSION")
     }
     install(Koin) {
-        modules(retrofitModule, sybonModule, bacsModule, polygonModule)
+        modules(retrofitModule, sybonModule, bacsModule, polygonModule, serverModule)
     }
 
     routing {

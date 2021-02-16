@@ -8,6 +8,7 @@ import io.ktor.routing.*
 import io.ktor.sessions.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import org.koin.ktor.ext.inject
 import server.MessageSenderFactory
 import server.Session
 import util.getLogger
@@ -18,6 +19,8 @@ import kotlin.time.toJavaDuration
 
 @OptIn(ExperimentalTime::class)
 fun Route.notifications() {
+    val messageSenderFactory: MessageSenderFactory by inject()
+
     get("register-session") {
         getLogger(javaClass).info("Registering session")
         call.sessions.getOrSet { Session(UUID.randomUUID().toString()) }
@@ -27,16 +30,19 @@ fun Route.notifications() {
     webSocket("subscribe") {
         pingInterval = 10.seconds.toJavaDuration()
         getLogger(javaClass).info("Subscribing WS")
-        MessageSenderFactory.registerClient(this)
-        getLogger(javaClass).info("Subscribed WS")
+        messageSenderFactory.registerClient(this)
         try {
-            val receive = incoming.receive()
-            println(receive.frameType)
-            if (receive.frameType == FrameType.TEXT) {
-                println(receive.readBytes().decodeToString())
-            }
+            getLogger(javaClass).info("Subscribed WS")
+            incoming.receive()  // block connection
         } catch (e: ClosedReceiveChannelException) {
             getLogger(javaClass).info("WS connection closed: ${e.message}")
         }
+    }
+    post("bump-test-notification") {
+        messageSenderFactory.createMessageSender(call)(
+            "Привет!",
+            "Хорошо сейчас на улице, выйди прогуляйся"
+        )
+        call.respond(HttpStatusCode.OK)
     }
 }

@@ -18,7 +18,7 @@ import util.getLogger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
-object MessageSenderFactory {
+class MessageSenderFactory {
     private val wsBySession = ConcurrentHashMap<String, CopyOnWriteArrayList<SendChannel<Frame>>>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -31,15 +31,13 @@ object MessageSenderFactory {
                     try {
                         out.send(Frame.Text(Json.encodeToString(Toast(title, content, kind))))
                     } catch (e: Exception) {
-                        getLogger(javaClass).warn(e.message)
+                        getLogger(javaClass).warn("Уведомление не отправлено", e)
                     }
                 }
             }
         }
     }
 
-    fun PipelineContext<Unit, ApplicationCall>.createMessageSender() = createMessageSender(call)
-    fun DefaultWebSocketServerSession.createMessageSender() = createMessageSender(call)
     suspend fun createMessageSender(call: ApplicationCall) = coroutineScope { createMessageSender(call) }
 
     fun registerClient(session: DefaultWebSocketServerSession) {

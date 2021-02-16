@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
-import kotlinx.atomicfu.atomic
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
@@ -91,7 +90,7 @@ object Api {
     suspend fun registerNotifications() {
         val delayDuration = 1.seconds
         scope.launch {
-            val first = atomic(true)
+            var first = true
             while (true) {
                 try {
                     console.log("Registering session")
@@ -100,7 +99,7 @@ object Api {
                     console.log("Connecting to WS")
                     connectWS("subscribe") {
                         console.log("Connected to WS")
-                        if (!first.value)
+                        if (!first)
                             showToast(
                                 Toast(
                                     "Соединение",
@@ -117,7 +116,7 @@ object Api {
                     console.log("Exception occurred: ${e.message}")
                     e.printStackTrace()
                 } finally {
-                    first.compareAndSet(expect = true, update = false)
+                    first = false
                     showToast(
                         Toast(
                             "Соединение",
