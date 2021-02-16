@@ -2,12 +2,11 @@
 
 package bacs
 
-import java.nio.file.Path
-import kotlin.time.Duration
+import api.AdditionalProblemProperties
+import ir.IRProblem
 import kotlin.time.ExperimentalTime
 
 interface BacsArchiveService {
-    suspend fun uploadProblem(zip: Path)
     suspend fun getProblemState(problemId: String): BacsProblemState
-    suspend fun waitTillProblemIsImported(problemId: String, waitFor: Duration): BacsProblemStatus
+    suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties): String
 }

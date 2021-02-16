@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package bacs
 
 import io.ktor.client.*
@@ -21,6 +19,7 @@ class BacsArchiveServiceFactory {
         private const val AUTH_PASSWORD = "wjh\$42ds09"
     }
 
+    @OptIn(ExperimentalTime::class)
     fun create(): BacsArchiveServiceImpl {
         val client = HttpClient(CIO) {
             install(Auth) {

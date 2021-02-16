@@ -23,7 +23,7 @@ interface SybonArchiveApi {
     suspend fun getProblemStatementUrl(@Path("problemId") problemId: Int): String
 
     @POST("Collections/{collectionId}/problems")
-    suspend fun postProblem(
+    suspend fun importProblem(
         @Path("collectionId") collectionId: Int,
         @Query("internalProblemId") internalProblemId: String
     ): Int

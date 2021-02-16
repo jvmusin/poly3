@@ -6,13 +6,16 @@ import api.*
 import bacs.BacsArchiveService
 import bacs.BacsProblemState
 import io.ktor.application.*
+import io.ktor.client.utils.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.util.*
 import io.ktor.websocket.*
+import ir.IRProblem
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.serialization.encodeToString
@@ -24,11 +27,10 @@ import polygon.PolygonProblemDownloaderException
 import polygon.toDto
 import server.MessageSender
 import server.MessageSenderFactory
-import sybon.SybonArchiveBuilder
+import sybon.SybonArchiveBuilder.toZipArchive
 import sybon.SybonService
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
-import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
@@ -40,28 +42,18 @@ fun Route.problems() {
     val polygonApi: PolygonApi by inject()
     val bacsArchiveService: BacsArchiveService by inject()
     val problemDownloader: PolygonProblemDownloader by inject()
-    val sybonArchiveBuilder: SybonArchiveBuilder by inject()
     val sybonService: SybonService by inject()
     val messageSenderFactory: MessageSenderFactory by inject()
 
-    suspend fun downloadProblemAndBuildArchive(
-        sendMessage: MessageSender,
-        fullName: String,
-        problemId: Int,
-        properties: AdditionalProblemProperties
-    ): Path {
-        val irProblem = try {
-            sendMessage(fullName, "Начато скачивание задачи из полигона")
+    suspend fun downloadProblem(sendMessage: MessageSender, fullName: String, problemId: Int): IRProblem {
+        return try {
+            sendMessage(fullName, "Начато выкачивание задачи из полигона")
             problemDownloader.download(problemId)
         } catch (e: PolygonProblemDownloaderException) {
-            val msg = "Не удалось скачать задачу из полигона: ${e.message}"
+            val msg = "Не удалось выкачать задачу из полигона: ${e.message}"
             sendMessage(fullName, msg, ToastKind.FAILURE)
-            throw BadRequestException(msg)
+            throw BadRequestException(msg, e)
         }
-        sendMessage(fullName, "Задача скачана, собирается архив")
-        val zip = sybonArchiveBuilder.build(irProblem, properties)
-        sendMessage(fullName, "Архив собран")
-        return zip
     }
 
     suspend fun transferProblemToBacs(
@@ -70,22 +62,16 @@ fun Route.problems() {
         problemId: Int,
         properties: AdditionalProblemProperties
     ) {
-        val zip = downloadProblemAndBuildArchive(sendMessage, fullName, problemId, properties)
-        sendMessage(fullName, "Закидываем архив в бакс")
+        val irProblem = downloadProblem(sendMessage, fullName, problemId)
+        sendMessage(fullName, "Задача выкачана из полигона, закидываем в бакс")
         try {
-            bacsArchiveService.uploadProblem(zip)
+            bacsArchiveService.uploadProblem(irProblem, properties)
         } catch (e: Exception) {
-            val msg = "Задача не закинута в бакс: ${e.message}"
+            val msg = "Не удалось закинуть задачу в бакс: ${e.message}"
             sendMessage(fullName, msg, ToastKind.FAILURE)
-            throw BadRequestException(msg)
+            throw BadRequestException(msg, e)
         }
-        val status = bacsArchiveService.waitTillProblemIsImported(fullName, 5.minutes)
-        if (status.state == BacsProblemState.IMPORTED) {
-            sendMessage(fullName, "Задача закинута в бакс", ToastKind.SUCCESS)
-        } else {
-            sendMessage(fullName, "Не получилось закинуть в бакс: $status", ToastKind.FAILURE)
-            throw BadRequestException("Не получилось закинуть в бакс: $status")
-        }
+        sendMessage(fullName, "Задача закинута в бакс", ToastKind.SUCCESS)
     }
     get {
         val problems = polygonApi.getProblems().result!!
@@ -110,8 +96,10 @@ fun Route.problems() {
             val fullName = call.parameters["full-name"]!!
             val problemId = call.parameters["problem-id"]!!.toInt()
             val properties = call.receive<AdditionalProblemProperties>()
-            val zip = downloadProblemAndBuildArchive(messageSenderFactory.createMessageSender(call), fullName, problemId, properties)
-            messageSenderFactory.createMessageSender(call)(fullName, "Скачиваем архив", ToastKind.SUCCESS)
+            val sendMessage = messageSenderFactory.createMessageSender(call)
+            val irProblem = downloadProblem(sendMessage, fullName, problemId)
+            val zip = irProblem.toZipArchive(properties)
+            sendMessage(fullName, "Задача выкачана из полигона, скачиваем архив", ToastKind.SUCCESS)
             call.response.header(
                 HttpHeaders.ContentDisposition,
                 ContentDisposition.Attachment.withParameter(
