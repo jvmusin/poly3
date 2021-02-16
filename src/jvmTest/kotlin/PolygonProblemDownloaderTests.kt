@@ -2,15 +2,19 @@
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
-import polygon.PolygonApiFactory
+import io.kotest.koin.KoinListener
+import org.koin.java.KoinJavaComponent.inject
+import org.koin.test.KoinTest
+import polygon.PolygonApi
 import polygon.PolygonProblemDownloader
 import polygon.PolygonProblemDownloaderException
+import polygon.polygonModule
 import util.getLogger
 import kotlin.time.ExperimentalTime
 
 class PolygonProblemDownloaderTests : StringSpec({
-    val api = PolygonApiFactory().create()
-    val downloader = PolygonProblemDownloader(api)
+    val api by inject(PolygonApi::class.java)
+    val downloader by inject(PolygonProblemDownloader::class.java)
 
     "Downloading problem without any built packages fails" {
         shouldThrow<PolygonProblemDownloaderException> {
@@ -65,4 +69,6 @@ class PolygonProblemDownloaderTests : StringSpec({
             }
         }
     }
-})
+}), KoinTest {
+    override fun listeners() = listOf(KoinListener(polygonModule))
+}

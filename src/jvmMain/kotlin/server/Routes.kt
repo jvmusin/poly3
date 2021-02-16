@@ -3,6 +3,7 @@
 package server
 
 import api.*
+import api.Solution
 import bacs.BacsArchiveService
 import bacs.BacsProblemState
 import io.ktor.application.*
@@ -21,10 +22,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
-import polygon.PolygonApiFactory
-import polygon.PolygonProblemDownloader
-import polygon.PolygonProblemDownloaderException
-import polygon.toDto
+import polygon.*
 import server.MessageSenderFactory.createMessageSender
 import server.MessageSenderFactory.registerClient
 import sybon.SybonArchiveBuilder
@@ -42,9 +40,9 @@ import kotlin.time.seconds
 import kotlin.time.toJavaDuration
 
 fun Route.routes() {
-    val polygonApi = PolygonApiFactory().create()
-    val bacsArchiveService:BacsArchiveService by inject()
-    val problemDownloader = PolygonProblemDownloader(polygonApi)
+    val polygonApi: PolygonApi by inject()
+    val bacsArchiveService: BacsArchiveService by inject()
+    val problemDownloader: PolygonProblemDownloader by inject()
     val sybonArchiveBuilder: SybonArchiveBuilder by inject()
     val sybonService: SybonService by inject()
 

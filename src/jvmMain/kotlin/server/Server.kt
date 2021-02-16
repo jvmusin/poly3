@@ -13,6 +13,7 @@ import io.ktor.sessions.*
 import io.ktor.websocket.*
 import org.koin.ktor.ext.Koin
 import org.slf4j.event.Level
+import polygon.polygonModule
 import sybon.sybonModule
 
 val index = """
@@ -70,7 +71,7 @@ fun Application.module() {
         cookie<Session>("SESSION")
     }
     install(Koin) {
-        modules(sybonModule, bacsModule)
+        modules(sybonModule, bacsModule, polygonModule)
     }
 
     routing {
