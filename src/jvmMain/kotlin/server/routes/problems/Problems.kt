@@ -27,10 +27,10 @@ import polygon.PolygonProblemDownloaderException
 import polygon.toDto
 import server.MessageSender
 import server.MessageSenderFactory
-import sybon.SybonArchiveBuilder.toZipArchive
 import sybon.SybonService
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
+import sybon.toZipArchive
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.time.ExperimentalTime

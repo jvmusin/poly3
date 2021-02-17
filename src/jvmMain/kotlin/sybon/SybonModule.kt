@@ -10,5 +10,4 @@ val sybonModule = module {
     single { get<SybonApiFactory>().createCheckingApi() }
 
     singleBy<SybonService, SybonServiceImpl>()
-    singleBy<SybonArchiveBuilder, SybonArchiveBuilder>()
 }

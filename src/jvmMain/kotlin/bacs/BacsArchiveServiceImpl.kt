@@ -16,7 +16,7 @@ import io.ktor.utils.io.core.*
 import ir.IRProblem
 import kotlinx.coroutines.delay
 import org.jsoup.Jsoup
-import sybon.SybonArchiveBuilder.toZipArchive
+import sybon.toZipArchive
 import util.getLogger
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
