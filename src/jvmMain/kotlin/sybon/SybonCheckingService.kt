@@ -16,7 +16,7 @@ interface SybonCheckingService {
         problemId: Int,
         solution: String,
         compiler: SybonCompiler,
-        checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 10.minutes)
+        checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 30.minutes)
     ): SybonFinalSubmissionResult
 }
 
