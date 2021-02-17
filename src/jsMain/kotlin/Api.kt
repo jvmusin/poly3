@@ -50,11 +50,11 @@ object Api {
         val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
         client.webSocket(path, {
             url { protocol = wsProtocol }
-            timeout {
-                connectTimeoutMillis = 1.days.toLongMilliseconds()
-                requestTimeoutMillis = 1.days.toLongMilliseconds()
-                socketTimeoutMillis = 1.days.toLongMilliseconds()
-            }
+//            timeout {
+//                connectTimeoutMillis = 1.days.toLongMilliseconds()
+//                requestTimeoutMillis = 1.days.toLongMilliseconds()
+//                socketTimeoutMillis = 1.days.toLongMilliseconds()
+//            }
         }) {
             block()
         }
