@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_VARIABLE")
-
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -100,9 +98,9 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation("org.jetbrains:kotlin-react:17.0.1-pre.144-kotlin-1.4.30")
-                implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.144-kotlin-1.4.30")
-                implementation("org.jetbrains:kotlin-styled:5.2.0-pre.144-kotlin-1.4.30")
+                implementation("org.jetbrains:kotlin-react:17.0.1-pre.146-kotlin-1.4.30")
+                implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.146-kotlin-1.4.30")
+                implementation("org.jetbrains:kotlin-styled:5.2.1-pre.146-kotlin-1.4.30")
 
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
