@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE")
+
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -53,6 +55,13 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation("io.ktor:ktor-client-auth:$ktorVersion")
+                implementation("io.ktor:ktor-client-logging:$ktorVersion")
+                implementation("io.ktor:ktor-client-json:$ktorVersion")
+                implementation("io.ktor:ktor-client-serialization:$ktorVersion")
+                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             }
         }
         val commonTest by getting
@@ -75,7 +84,6 @@ kotlin {
                 // https://mvnrepository.com/artifact/org.jsoup/jsoup
                 implementation("org.jsoup:jsoup:1.13.1")
 
-                implementation("io.ktor:ktor-client-java:$ktorVersion")
                 implementation("io.ktor:ktor-client-cio-jvm:$ktorVersion")
                 implementation("io.ktor:ktor-client-auth-jvm:$ktorVersion")
                 implementation("io.ktor:ktor-client-logging-jvm:$ktorVersion")
