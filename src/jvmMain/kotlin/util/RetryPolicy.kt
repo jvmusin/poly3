@@ -9,7 +9,8 @@ data class RetryPolicy(
     val tryFor: Duration = 5.minutes,
     val retryAfter: Duration = 5.seconds
 ) {
-    suspend inline fun <T> eval(func: () -> T?): T? {
+    @Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
+    suspend inline fun <T> eval(func: suspend () -> T?): T? {
         val start = TimeSource.Monotonic.markNow()
         while (start.elapsedNow() < tryFor) {
             val res = func()

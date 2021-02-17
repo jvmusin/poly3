@@ -21,15 +21,14 @@ class SybonArchiveServiceImpl(
     override suspend fun getProblems() = sybonArchiveApi.getCollection(collectionId).problems
 
     override suspend fun importProblem(bacsProblemId: String, retryPolicy: RetryPolicy): SybonProblem? {
+        suspend fun getProblem() = getProblems().firstOrNull { it.internalProblemId == bacsProblemId }
         getLogger(javaClass).debug("Checking if the problem is already in this collection")
-        getProblems().singleOrNull { it.internalProblemId == bacsProblemId }?.let {
+        getProblem()?.let {
             getLogger(javaClass).debug("The problem is already in this collection")
             return it
         }
         getLogger(javaClass).debug("The problem is not in this collection, importing")
         sybonArchiveApi.importProblem(collectionId, bacsProblemId)
-        return retryPolicy.eval {
-            getProblems().singleOrNull { it.internalProblemId == bacsProblemId }
-        }
+        return retryPolicy.eval(::getProblem)
     }
 }
