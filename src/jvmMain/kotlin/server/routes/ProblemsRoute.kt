@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalPathApi::class, ExperimentalTime::class)
 
-package server.routes.problems
+package server.routes
 
 import api.*
 import bacs.BacsArchiveService

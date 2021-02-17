@@ -15,7 +15,7 @@ import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.get
 import org.slf4j.event.Level
 import polygon.polygonModule
-import server.routes.routes
+import server.routes.root
 import sybon.sybonModule
 import util.retrofitModule
 
@@ -52,6 +52,6 @@ fun Application.module() {
     }
 
     routing {
-        routes()
+        root()
     }
 }
