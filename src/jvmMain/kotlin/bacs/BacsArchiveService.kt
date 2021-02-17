@@ -14,9 +14,9 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import ir.IRProblem
-import kotlinx.coroutines.delay
 import org.jsoup.Jsoup
 import sybon.toZipArchive
+import util.RetryPolicy
 import util.getLogger
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
@@ -365,24 +365,18 @@ class BacsArchiveServiceImpl(
 
     private suspend fun waitTillProblemIsImported(
         problemId: String,
-        tryFor: Duration = 5.minutes,
-        period: Duration = 1.seconds
-    ): BacsProblemStatus {
-        val start = TimeSource.Monotonic.markNow()
-        var status: BacsProblemStatus? = null
-        while (status == null || start.elapsedNow() < tryFor) {
-            status = getProblemStatus(problemId)
-            if (status.state != BacsProblemState.PENDING_IMPORT) return status
-            delay(period)
-        }
-        return status
+        retryPolicy: RetryPolicy = RetryPolicy()
+    ): BacsProblemState {
+        return retryPolicy.evalWhileFails({ it != null && it != BacsProblemState.PENDING_IMPORT }) {
+            getProblemStatus(problemId).state
+        }!!
     }
 
     override suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties): String {
         val zip = problem.toZipArchive(properties)
         uploadProblem(zip)
         val fullName = properties.buildFullName(problem.name)
-        val state = waitTillProblemIsImported(fullName).state
+        val state = waitTillProblemIsImported(fullName)
         if (state != BacsProblemState.IMPORTED)
             throw BacsProblemImportException("Задача $fullName не импортирована, статус $state")
         return fullName

@@ -38,7 +38,7 @@ class SybonCheckingServiceImpl(
             )
         )
 
-        val result = retryPolicy.eval {
+        val result = retryPolicy.evalWhileNull {
             val result = getResult(submissionId)
             if (result.buildResult.status != SybonSubmissionResult.BuildResult.Status.PENDING) result
             else null

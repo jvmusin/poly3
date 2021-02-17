@@ -29,6 +29,6 @@ class SybonArchiveServiceImpl(
         }
         getLogger(javaClass).debug("The problem is not in this collection, importing")
         sybonArchiveApi.importProblem(collectionId, bacsProblemId)
-        return retryPolicy.eval(::getProblem)
+        return retryPolicy.evalWhileNull(::getProblem)
     }
 }
