@@ -9,8 +9,10 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
@@ -73,33 +75,39 @@ fun Route.solutions() {
             return@webSocket
         }
         sendMessage("Задача появилась в сайбоне, отправляем решения на проверку")
+
         val result = try {
-            problem.solutions.map { solution ->
-                async {
-                    val compiler = solution.language.toSybonCompiler()
-                    val result = if (compiler == null) {
-                        SubmissionResult(false, null, null)
-                    } else {
-                        val result = try {
-                            sybonCheckingService.submitSolution(
-                                problemId = sybonProblem.id,
-                                solution = solution.content,
-                                compiler = compiler
-                            )
-                        } catch (e: SybonSubmitSolutionException) {
-                            throw SybonSubmitSolutionException("Solution ${solution.name} failed to submit", e)
+            withContext(Dispatchers.IO) {
+                problem.solutions.map { solution ->
+                    async {
+                        val compiler = solution.language.toSybonCompiler()
+                        val result = if (compiler == null) {
+                            SubmissionResult(false, null, null)
+                        } else {
+                            val result = try {
+                                sybonCheckingService.submitSolution(
+                                    problemId = sybonProblem.id,
+                                    solution = solution.content,
+                                    compiler = compiler
+                                )
+                            } catch (e: SybonSubmitSolutionException) {
+                                throw SybonSubmitSolutionException("Solution ${solution.name} failed to submit", e)
+                            } catch (e: Throwable) {
+                                getLogger(javaClass).error("UNEXPECTED THING HAPPENED!!!", e)
+                                throw e
+                            }
+                            result.toSubmissionResult()
                         }
-                        result.toSubmissionResult()
+                        solution.name to result.overallVerdict
                     }
-                    solution.name to result.overallVerdict
-                }
-            }.awaitAll().toMap()
+                }.awaitAll().toMap()
+            }
         } catch (e: Exception) {
             val msg = "Не удалось проверить решения: ${e.message}"
             sendMessage(msg, ToastKind.FAILURE)
             throw BadRequestException(msg)
         }
-        sendMessage("Решения проверены", ToastKind.SUCCESS)
+        sendMessage("Решения протестированы", ToastKind.SUCCESS)
         getLogger(javaClass).info("Solutions for problem ${problem.name} are tested")
         outgoing.send(Frame.Text(Json.encodeToString(result)))
     }
