@@ -1,6 +1,7 @@
 import api.Problem
 import api.Solution
-import api.Verdict
+import api.Toast
+import kotlinext.js.jsObject
 import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.js.onClickFunction
@@ -14,25 +15,25 @@ external interface ProblemSolutionsProps : RProps {
 }
 
 val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
-
-    val (verdicts, setVerdicts) = useState(mapOf<String, Verdict>())
     val (isRunning, setRunning) = useState(false)
+    val (solutionsTriggered, setSolutionsTriggered) = useState(false)
+    val (sybonProblemId, setSybonProblemId) = useState<Int?>(null)
 
-    useEffectWithCleanup(listOf(isRunning)) {
+    useEffect(listOf(props.problem)) {
+        setSolutionsTriggered(false)
+    }
+
+    useEffectWithCleanup(listOf(props.problem, isRunning)) {
         if (!isRunning) return@useEffectWithCleanup {}
         var cancelled = false
 
         scope.launch {
-            try {
-                Api.testAllSolutions(props.problem) {
-                    if (!cancelled) {
-                        setVerdicts(it)
-                    }
-                }
-            } finally {
-                if (!cancelled) {
-                    setRunning(false)
-                }
+            val newSybonProblemId = Api.prepareProblem(props.problem)
+            if (!cancelled) {
+                setSybonProblemId(newSybonProblemId)
+                setSolutionsTriggered(true)
+                setRunning(false)
+                showToast(Toast(props.problem.name, "Тестируем решения"))
             }
         }
 
@@ -69,23 +70,12 @@ val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
                     }
                     tbody {
                         for (solution in props.solutions) {
-                            tr {
-                                th {
-                                    +solution.name
-                                    attrs { scope = ThScope.row }
-                                }
-                                td { +solution.language.description }
-                                td { +solution.expectedVerdict.tag }
-                                td {
-                                    if (isRunning) {
-                                        div("spinner-border text-secondary") {
-                                            attrs { role = "status" }
-                                        }
-                                    } else {
-                                        +(verdicts[solution.name]?.tag ?: "-")
-                                    }
-                                }
-                            }
+                            child(SolutionRow, jsObject {
+                                this.problem = props.problem
+                                this.solution = solution
+                                this.runTriggered = solutionsTriggered
+                                this.sybonProblemId = sybonProblemId
+                            })
                         }
                     }
                 }

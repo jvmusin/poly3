@@ -25,7 +25,6 @@ import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import kotlin.time.ExperimentalTime
-import kotlin.time.days
 import kotlin.time.seconds
 
 object Api {
@@ -33,10 +32,7 @@ object Api {
         install(JsonFeature) { serializer = KotlinxSerializer() }
         install(WebSockets)
         defaultRequest {
-            console.log(window.location)
-
             url {
-                console.log(this)
                 host = window.location.hostname
                 window.location.port.let { p -> if (p.isNotEmpty()) port = p.toInt() }
                 if (!protocol.isWebsocket())
@@ -48,7 +44,7 @@ object Api {
     private suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
         val proto = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
         val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
-        client.webSocket(path, { url { protocol = wsProtocol } }) {
+        client.webSocket(path, { url { protocol = wsProtocol }; build() }) {
             block()
         }
     }
@@ -96,7 +92,6 @@ object Api {
                 try {
                     console.log("Registering session")
                     getRequest("register-session")
-//                        .close()
                     console.log("Session registered")
                     console.log("Connecting to WS")
                     connectWS("subscribe") {
@@ -139,11 +134,23 @@ object Api {
         }.receive()
     }
 
-    suspend fun testAllSolutions(problem: Problem, block: (Map<String, Verdict>) -> Unit) {
-        connectWS("problems/${problem.id}/solutions/test-all") {
-            val map = incoming.receive() as Frame.Text
-            block(Json.decodeFromString(map.readText()))
+    suspend fun prepareProblem(problem: Problem): Int {
+        var sybonProblemId = -1
+        connectWS("problems/${problem.id}/solutions/prepare") {
+            sybonProblemId = (incoming.receive() as Frame.Text).readText().toInt()
         }
+        console.log("Before returning $sybonProblemId")
+        return sybonProblemId
+    }
+
+    suspend fun testSolution(problem: Problem, sybonProblemId: Int, solutionName: String): SubmissionResult {
+        var result: SubmissionResult? = null
+        connectWS("problems/${problem.id}/solutions/test") {
+            send("$sybonProblemId")
+            send(solutionName)
+            result = Json.decodeFromString<SubmissionResult>((incoming.receive() as Frame.Text).readText())
+        }
+        return result!!
     }
 
     // https://stackoverflow.com/a/30832210/4296219

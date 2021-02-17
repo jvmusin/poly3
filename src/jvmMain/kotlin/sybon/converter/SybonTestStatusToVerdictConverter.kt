@@ -12,6 +12,7 @@ object SybonTestStatusToVerdictConverter {
             TIME_LIMIT_EXCEEDED -> Verdict.TIME_LIMIT_EXCEEDED
             MEMORY_LIMIT_EXCEEDED -> Verdict.MEMORY_LIMIT_EXCEEDED
             PRESENTATION_ERROR -> Verdict.PRESENTATION_ERROR
+            ABNORMAL_EXIT -> Verdict.ABNORMAL_EXIT
             else -> Verdict.INCORRECT
         }
     }

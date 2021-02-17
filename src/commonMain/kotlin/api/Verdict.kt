@@ -10,6 +10,7 @@ enum class Verdict(val description: String, val tag: String) {
     MEMORY_LIMIT_EXCEEDED("Превышена используемая память", "ML"),
     PRESENTATION_ERROR("Ошибка представления", "PE"),
     INCORRECT("Решение неверно", "INCORRECT"),
+    ABNORMAL_EXIT("Abnormal exit", "ABNORMAL EXIT"),
     OTHER("Другое", "OTHER"),
     COMPILATION_ERROR("Ошибка компиляции", "CE")
 }

@@ -9,10 +9,6 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
@@ -25,7 +21,6 @@ import sybon.SybonSubmitSolutionException
 import sybon.TestProblemArchive
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
-import util.getLogger
 
 fun Route.solutions() {
 
@@ -53,8 +48,7 @@ fun Route.solutions() {
         })
     }
 
-    // We need web sockets here to hold a connection longer than 1m on Heroku
-    webSocket("test-all") {
+    webSocket("prepare") {
         val problemId = call.parameters["problem-id"]!!.toInt()
         val problem = polygonService.downloadProblem(problemId, true)
         val properties = AdditionalProblemProperties()
@@ -69,41 +63,28 @@ fun Route.solutions() {
             sendMessage("Задача так и не появилась в сайбоне", ToastKind.FAILURE)
             return@webSocket
         }
-        sendMessage("Задача появилась в сайбоне, отправляем решения на проверку")
+        sendMessage("Задача появилась в сайбоне")
+        send(sybonProblem.id.toString())
+    }
 
-        val result = try {
-            withContext(Dispatchers.IO) {
-                problem.solutions.map { solution ->
-                    async {
-                        val compiler = solution.language.toSybonCompiler()
-                        val result = if (compiler == null) {
-                            SubmissionResult(false, null, null)
-                        } else {
-                            val result = try {
-                                sybonCheckingService.submitSolution(
-                                    problemId = sybonProblem.id,
-                                    solution = solution.content,
-                                    compiler = compiler
-                                )
-                            } catch (e: SybonSubmitSolutionException) {
-                                throw SybonSubmitSolutionException("Solution ${solution.name} failed to submit", e)
-                            } catch (e: Throwable) {
-                                getLogger(javaClass).error("UNEXPECTED THING HAPPENED!!!", e)
-                                throw e
-                            }
-                            result.toSubmissionResult()
-                        }
-                        solution.name to result.overallVerdict
-                    }
-                }.awaitAll().toMap()
+    webSocket("test") {
+        val problemId = call.parameters["problem-id"]!!.toInt()
+        val sybonProblemId = (incoming.receive() as Frame.Text).readText().toInt()
+        val solutionName = (incoming.receive() as Frame.Text).readText()
+
+        val problem = polygonService.downloadProblem(problemId, true)
+
+        val solution = problem.solutions.single { it.name == solutionName }
+        val compiler = solution.language.toSybonCompiler()
+        val result =
+            if (compiler == null) {
+                SubmissionResult(false, null, null)
+            } else try {
+                sybonCheckingService.submitSolution(sybonProblemId, solution.content, compiler).toSubmissionResult()
+            } catch (e: SybonSubmitSolutionException) {
+                throw SybonSubmitSolutionException("Solution ${solution.name} failed to submit", e)
             }
-        } catch (e: Exception) {
-            val msg = "Не удалось проверить решения: ${e.message}"
-            sendMessage(msg, ToastKind.FAILURE)
-            throw BadRequestException(msg)
-        }
-        sendMessage("Решения протестированы", ToastKind.SUCCESS)
-        getLogger(javaClass).info("Solutions for problem ${problem.name} are tested")
-        outgoing.send(Frame.Text(Json.encodeToString(result)))
+
+        send(Json.encodeToString(result))
     }
 }

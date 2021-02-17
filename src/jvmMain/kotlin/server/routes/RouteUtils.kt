@@ -11,7 +11,7 @@ import server.MessageSender
 
 suspend fun downloadProblem(sendMessage: MessageSender, problemId: Int, polygonService: PolygonService): IRProblem {
     return try {
-        sendMessage("Начато выкачивание задачи из полигона")
+        sendMessage("Выкачиваем задачу из полигона")
         polygonService.downloadProblem(problemId)
     } catch (e: PolygonProblemDownloadException) {
         val msg = "Не удалось выкачать задачу из полигона: ${e.message}"
