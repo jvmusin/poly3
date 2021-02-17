@@ -94,7 +94,7 @@ object Api {
             while (true) {
                 try {
                     console.log("Registering session")
-                    getRequest("register-session")
+                    getRequest("register-session").close()
                     console.log("Session registered")
                     console.log("Connecting to WS")
                     connectWS("subscribe") {
