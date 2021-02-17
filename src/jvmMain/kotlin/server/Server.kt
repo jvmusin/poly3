@@ -50,8 +50,8 @@ fun Application.module() {
     }
     install(DefaultHeaders)
     install(WebSockets) {
-        this.pingPeriod = 10.seconds.toJavaDuration()
-        this.timeout = 1.days.toJavaDuration()
+        pingPeriod = 10.seconds.toJavaDuration()
+        timeout = 1.days.toJavaDuration()
     }
     install(Sessions) {
         cookie<Session>("SESSION")
