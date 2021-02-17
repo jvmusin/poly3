@@ -2,7 +2,6 @@ package server.routes
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
@@ -13,11 +12,7 @@ import server.MessageSenderFactory
 import server.Session
 import util.getLogger
 import java.util.*
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
-import kotlin.time.toJavaDuration
 
-@OptIn(ExperimentalTime::class)
 fun Route.notifications() {
     val messageSenderFactory: MessageSenderFactory by inject()
 
@@ -28,7 +23,6 @@ fun Route.notifications() {
         call.respond(HttpStatusCode.OK)
     }
     webSocket("subscribe") {
-        pingInterval = 10.seconds.toJavaDuration()
         getLogger(javaClass).info("Subscribing WS")
         messageSenderFactory.registerClient(this)
         try {

@@ -26,11 +26,7 @@ import sybon.TestProblemArchive
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
 import util.getLogger
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
-import kotlin.time.toJavaDuration
 
-@OptIn(ExperimentalTime::class)
 fun Route.solutions() {
 
     val bacsArchiveService: BacsArchiveService by inject()
@@ -56,10 +52,9 @@ fun Route.solutions() {
             Solution(it.name, Language.valueOf(it.language.name), Verdict.valueOf(it.verdict.name))
         })
     }
+
     // We need web sockets here to hold a connection longer than 1m on Heroku
     webSocket("test-all") {
-        pingInterval = 10.seconds.toJavaDuration()
-
         val problemId = call.parameters["problem-id"]!!.toInt()
         val problem = polygonService.downloadProblem(problemId, true)
         val properties = AdditionalProblemProperties()
