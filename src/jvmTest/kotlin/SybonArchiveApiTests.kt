@@ -49,6 +49,18 @@ class SybonArchiveApiTests : StringSpec({
         collection.problems shouldHaveAtLeastSize 7022
     }
 
+    "getCollection for test collection returns the test collection" {
+        val expected = SybonCollection(
+            id = TestProblemArchive.collectionId,
+            name = "Polybacs Testing",
+            description = "Polybacs tests the problems here",
+            problems = emptyList(),
+            problemsCount = 0
+        )
+        val result = api.getCollection(TestProblemArchive.collectionId)
+        result.copy(problemsCount = 0, problems = emptyList()) shouldBe expected
+    }
+
     "getProblem should return the correct problem" {
         val problemId = 72147
         val expected = SybonProblem(
