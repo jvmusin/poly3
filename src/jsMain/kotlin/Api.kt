@@ -25,6 +25,7 @@ import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import kotlin.time.ExperimentalTime
+import kotlin.time.days
 import kotlin.time.seconds
 
 object Api {
@@ -47,7 +48,14 @@ object Api {
     private suspend fun connectWS(path: String, block: suspend DefaultClientWebSocketSession.() -> Unit) {
         val proto = URLProtocol.createOrDefault(window.location.protocol.dropLast(1))
         val wsProtocol = if (proto.isSecure()) URLProtocol.WSS else URLProtocol.WS
-        client.webSocket(path, { url { protocol = wsProtocol } }) {
+        client.webSocket(path, {
+            url { protocol = wsProtocol }
+            timeout {
+                connectTimeoutMillis = 1.days.toLongMilliseconds()
+                requestTimeoutMillis = 1.days.toLongMilliseconds()
+                socketTimeoutMillis = 1.days.toLongMilliseconds()
+            }
+        }) {
             block()
         }
     }
