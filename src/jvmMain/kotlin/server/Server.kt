@@ -5,6 +5,7 @@ import bacs.bacsModule
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.serialization.*
@@ -18,11 +19,16 @@ import polygon.polygonModule
 import server.routes.root
 import sybon.sybonModule
 import util.retrofitModule
+import kotlin.time.ExperimentalTime
+import kotlin.time.days
+import kotlin.time.seconds
+import kotlin.time.toJavaDuration
 
 data class Session(val str: String)
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
+@OptIn(ExperimentalTime::class)
 @Suppress("unused")
 fun Application.module() {
     install(ContentNegotiation) {
@@ -43,7 +49,10 @@ fun Application.module() {
         }
     }
     install(DefaultHeaders)
-    install(WebSockets)
+    install(WebSockets) {
+        this.pingPeriod = 10.seconds.toJavaDuration()
+        this.timeout = 1.days.toJavaDuration()
+    }
     install(Sessions) {
         cookie<Session>("SESSION")
     }
