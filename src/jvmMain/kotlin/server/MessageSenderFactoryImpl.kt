@@ -21,8 +21,8 @@ class MessageSenderFactoryImpl : MessageSenderFactory {
     private val wsBySession = ConcurrentHashMap<Session, CopyOnWriteArrayList<SendChannel<Frame>>>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun CoroutineScope.createMessageSender(call: ApplicationCall) = object : MessageSender {
-        override fun invoke(title: String, content: String, kind: ToastKind) {
+    private fun CoroutineScope.createMessageSender(call: ApplicationCall, title: String) = object : MessageSender {
+        override fun invoke(content: String, kind: ToastKind) {
             val list = wsBySession[call.sessions.get<Session>()]!!
             list.removeIf { it.isClosedForSend }
             for (out in list) {
@@ -37,12 +37,12 @@ class MessageSenderFactoryImpl : MessageSenderFactory {
         }
     }
 
-    override fun create(context: PipelineContext<*, ApplicationCall>): MessageSender {
-        return context.createMessageSender(context.call)
+    override fun create(context: PipelineContext<*, ApplicationCall>, title: String): MessageSender {
+        return context.createMessageSender(context.call, title)
     }
 
-    override fun create(session: WebSocketServerSession): MessageSender {
-        return session.createMessageSender(session.call)
+    override fun create(session: WebSocketServerSession, title: String): MessageSender {
+        return session.createMessageSender(session.call, title)
     }
 
     override fun registerClient(session: WebSocketServerSession) {

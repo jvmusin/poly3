@@ -360,12 +360,12 @@ class BacsArchiveServiceImpl(
 
     private suspend fun waitTillProblemIsImported(
         problemId: String,
-        waitFor: Duration = 5.minutes,
+        tryFor: Duration = 5.minutes,
         period: Duration = 1.seconds
     ): BacsProblemStatus {
         val start = TimeSource.Monotonic.markNow()
         var status: BacsProblemStatus? = null
-        while (status == null || start.elapsedNow() < waitFor) {
+        while (status == null || start.elapsedNow() < tryFor) {
             status = getProblemStatus(problemId)
             if (status.state != BacsProblemState.PENDING_IMPORT) return status
             delay(period)

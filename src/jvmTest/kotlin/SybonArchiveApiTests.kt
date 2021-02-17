@@ -4,8 +4,10 @@ import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
+import sybon.TestProblemArchive
 import sybon.api.ResourceLimits
 import sybon.api.SybonArchiveApi
 import sybon.api.SybonCollection
@@ -74,6 +76,13 @@ class SybonArchiveApiTests : StringSpec({
         val problemId = 72147
         val url = api.getProblemStatementUrl(problemId)
         url shouldBe "http://statement.bacs.cs.istu.ru/statement/get/CkhiYWNzL3Byb2JsZW0vbXVuaWNpcGFsMjAyMC05MTEtZnJvZy1hbmQtcG9seWdvbi9zdGF0ZW1lbnQvdmVyc2lvbnMvQy9wZGYSBgoEMc68zg/bacs/RRtTY4-b81yftuSQdorVUh5w7Z8m-bDUtKdT172cGv9dSMFpF95pNdlbElEyfpMPVmgnokw-yaNEJ2tFgPvCYUvrQaxyYdpvMcFc-MklPkxvooZWcdDm3Xvu4MbD8bOmyn1JwzrydffH1vzBs3CaA-AzO89PP4Di1mu1-IScfN4-JDNN4TIe9RqdtJUGKc61XX96Zh7sVmukRBeiUUILcc3Eem3HPGm9xrKDQcxexSM9B0heJxWqVvKbGv11m1ojTdU-fO5Vi1oOif9WCMGU47oCV6upmk57_Fq-HyuQt1b2s5xGyZ1ToFSwicDF4Z9MlqsMPhOPMuWV9KCr4_GC7A"
+    }
+
+    "Importing problem twice gives different ids" {
+        val problemId = "1000pre"
+        val id1 = api.importProblem(TestProblemArchive.collectionId, problemId)
+        val id2 = api.importProblem(TestProblemArchive.collectionId, problemId)
+        id1 shouldNotBe id2
     }
 }), KoinTest {
     override fun listeners() = listOf(KoinListener(retrofitModule + sybonModule))

@@ -73,7 +73,7 @@ data class SybonSubmitSolution(
     val solution: String,
     val solutionFileType: FileType = FileType.Text,
     val pretestsOnly: Boolean = false,
-    val continueCondition: ContinueCondition = ContinueCondition.Always
+    val continueCondition: ContinueCondition = ContinueCondition.WhileOk
 ) {
     @Serializable
     enum class FileType {

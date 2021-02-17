@@ -39,7 +39,7 @@ fun Route.notifications() {
         }
     }
     post("bump-test-notification") {
-        messageSenderFactory.create(this)("Привет!", "Хорошо сейчас на улице, выйди прогуляйся")
+        messageSenderFactory.create(this, "Привет!")("Хорошо сейчас на улице, выйди прогуляйся")
         call.respond(HttpStatusCode.OK)
     }
 }

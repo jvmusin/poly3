@@ -9,5 +9,7 @@ val sybonModule = module {
     single { get<SybonApiFactory>().createArchiveApi() }
     single { get<SybonApiFactory>().createCheckingApi() }
 
-    singleBy<SybonService, SybonServiceImpl>()
+    single<SybonArchiveService>(MainProblemArchive) { SybonArchiveServiceImpl(get(), MainProblemArchive.collectionId) }
+    single<SybonArchiveService>(TestProblemArchive) { SybonArchiveServiceImpl(get(), TestProblemArchive.collectionId) }
+    singleBy<SybonCheckingService, SybonCheckingServiceImpl>()
 }
