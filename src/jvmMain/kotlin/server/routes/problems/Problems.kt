@@ -21,9 +21,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
-import polygon.PolygonApi
-import polygon.PolygonProblemDownloader
-import polygon.PolygonProblemDownloaderException
+import polygon.PolygonProblemDownloadException
+import polygon.PolygonService
 import polygon.toDto
 import server.MessageSender
 import server.MessageSenderFactory
@@ -37,9 +36,8 @@ import kotlin.time.seconds
 import kotlin.time.toJavaDuration
 
 fun Route.problems() {
-    val polygonApi: PolygonApi by inject()
     val bacsArchiveService: BacsArchiveService by inject()
-    val problemDownloader: PolygonProblemDownloader by inject()
+    val polygonService: PolygonService by inject()
     val testSybonArchiveService: SybonArchiveService by inject(TestProblemArchive)
     val sybonCheckingService: SybonCheckingService by inject()
     val messageSenderFactory: MessageSenderFactory by inject()
@@ -47,8 +45,8 @@ fun Route.problems() {
     suspend fun downloadProblem(sendMessage: MessageSender, problemId: Int): IRProblem {
         return try {
             sendMessage("Начато выкачивание задачи из полигона")
-            problemDownloader.download(problemId)
-        } catch (e: PolygonProblemDownloaderException) {
+            polygonService.downloadProblem(problemId)
+        } catch (e: PolygonProblemDownloadException) {
             val msg = "Не удалось выкачать задачу из полигона: ${e.message}"
             sendMessage(msg, ToastKind.FAILURE)
             throw BadRequestException(msg, e)
@@ -74,7 +72,7 @@ fun Route.problems() {
     }
 
     get {
-        val problems = polygonApi.getProblems().result!!
+        val problems = polygonService.getProblems()
         call.respond(HttpStatusCode.OK, problems.map { it.toDto() })
     }
     get("get-name-availability") {
@@ -89,7 +87,7 @@ fun Route.problems() {
     route("{problem-id}") {
         get {
             val problemId = call.parameters["problem-id"]!!.toInt()
-            val problemInfo = polygonApi.getInfo(problemId).result!!
+            val problemInfo = polygonService.getProblemInfo(problemId)
             call.respond(HttpStatusCode.OK, problemInfo.toDto())
         }
         post("download") {
@@ -121,8 +119,8 @@ fun Route.problems() {
                 val problemId = call.parameters["problem-id"]!!.toInt()
                 val fullName = call.parameters["name"]!!
                 val irProblem = try {
-                    problemDownloader.download(problemId, true)
-                } catch (e: PolygonProblemDownloaderException) {
+                    polygonService.downloadProblem(problemId, true)
+                } catch (e: PolygonProblemDownloadException) {
                     messageSenderFactory.create(this, fullName)(e.message.orEmpty(), ToastKind.FAILURE)
                     call.respond(
                         HttpStatusCode.BadRequest,
@@ -139,7 +137,7 @@ fun Route.problems() {
                 pingInterval = 10.seconds.toJavaDuration()
 
                 val problemId = call.parameters["problem-id"]!!.toInt()
-                val problem = problemDownloader.download(problemId, true)
+                val problem = polygonService.downloadProblem(problemId, true)
                 val properties = AdditionalProblemProperties()
 
                 val fullName = properties.buildFullName(problem.name)

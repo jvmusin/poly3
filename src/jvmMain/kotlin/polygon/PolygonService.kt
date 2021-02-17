@@ -11,9 +11,15 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
 import kotlin.io.path.readBytes
 
-class PolygonProblemDownloaderImpl(
+interface PolygonService {
+    suspend fun downloadProblem(problemId: Int, onlyEssentials: Boolean = false): IRProblem
+    suspend fun getProblems(): List<Problem>
+    suspend fun getProblemInfo(problemId: Int): ProblemInfo
+}
+
+class PolygonServiceImpl(
     private val polygonApi: PolygonApi
-) : PolygonProblemDownloader {
+) : PolygonService {
 
     data class FullPackageId(
         val packageId: Int,
@@ -23,23 +29,23 @@ class PolygonProblemDownloaderImpl(
     private val cache = ConcurrentHashMap<FullPackageId, IRProblem>()
 
     @OptIn(ExperimentalPathApi::class) // TODO ask why file-level opt-ins don't work with Koin
-    override suspend fun download(problemId: Int, onlyEssentials: Boolean) = coroutineScope {
+    override suspend fun downloadProblem(problemId: Int, onlyEssentials: Boolean) = coroutineScope {
         //eagerly check for access
         val problem = polygonApi.getProblem(problemId).apply {
             if (accessType == Problem.AccessType.READ) {
-                throw PolygonProblemDownloaderException("Нет доступа на запись. Дайте WRITE доступ пользователю Musin")
+                throw PolygonProblemDownloadException("Нет доступа на запись. Дайте WRITE доступ пользователю Musin")
             }
             if (modified) {
-                throw PolygonProblemDownloaderException(
+                throw PolygonProblemDownloadException(
                     "Файлы задачи изменены. Сначала откатите изменения или закоммитьте их и соберите новый пакет " +
                             "(скорее всего (99.9%) косяк Рустама)"
                 )
             }
             if (latestPackage == null) {
-                throw PolygonProblemDownloaderException("У задачи нет собранных пакетов. Соберите пакет")
+                throw PolygonProblemDownloadException("У задачи нет собранных пакетов. Соберите пакет")
             }
             if (latestPackage != revision) {
-                throw PolygonProblemDownloaderException("Последний собранный для задачи пакет не актуален. Соберите новый")
+                throw PolygonProblemDownloadException("Последний собранный для задачи пакет не актуален. Соберите новый")
             }
         }
 
@@ -48,16 +54,16 @@ class PolygonProblemDownloaderImpl(
         val statement = async {
             polygonApi.getStatement(problemId)?.let { (language, statement) ->
                 val content = polygonApi.getStatementRaw(problemId, packageId, "pdf", language)
-                    ?: throw PolygonProblemDownloaderException("Не найдена pdf версия условия")
+                    ?: throw PolygonProblemDownloadException("Не найдена pdf версия условия")
                 IRStatement(statement.name, content)
-            } ?: throw PolygonProblemDownloaderException("Не найдено условие")
+            } ?: throw PolygonProblemDownloadException("Не найдено условие")
         }
 
         val checker = async {
             val name = "check.cpp"
             val file = polygonApi.downloadPackage(problemId, packageId).resolve(name)
             if (file.notExists())
-                throw PolygonProblemDownloaderException(
+                throw PolygonProblemDownloadException(
                     "Не найден чекер '$name'. Другие чекеры не поддерживаются"
                 )
             IRChecker(name, file.readBytes().decodeToString())
@@ -102,7 +108,7 @@ class PolygonProblemDownloaderImpl(
         }
 
         val limits = async {
-            polygonApi.getInfo(problemId).result!!.run { IRLimits(timeLimit, memoryLimit) }
+            polygonApi.getProblemInfo(problemId).result!!.run { IRLimits(timeLimit, memoryLimit) }
         }
 
         IRProblem(
@@ -115,4 +121,7 @@ class PolygonProblemDownloaderImpl(
             solutions.await()
         ).also { cache[FullPackageId(packageId, onlyEssentials)] = it }
     }
+
+    override suspend fun getProblems() = polygonApi.getProblems().result!!
+    override suspend fun getProblemInfo(problemId: Int) = polygonApi.getProblemInfo(problemId).result!!
 }

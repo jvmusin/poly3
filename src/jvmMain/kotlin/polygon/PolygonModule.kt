@@ -5,5 +5,5 @@ import org.koin.experimental.builder.singleBy
 
 val polygonModule = module {
     single { PolygonApiFactory(get()).create() }
-    singleBy<PolygonProblemDownloader, PolygonProblemDownloaderImpl>()
+    singleBy<PolygonService, PolygonServiceImpl>()
 }

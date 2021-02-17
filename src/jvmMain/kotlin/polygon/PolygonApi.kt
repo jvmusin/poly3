@@ -20,7 +20,7 @@ interface PolygonApi {
     ): PolygonResponse<List<Problem>>
 
     @POST("problem.info")
-    suspend fun getInfo(
+    suspend fun getProblemInfo(
         @Query("problemId") problemId: Int
     ): PolygonResponse<ProblemInfo>
 
