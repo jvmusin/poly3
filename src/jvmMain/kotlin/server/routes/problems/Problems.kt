@@ -59,6 +59,7 @@ fun Route.problems() {
         sendMessage: MessageSender,
         problemId: Int,
         properties: AdditionalProblemProperties,
+        isFinalStep: Boolean
     ) {
         val irProblem = downloadProblem(sendMessage, problemId)
         sendMessage("Задача выкачана из полигона, закидываем в бакс")
@@ -69,7 +70,7 @@ fun Route.problems() {
             sendMessage(msg, ToastKind.FAILURE)
             throw BadRequestException(msg, e)
         }
-        sendMessage("Задача закинута в бакс", ToastKind.SUCCESS)
+        sendMessage("Задача закинута в бакс", if (isFinalStep) ToastKind.SUCCESS else ToastKind.INFORMATION)
     }
 
     get {
@@ -112,7 +113,7 @@ fun Route.problems() {
             val fullName = call.parameters["full-name"].toString()
             val problemId = call.parameters["problem-id"]!!.toInt()
             val properties = call.receive<AdditionalProblemProperties>()
-            transferProblemToBacs(messageSenderFactory.create(this, fullName), problemId, properties)
+            transferProblemToBacs(messageSenderFactory.create(this, fullName), problemId, properties, true)
             call.respond(HttpStatusCode.OK)
         }
         route("solutions") {
@@ -139,21 +140,16 @@ fun Route.problems() {
 
                 val problemId = call.parameters["problem-id"]!!.toInt()
                 val problem = problemDownloader.download(problemId, true)
-                val properties = AdditionalProblemProperties(
-                    prefix = "polybacs-test-",
-                    suffix = null,
-                    timeLimitMillis = null,
-                    memoryLimitMegabytes = null
-                )
+                val properties = AdditionalProblemProperties()
 
                 val fullName = properties.buildFullName(problem.name)
                 val sendMessage = messageSenderFactory.create(this, fullName)
-                transferProblemToBacs(sendMessage, problemId, properties)
+                transferProblemToBacs(sendMessage, problemId, properties, false)
 
                 sendMessage("Ждём, пока задача появится в сайбоне (может занять минуты две)")
                 val sybonProblem = testSybonArchiveService.importProblem(fullName)
                 if (sybonProblem == null) {
-                    sendMessage("За пять минут задача так и не появилась в сайбоне", ToastKind.FAILURE)
+                    sendMessage("Задача так и не появилась в сайбоне", ToastKind.FAILURE)
                     return@webSocket
                 }
                 sendMessage("Задача появилась в сайбоне, отправляем решения на проверку")
