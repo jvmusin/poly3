@@ -19,9 +19,11 @@ import polygon.PolygonService
 import server.MessageSenderFactory
 import sybon.SybonArchiveService
 import sybon.SybonCheckingService
+import sybon.SybonSubmitSolutionException
 import sybon.TestProblemArchive
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
+import util.getLogger
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 import kotlin.time.toJavaDuration
@@ -78,11 +80,15 @@ fun Route.solutions() {
                     val result = if (compiler == null) {
                         SubmissionResult(false, null, null)
                     } else {
-                        val result = sybonCheckingService.submitSolution(
-                            problemId = sybonProblem.id,
-                            solution = solution.content,
-                            compiler = compiler
-                        )
+                        val result = try {
+                            sybonCheckingService.submitSolution(
+                                problemId = sybonProblem.id,
+                                solution = solution.content,
+                                compiler = compiler
+                            )
+                        } catch (e: SybonSubmitSolutionException) {
+                            throw SybonSubmitSolutionException("Solution ${solution.name} failed to submit", e)
+                        }
                         result.toSubmissionResult()
                     }
                     solution.name to result.overallVerdict
@@ -94,6 +100,7 @@ fun Route.solutions() {
             throw BadRequestException(msg)
         }
         sendMessage("Решения проверены", ToastKind.SUCCESS)
+        getLogger(javaClass).info("Solutions for problem ${problem.name} are tested")
         outgoing.send(Frame.Text(Json.encodeToString(result)))
     }
 }

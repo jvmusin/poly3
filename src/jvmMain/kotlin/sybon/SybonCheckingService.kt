@@ -6,14 +6,17 @@ import sybon.api.SybonSubmissionResult
 import sybon.api.SybonSubmitSolution
 import util.RetryPolicy
 import util.encodeBase64
+import kotlin.time.ExperimentalTime
+import kotlin.time.minutes
 
 interface SybonCheckingService {
     suspend fun getResult(id: Int): SybonSubmissionResult
+    @OptIn(ExperimentalTime::class)
     suspend fun submitSolution(
         problemId: Int,
         solution: String,
         compiler: SybonCompiler,
-        retryPolicy: RetryPolicy = RetryPolicy()
+        checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 10.minutes)
     ): SybonFinalSubmissionResult
 }
 
@@ -27,7 +30,7 @@ class SybonCheckingServiceImpl(
         problemId: Int,
         solution: String,
         compiler: SybonCompiler,
-        retryPolicy: RetryPolicy
+        checkResultRetryPolicy: RetryPolicy
     ): SybonFinalSubmissionResult {
         val submissionId = sybonCheckingApi.submitSolution(
             SybonSubmitSolution(
@@ -38,11 +41,11 @@ class SybonCheckingServiceImpl(
             )
         )
 
-        val result = retryPolicy.evalWhileNull {
+        val result = checkResultRetryPolicy.evalWhileNull {
             val result = getResult(submissionId)
             if (result.buildResult.status != SybonSubmissionResult.BuildResult.Status.PENDING) result
             else null
-        } ?: throw SybonSubmitSolutionException("Решение не было отправлено")
+        } ?: throw SybonSubmitSolutionException("Solution testing failed:\n$solution")
 
         val failedGroupIndex = result.testGroupResults.indexOfFirst { group ->
             !group.executed || group.testResults.any { testResult ->
