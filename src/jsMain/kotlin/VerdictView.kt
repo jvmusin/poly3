@@ -10,17 +10,16 @@ external interface VerdictViewProps : RProps {
 }
 
 val VerdictView = functionalComponent<VerdictViewProps> { props ->
-    val id = props.id
     span {
         a {
             +props.verdict.tag
             attrs["data-tip"] = ""
-            attrs["data-for"] = id
+            attrs["data-for"] = props.id
         }
         ReactTooltip.default {
             attrs {
-                this.id = id
-                type = "info"
+                id = props.id
+                type = "dark"
             }
             span {
                 +props.verdict.description
