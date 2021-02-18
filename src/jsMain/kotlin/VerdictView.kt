@@ -17,13 +17,8 @@ val VerdictView = functionalComponent<VerdictViewProps> { props ->
             attrs["data-for"] = props.id
         }
         ReactTooltip.default {
-            attrs {
-                id = props.id
-                type = "dark"
-            }
-            span {
-                +props.verdict.description
-            }
+            attrs { id = props.id }
+            span { +props.verdict.description }
         }
     }
 }
