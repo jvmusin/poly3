@@ -64,8 +64,11 @@ val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
                         tr {
                             th { +"Имя"; attrs { scope = ThScope.col } }
                             th { +"Язык"; attrs { scope = ThScope.col } }
-                            th { +"Ожидаемый вердикт"; attrs { scope = ThScope.col } }
-                            th { +"Вердикт на баксе"; attrs { scope = ThScope.col } }
+                            th { +"Ожидаем"; attrs { scope = ThScope.col } }
+                            th { +"На баксе"; attrs { scope = ThScope.col } }
+                            th { +"Тест"; attrs { scope = ThScope.col } }
+                            th { +"Время"; attrs { scope = ThScope.col } }
+                            th { +"Память"; attrs { scope = ThScope.col } }
                         }
                     }
                     tbody {

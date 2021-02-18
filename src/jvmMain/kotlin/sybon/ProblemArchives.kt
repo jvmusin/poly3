@@ -1,14 +1,17 @@
 package sybon
 
 import org.koin.core.qualifier.Qualifier
-import org.koin.core.qualifier.QualifierValue
 
-object MainProblemArchive : Qualifier {
-    override val value: QualifierValue get() = "Main sybon collection"
-    const val collectionId = 1
+interface ProblemArchive : Qualifier {
+    val collectionId: Int
 }
 
-object TestProblemArchive : Qualifier {
-    override val value: QualifierValue get() = "Test sybon collection"
-    const val collectionId = 10023
+object MainProblemArchive : ProblemArchive {
+    override val collectionId = 1
+    override val value = "Main sybon collection"
+}
+
+object TestProblemArchive : ProblemArchive {
+    override val collectionId = 10023
+    override val value = "Test sybon collection"
 }

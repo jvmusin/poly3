@@ -1,6 +1,6 @@
-package sybon
+package sybon.converter
 
-class SybonSubmitSolutionException : RuntimeException {
+class SybonSubmissionResultConversionException : RuntimeException {
     constructor() : super()
     constructor(message: String?) : super(message)
     constructor(message: String?, cause: Throwable?) : super(message, cause)

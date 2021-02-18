@@ -1,17 +1,16 @@
 import api.Problem
 import api.Solution
 import api.SubmissionResult
+import kotlinext.js.jsObject
 import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.role
-import react.RProps
+import react.*
 import react.dom.div
 import react.dom.td
 import react.dom.th
 import react.dom.tr
-import react.functionalComponent
-import react.useEffectWithCleanup
-import react.useState
+import kotlin.math.roundToInt
 
 external interface SolutionRowProps : RProps {
     var problem: Problem
@@ -24,9 +23,7 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
     val (isRunning, setRunning) = useState(false)
     val (result, setResult) = useState<SubmissionResult?>(null)
 
-    console.log("Run triggered = ${props.runTriggered}")
     useEffectWithCleanup(listOf(props.problem, props.runTriggered)) {
-        console.log("SETTING RUN TRIGGERED FOR ${props.solution.name} TO ${props.runTriggered}")
         setRunning(props.runTriggered)
         var cancelled = false
         if (props.runTriggered) {
@@ -57,16 +54,25 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
             attrs { scope = ThScope.row }
         }
         td { +solution.language.description }
-        td { +solution.expectedVerdict.tag }
+        td { child(VerdictView, jsObject { verdict = solution.expectedVerdict; id = "${solution.name}-0" }) }
         td {
-            console.log("Solution ${solution.name} is ${if (isRunning) "RUNNING" else "NOT RUNNING"}")
-            if (isRunning) {
-                div("spinner-border text-secondary") {
-                    attrs { role = "status" }
+            when {
+                isRunning -> {
+                    div("spinner-border text-secondary") { attrs { role = "status" } }
                 }
-            } else {
-                +(result?.overallVerdict?.tag ?: "-")
+                result != null -> {
+                    child(VerdictView, jsObject { verdict = result.verdict; id = "${solution.name}-1" })
+                }
+                else -> {
+                    +(result?.verdict?.tag ?: "-")
+                }
             }
         }
+        val test = result?.failedTestNumber
+        val time = result?.maxUsedTimeMillis
+        val mem = result?.maxUsedMemoryBytes
+        td { if (test != null) +"$test" }
+        td { if (time != null) +"${time / 1000.0}s" }
+        td { if (mem != null) +"${(mem / 1024.0 / 1024.0).roundToInt()}MB" }
     }
 }

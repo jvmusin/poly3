@@ -11,6 +11,7 @@ enum class Verdict(val description: String, val tag: String) {
     PRESENTATION_ERROR("Ошибка представления", "PE"),
     INCORRECT("Решение неверно", "INCORRECT"),
     ABNORMAL_EXIT("Abnormal exit", "ABNORMAL EXIT"),
+    SERVER_ERROR("Ошибка сервера", "SERVER ERROR"),
     OTHER("Другое", "OTHER"),
     COMPILATION_ERROR("Ошибка компиляции", "CE")
 }

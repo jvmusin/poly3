@@ -17,7 +17,7 @@ import polygon.PolygonService
 import server.MessageSenderFactory
 import sybon.SybonArchiveService
 import sybon.SybonCheckingService
-import sybon.SybonSubmitSolutionException
+import sybon.SybonSolutionTestingException
 import sybon.TestProblemArchive
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
@@ -51,7 +51,7 @@ fun Route.solutions() {
     webSocket("prepare") {
         val problemId = call.parameters["problem-id"]!!.toInt()
         val problem = polygonService.downloadProblem(problemId, true)
-        val properties = AdditionalProblemProperties()
+        val properties = AdditionalProblemProperties(suffix = "-test")
 
         val fullName = properties.buildFullName(problem.name)
         val sendMessage = messageSenderFactory.create(this, fullName)
@@ -78,11 +78,11 @@ fun Route.solutions() {
         val compiler = solution.language.toSybonCompiler()
         val result =
             if (compiler == null) {
-                SubmissionResult(false, null, null)
+                SubmissionResult(Verdict.COMPILATION_ERROR)   // TODO provide message
             } else try {
                 sybonCheckingService.submitSolution(sybonProblemId, solution.content, compiler).toSubmissionResult()
-            } catch (e: SybonSubmitSolutionException) {
-                throw SybonSubmitSolutionException("Solution ${solution.name} failed to submit", e)
+            } catch (e: SybonSolutionTestingException) {
+                throw SybonSolutionTestingException("Solution ${solution.name} was not tested: ${e.message}", e)
             }
 
         send(Json.encodeToString(result))

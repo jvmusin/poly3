@@ -4,13 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SubmissionResult(
-    val compiled: Boolean,
-    val failedTestIndex: Int?,
-    val failedTestVerdict: Verdict?
+    val verdict: Verdict,
+    val failedTestNumber: Int? = null,
+    val maxUsedTimeMillis: Int? = null,
+    val maxUsedMemoryBytes: Int? = null
 ) {
-    val overallVerdict: Verdict = when {
-        !compiled -> Verdict.COMPILATION_ERROR
-        failedTestIndex == null -> Verdict.OK
-        else -> failedTestVerdict!!
+    companion object {
+        fun success(maxTimeUsedMillis: Int, maxUsedMemoryBytes: Int) =
+            SubmissionResult(Verdict.OK, null, maxTimeUsedMillis, maxUsedMemoryBytes)
     }
 }

@@ -114,6 +114,8 @@ kotlin {
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-websockets-js:$ktorVersion")
+
+                implementation(npm("react-tooltip", "4.2.14", false))
             }
         }
         val jsTest by getting
