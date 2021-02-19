@@ -4,6 +4,7 @@ import api.SubmissionResult
 import api.Verdict
 import sybon.api.SybonSubmissionResult
 import sybon.converter.SybonTestStatusToVerdictConverter.toVerdict
+import util.decodeBase64
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimedValue
 
@@ -13,9 +14,9 @@ object SybonSubmissionResultToSubmissionResultConverter {
             SybonSubmissionResult.BuildResult.Status.PENDING ->
                 throw SybonSubmissionResultConversionException("Converting not finished submission")
             SybonSubmissionResult.BuildResult.Status.SERVER_ERROR ->
-                return SubmissionResult(Verdict.SERVER_ERROR, message = result.buildResult.output)
+                return SubmissionResult(Verdict.SERVER_ERROR, message = result.buildResult.output.decodeBase64())
             SybonSubmissionResult.BuildResult.Status.FAILED ->
-                return SubmissionResult(Verdict.COMPILATION_ERROR, message = result.buildResult.output)
+                return SubmissionResult(Verdict.COMPILATION_ERROR, message = result.buildResult.output.decodeBase64())
             else -> check(status == SybonSubmissionResult.BuildResult.Status.OK) { "Unexpected status $status" }
         }
 
@@ -48,7 +49,6 @@ object SybonSubmissionResultToSubmissionResultConverter {
         )
     }
 
-    fun SybonSubmissionResult.toSubmissionResult() = convert(this)
     @OptIn(ExperimentalTime::class)
     fun TimedValue<SybonSubmissionResult>.toSubmissionResult(): SubmissionResult {
         return convert(value).copy(executionTimeSeconds = duration.inSeconds.toInt())

@@ -139,7 +139,6 @@ object Api {
         connectWS("problems/${problem.id}/solutions/prepare") {
             sybonProblemId = (incoming.receive() as Frame.Text).readText().toInt()
         }
-        console.log("Before returning $sybonProblemId")
         return sybonProblemId
     }
 

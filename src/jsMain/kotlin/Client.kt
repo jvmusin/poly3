@@ -1,6 +1,7 @@
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.css.*
+import kotlinx.css.properties.LineHeight
 import react.child
 import react.dom.render
 import styled.injectGlobal
@@ -51,6 +52,21 @@ fun main() {
         }
         ".problem-solutions table" {
             fontSize = 0.9.em
+        }
+        ".problem-solutions td, .problem-solutions th" {
+            textAlign = TextAlign.center
+        }
+        ".problem-solutions h2 .spinner-border" {
+            height = 0.9.em
+            width = 0.9.em
+            borderWidth = 5.px
+        }
+        ".problem-solution" {
+            lineHeight = LineHeight(2.em.toString())
+        }
+        ".problem-solution .spinner-border" {
+            height = 1.5.em
+            width = 1.5.em
         }
     }
 

@@ -6,7 +6,10 @@ import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.role
 import react.RProps
-import react.dom.*
+import react.dom.span
+import react.dom.td
+import react.dom.th
+import react.dom.tr
 import react.functionalComponent
 import react.useEffectWithCleanup
 import react.useState
@@ -48,8 +51,9 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
         }
     }
 
-    val rowStyle = when {
+    val rowStyle = "problem-solution " + when {
         result == null -> ""
+        result.verdict == Verdict.COMPILATION_ERROR -> "bg-warning"
         result.verdict == Verdict.NOT_TESTED -> "bg-secondary text-white-50"
         result.verdict.isFail() != props.solution.expectedVerdict.isFail() -> "bg-danger text-white"
         else -> "bg-success text-white"
@@ -62,13 +66,17 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
             attrs.scope = ThScope.row
         }
         td { +solution.language.description }
-        td { verdictView("${solution.name}-expect", solution.expectedVerdict) }
+        td { verdict("${solution.name}-expect", solution.expectedVerdict) }
         td {
             when {
                 isRunning -> span("spinner-border text-secondary") { attrs { role = "status" } }
                 result != null -> {
-                    if (result.message != null) verdictView("${solution.name}-result", result.verdict, result.message)
-                    else verdictView("${solution.name}-result", result.verdict)
+                    if (result.message != null) verdictWithMessage(
+                        id = "${solution.name}-result",
+                        verdict = result.verdict,
+                        message = result.message
+                    )
+                    else verdict("${solution.name}-result", result.verdict)
                 }
                 else -> +"-"
             }

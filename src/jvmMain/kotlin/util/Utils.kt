@@ -14,3 +14,4 @@ fun getLogger(forClass: Class<*>): Logger =
     LoggerFactory.getLogger(forClass)
 
 fun String.encodeBase64(): String = Base64.getEncoder().encodeToString(toByteArray())
+fun String.decodeBase64(): String = Base64.getDecoder().decode(this).decodeToString()

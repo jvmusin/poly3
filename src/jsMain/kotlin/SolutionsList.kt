@@ -1,6 +1,7 @@
 import api.Problem
 import api.Solution
 import api.Toast
+import api.ToastKind
 import kotlinext.js.jsObject
 import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
@@ -9,12 +10,12 @@ import kotlinx.html.role
 import react.*
 import react.dom.*
 
-external interface SolutionListProps : RProps {
+external interface SolutionsListProps : RProps {
     var problem: Problem
     var solutions: List<Solution>
 }
 
-val SolutionList = functionalComponent<SolutionListProps> { props ->
+val SolutionsList = functionalComponent<SolutionsListProps> { props ->
     val (isRunning, setRunning) = useState(false)
     val (solutionsTriggered, setSolutionsTriggered) = useState(false)
     val (sybonProblemId, setSybonProblemId) = useState<Int?>(null)
@@ -28,7 +29,23 @@ val SolutionList = functionalComponent<SolutionListProps> { props ->
         var cancelled = false
 
         scope.launch {
-            val newSybonProblemId = Api.prepareProblem(props.problem)
+            val newSybonProblemId = try {
+                Api.prepareProblem(props.problem)
+            } catch (e: Exception) {
+                if (!cancelled) {
+                    e.printStackTrace()
+                    showToast(
+                        Toast(
+                            "Соединение",
+                            "Произошла ошибка, решения не будут протестированы: ${e.message}",
+                            ToastKind.FAILURE
+                        )
+                    )
+                    setSolutionsTriggered(false)
+                    setRunning(false)
+                }
+                return@launch
+            }
             if (!cancelled) {
                 setSybonProblemId(newSybonProblemId)
                 setSolutionsTriggered(true)
