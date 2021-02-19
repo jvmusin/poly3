@@ -76,7 +76,7 @@ val SolutionsList = functionalComponent<SolutionsListProps> { props ->
     div("container") {
         div("row") {
             div("col") {
-                table("table") {
+                table("table table-sm") {
                     thead {
                         tr {
                             th { +"Имя"; attrs { scope = ThScope.col } }

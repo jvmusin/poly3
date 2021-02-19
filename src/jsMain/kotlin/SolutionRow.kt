@@ -71,10 +71,10 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
             when {
                 isRunning -> span("spinner-border text-secondary") { attrs { role = "status" } }
                 result != null -> {
-                    if (result.message != null) verdictWithMessage(
+                    if (result.message != null) verdict(
                         id = "${solution.name}-result",
                         verdict = result.verdict,
-                        message = result.message
+                        description = result.message
                     )
                     else verdict("${solution.name}-result", result.verdict)
                 }

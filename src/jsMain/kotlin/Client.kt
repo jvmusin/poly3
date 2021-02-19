@@ -61,12 +61,9 @@ fun main() {
             width = 0.9.em
             borderWidth = 5.px
         }
-        ".problem-solution" {
-            lineHeight = LineHeight(2.em.toString())
-        }
         ".problem-solution .spinner-border" {
-            height = 1.5.em
-            width = 1.5.em
+            height = 1.em
+            width = 1.em
         }
     }
 

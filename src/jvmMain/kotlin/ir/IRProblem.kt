@@ -44,3 +44,15 @@ enum class IRLanguage(val fullName: String) {
     PYTHON3("Python 3"),
     OTHER("Other")
 }
+
+enum class IRTestGroupPointsPolicy {
+    COMPLETE_GROUP,
+    EACH_TEST
+}
+
+data class IRTestGroup(
+    val name: String,
+    val pointsPolicy: IRTestGroupPointsPolicy,
+    val testIndices: List<Int>,
+    val points: Int
+)

@@ -23,10 +23,14 @@ fun RBuilder.tooltippedText(id: String, value: String, tooltip: String) {
 }
 
 fun RBuilder.verdict(id: String, verdict: Verdict, description: String? = null) {
-    tooltippedText(id, verdict.tag, description ?: verdict.description)
+    if (verdict == Verdict.COMPILATION_ERROR && description != null) {
+        verdictWithMessage(id, verdict, description)
+    } else {
+        tooltippedText(id, verdict.tag, description ?: verdict.description)
+    }
 }
 
-fun RBuilder.verdictWithMessage(id: String, verdict: Verdict, message: String) {
+private fun RBuilder.verdictWithMessage(id: String, verdict: Verdict, message: String) {
     tooltipped(id, verdict.tag) {
         styledPre {
             +message
