@@ -7,6 +7,7 @@ import sybon.api.SybonSubmitSolution
 import util.RetryPolicy
 import util.encodeBase64
 import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 import kotlin.time.minutes
 
 interface SybonCheckingService {
@@ -19,6 +20,14 @@ interface SybonCheckingService {
         compiler: SybonCompiler,
         checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 30.minutes)
     ): SybonSubmissionResult
+
+    @OptIn(ExperimentalTime::class)
+    suspend fun submitSolutionTimed(
+        problemId: Int,
+        solution: String,
+        compiler: SybonCompiler,
+        checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 30.minutes)
+    ) = measureTimedValue { submitSolution(problemId, solution, compiler, checkResultRetryPolicy) }
 }
 
 class SybonCheckingServiceImpl(
@@ -46,6 +55,6 @@ class SybonCheckingServiceImpl(
             val result = getResult(submissionId)
             if (result.buildResult.status != SybonSubmissionResult.BuildResult.Status.PENDING) result
             else null
-        } ?: throw SybonSolutionTestingException("Solution was not tested in ${checkResultRetryPolicy.tryFor}")
+        } ?: throw SybonSolutionTestingTimeoutException("Solution was not tested in ${checkResultRetryPolicy.tryFor}")
     }
 }

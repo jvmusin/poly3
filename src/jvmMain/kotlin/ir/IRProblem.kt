@@ -36,11 +36,11 @@ enum class IRVerdict {
     OTHER
 }
 
-enum class IRLanguage {
-    CPP,
-    JAVA,
-    KOTLIN,
-    PYTHON2,
-    PYTHON3,
-    OTHER
+enum class IRLanguage(val fullName: String) {
+    CPP("C++"),
+    JAVA("Java"),
+    KOTLIN("Kotlin"),
+    PYTHON2("Python 2"),
+    PYTHON3("Python 3"),
+    OTHER("Other")
 }

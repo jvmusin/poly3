@@ -9,12 +9,12 @@ import kotlinx.html.role
 import react.*
 import react.dom.*
 
-external interface ProblemSolutionsProps : RProps {
+external interface SolutionListProps : RProps {
     var problem: Problem
     var solutions: List<Solution>
 }
 
-val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
+val SolutionList = functionalComponent<SolutionListProps> { props ->
     val (isRunning, setRunning) = useState(false)
     val (solutionsTriggered, setSolutionsTriggered) = useState(false)
     val (sybonProblemId, setSybonProblemId) = useState<Int?>(null)
@@ -64,11 +64,12 @@ val ProblemSolutions = functionalComponent<ProblemSolutionsProps> { props ->
                         tr {
                             th { +"Имя"; attrs { scope = ThScope.col } }
                             th { +"Язык"; attrs { scope = ThScope.col } }
-                            th { +"Ожидаем"; attrs { scope = ThScope.col } }
-                            th { +"На баксе"; attrs { scope = ThScope.col } }
+                            th { +"Полигон"; attrs { scope = ThScope.col } }
+                            th { +"Сайбон"; attrs { scope = ThScope.col } }
                             th { +"Тест"; attrs { scope = ThScope.col } }
                             th { +"Время"; attrs { scope = ThScope.col } }
                             th { +"Память"; attrs { scope = ThScope.col } }
+                            th { +"Рантайм"; attrs { scope = ThScope.col } }
                         }
                     }
                     tbody {

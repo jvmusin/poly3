@@ -1,16 +1,16 @@
 import api.Problem
 import api.Solution
 import api.SubmissionResult
-import kotlinext.js.jsObject
+import api.Verdict
 import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.role
-import react.*
-import react.dom.div
-import react.dom.td
-import react.dom.th
-import react.dom.tr
-import kotlin.math.roundToInt
+import react.RProps
+import react.dom.*
+import react.functionalComponent
+import react.useEffectWithCleanup
+import react.useState
+import kotlin.time.ExperimentalTime
 
 external interface SolutionRowProps : RProps {
     var problem: Problem
@@ -19,6 +19,7 @@ external interface SolutionRowProps : RProps {
     var sybonProblemId: Int?
 }
 
+@OptIn(ExperimentalTime::class)
 val SolutionRow = functionalComponent<SolutionRowProps> { props ->
     val (isRunning, setRunning) = useState(false)
     val (result, setResult) = useState<SubmissionResult?>(null)
@@ -47,32 +48,38 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
         }
     }
 
-    tr {
+    val rowStyle = when {
+        result == null -> ""
+        result.verdict == Verdict.NOT_TESTED -> "bg-secondary text-white-50"
+        result.verdict.isFail() != props.solution.expectedVerdict.isFail() -> "bg-danger text-white"
+        else -> "bg-success text-white"
+    }
+
+    tr(rowStyle) {
         val solution = props.solution
         th {
             +solution.name
-            attrs { scope = ThScope.row }
+            attrs.scope = ThScope.row
         }
         td { +solution.language.description }
-        td { child(VerdictView, jsObject { verdict = solution.expectedVerdict; id = "${solution.name}-0" }) }
+        td { verdictView("${solution.name}-expect", solution.expectedVerdict) }
         td {
             when {
-                isRunning -> {
-                    div("spinner-border text-secondary") { attrs { role = "status" } }
-                }
+                isRunning -> span("spinner-border text-secondary") { attrs { role = "status" } }
                 result != null -> {
-                    child(VerdictView, jsObject { verdict = result.verdict; id = "${solution.name}-1" })
+                    if (result.message != null) verdictView("${solution.name}-result", result.verdict, result.message)
+                    else verdictView("${solution.name}-result", result.verdict)
                 }
-                else -> {
-                    +(result?.verdict?.tag ?: "-")
-                }
+                else -> +"-"
             }
         }
         val test = result?.failedTestNumber
         val time = result?.maxUsedTimeMillis
         val mem = result?.maxUsedMemoryBytes
+        val rt = result?.executionTimeSeconds
         td { if (test != null) +"$test" }
-        td { if (time != null) +"${time / 1000.0}s" }
-        td { if (mem != null) +"${(mem / 1024.0 / 1024.0).roundToInt()}MB" }
+        td { if (time != null) +"${time}ms" }
+        td { if (mem != null) +"${(mem / 1024.0 / 1024.0).toInt()}MB" }
+        td { if (rt != null) +"${rt}s" }
     }
 }

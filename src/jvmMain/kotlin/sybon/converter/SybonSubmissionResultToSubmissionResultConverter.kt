@@ -4,14 +4,18 @@ import api.SubmissionResult
 import api.Verdict
 import sybon.api.SybonSubmissionResult
 import sybon.converter.SybonTestStatusToVerdictConverter.toVerdict
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimedValue
 
 object SybonSubmissionResultToSubmissionResultConverter {
     private fun convert(result: SybonSubmissionResult): SubmissionResult {
         when (val status = result.buildResult.status) {
             SybonSubmissionResult.BuildResult.Status.PENDING ->
                 throw SybonSubmissionResultConversionException("Converting not finished submission")
-            SybonSubmissionResult.BuildResult.Status.SERVER_ERROR -> return SubmissionResult(Verdict.SERVER_ERROR)   // TODO provide message
-            SybonSubmissionResult.BuildResult.Status.FAILED -> return SubmissionResult(Verdict.COMPILATION_ERROR)   // TODO provide message
+            SybonSubmissionResult.BuildResult.Status.SERVER_ERROR ->
+                return SubmissionResult(Verdict.SERVER_ERROR, message = result.buildResult.output)
+            SybonSubmissionResult.BuildResult.Status.FAILED ->
+                return SubmissionResult(Verdict.COMPILATION_ERROR, message = result.buildResult.output)
             else -> check(status == SybonSubmissionResult.BuildResult.Status.OK) { "Unexpected status $status" }
         }
 
@@ -36,8 +40,17 @@ object SybonSubmissionResultToSubmissionResultConverter {
         }
         val testIndex = result.testGroupResults.take(failedGroupIndex).sumOf { it.testResults.size } + indexInGroup
         val testStatus = result.testGroupResults[failedGroupIndex].testResults[indexInGroup].status
-        return SubmissionResult(testStatus.toVerdict(), testIndex + 1, maxUsedTimeMillis, maxUsedMemoryBytes)
+        return SubmissionResult(
+            verdict = testStatus.toVerdict(),
+            failedTestNumber = testIndex + 1,
+            maxUsedTimeMillis = maxUsedTimeMillis,
+            maxUsedMemoryBytes = maxUsedMemoryBytes
+        )
     }
 
     fun SybonSubmissionResult.toSubmissionResult() = convert(this)
+    @OptIn(ExperimentalTime::class)
+    fun TimedValue<SybonSubmissionResult>.toSubmissionResult(): SubmissionResult {
+        return convert(value).copy(executionTimeSeconds = duration.inSeconds.toInt())
+    }
 }

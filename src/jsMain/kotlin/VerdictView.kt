@@ -1,24 +1,6 @@
 import api.Verdict
-import react.RProps
-import react.dom.a
-import react.dom.span
-import react.functionalComponent
+import react.RBuilder
 
-external interface VerdictViewProps : RProps {
-    var id: String
-    var verdict: Verdict
-}
-
-val VerdictView = functionalComponent<VerdictViewProps> { props ->
-    span {
-        a {
-            +props.verdict.tag
-            attrs["data-tip"] = ""
-            attrs["data-for"] = props.id
-        }
-        ReactTooltip.default {
-            attrs { id = props.id }
-            span { +props.verdict.description }
-        }
-    }
+fun RBuilder.verdictView(id: String, verdict: Verdict, description: String? = null) {
+    tooltipped(id, verdict.tag, description ?: verdict.description)
 }

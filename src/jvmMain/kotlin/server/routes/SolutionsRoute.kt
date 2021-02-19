@@ -17,7 +17,7 @@ import polygon.PolygonService
 import server.MessageSenderFactory
 import sybon.SybonArchiveService
 import sybon.SybonCheckingService
-import sybon.SybonSolutionTestingException
+import sybon.SybonSolutionTestingTimeoutException
 import sybon.TestProblemArchive
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
@@ -78,11 +78,12 @@ fun Route.solutions() {
         val compiler = solution.language.toSybonCompiler()
         val result =
             if (compiler == null) {
-                SubmissionResult(Verdict.COMPILATION_ERROR)   // TODO provide message
+                SubmissionResult(Verdict.NOT_TESTED, message = "Сайбон не знает про ${solution.language.fullName}")
             } else try {
-                sybonCheckingService.submitSolution(sybonProblemId, solution.content, compiler).toSubmissionResult()
-            } catch (e: SybonSolutionTestingException) {
-                throw SybonSolutionTestingException("Solution ${solution.name} was not tested: ${e.message}", e)
+                sybonCheckingService.submitSolutionTimed(sybonProblemId, solution.content, compiler)
+                    .toSubmissionResult()
+            } catch (e: SybonSolutionTestingTimeoutException) {
+                SubmissionResult(Verdict.SERVER_ERROR, message = e.message)
             }
 
         send(Json.encodeToString(result))

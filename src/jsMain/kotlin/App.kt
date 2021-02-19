@@ -121,7 +121,7 @@ val App = functionalComponent<RProps> {
                     if (solutions.isNotEmpty()) {
                         div("problem-solutions") {
                             hr { }
-                            child(ProblemSolutions, jsObject {
+                            child(SolutionList, jsObject {
                                 this.problem = selectedProblem!!
                                 this.solutions = solutions
                             })

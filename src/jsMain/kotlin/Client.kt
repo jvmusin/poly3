@@ -49,6 +49,9 @@ fun main() {
         ".toast-header" {
             color = Color("#212529")
         }
+        ".problem-solutions table" {
+            fontSize = 0.9.em
+        }
     }
 
     window.onload = {
