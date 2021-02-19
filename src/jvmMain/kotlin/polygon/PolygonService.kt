@@ -103,6 +103,13 @@ class PolygonServiceImpl(
             }
         }
 
+        val info = async {
+            polygonApi.getProblemInfo(problemId).result!!.apply {
+                if (interactive) {
+                    throw PolygonProblemDownloadException("Интерактивные задачи не поддерживаются")
+                }
+            }
+        }
         val packageId = polygonApi.getLatestPackageId(problemId)
 
         val statement = async {
@@ -127,6 +134,7 @@ class PolygonServiceImpl(
         // fail fast
         statement.await()
         checker.await()
+        info.await()
 
         cache[FullPackageId(packageId, onlyEssentials)]
             .also { if (it != null) return@coroutineScope it }
@@ -162,15 +170,13 @@ class PolygonServiceImpl(
             }
         }
 
-        val limits = async {
-            polygonApi.getProblemInfo(problemId).result!!.run { IRLimits(timeLimit, memoryLimit) }
-        }
+        val limits = info.await().run { IRLimits(timeLimit, memoryLimit) }
 
         IRProblem(
             problem.name,
             problem.owner,
             statement.await(),
-            limits.await(),
+            limits,
             tests.await(),
             checker.await(),
             solutions.await()
