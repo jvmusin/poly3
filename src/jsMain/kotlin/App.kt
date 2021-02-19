@@ -16,11 +16,12 @@ import org.w3c.dom.get
 import react.*
 import react.dom.*
 import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 val scope = MainScope()
 
 fun showToast(toast: Toast) {
-    document.getElementsByClassName("toast-container")[0]!!.append {
+    val toastElement = document.getElementsByClassName("toast-container")[0]!!.append {
         val extraClasses = when (toast.kind) {
             ToastKind.INFORMATION -> "toast-info"
             ToastKind.SUCCESS -> "toast-success"
@@ -36,8 +37,8 @@ fun showToast(toast: Toast) {
             }
             div("toast-body") { +toast.content }
         }
-    }
-    js("new bootstrap.Toast(document.getElementsByClassName('toast-container')[0].lastChild,{animation:true,autohide:true,delay:60000}).show()")
+    }.single()
+    bootstrap.Toast(toastElement, jsObject { delay = 60.seconds.toLongMilliseconds().toInt() }).show()
 }
 
 val App = functionalComponent<RProps> {
@@ -90,6 +91,12 @@ val App = functionalComponent<RProps> {
             }
             span("navbar-brand m-0") {
                 +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin"
+                attrs.onClickFunction = {
+                    val element = document.getElementById("notifications")!!.firstElementChild!!
+                    val xxxyyyxxx = bootstrap.Toast(element, jsObject { delay = 1000 })
+                    console.log(xxxyyyxxx)
+                    xxxyyyxxx.show()
+                }
             }
         }
 
