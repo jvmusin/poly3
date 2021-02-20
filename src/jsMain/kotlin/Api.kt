@@ -24,8 +24,8 @@ import org.khronos.webgl.Uint8Array
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
-import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
+import kotlin.js.Date
+import kotlin.time.*
 
 object Api {
     private val client = HttpClient {
@@ -145,9 +145,13 @@ object Api {
     suspend fun testSolution(problem: Problem, sybonProblemId: Int, solutionName: String): SubmissionResult {
         var result: SubmissionResult? = null
         connectWS("problems/${problem.id}/solutions/test") {
-            send("$sybonProblemId")
-            send(solutionName)
-            result = Json.decodeFromString<SubmissionResult>((incoming.receive() as Frame.Text).readText())
+            console.log("Started testing $solutionName at ${Date()}")
+            val duration = measureTime {
+                send("$sybonProblemId")
+                send(solutionName)
+                result = Json.decodeFromString<SubmissionResult>((incoming.receive() as Frame.Text).readText())
+            }
+            console.log("Tested $solutionName at ${Date()} for $duration")
         }
         return result!!
     }
