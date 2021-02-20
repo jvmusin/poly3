@@ -85,9 +85,9 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
         val time = result?.maxUsedTimeMillis
         val mem = result?.maxUsedMemoryBytes
         val rt = result?.executionTimeSeconds
-        td { if (test != null) +"$test" }
-        td { if (time != null) +"${time}ms" }
-        td { if (mem != null) +"${(mem / 1024.0 / 1024.0).toInt()}MB" }
-        td { if (rt != null) +"${rt}s" }
+        td { if (test != null) +"$test" else +"-" }
+        td { if (time != null) +"${time}ms" else +"-" }
+        td { if (mem != null) +"${(mem / 1024.0 / 1024.0).toInt()}MB" else +"-" }
+        td { if (rt != null) +"${rt}s" else +"-" }
     }
 }
