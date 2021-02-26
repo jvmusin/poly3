@@ -50,7 +50,7 @@ val SolutionsList = functionalComponent<SolutionsListProps> { props ->
                 setSybonProblemId(newSybonProblemId)
                 setSolutionsTriggered(true)
                 setRunning(false)
-                showToast(Toast(props.problem.name, "Тестируем решения"))
+                showToast(Toast(props.problem.name + "-test", "Тестируем решения"))
             }
         }
 
