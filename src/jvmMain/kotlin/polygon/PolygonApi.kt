@@ -101,7 +101,7 @@ interface PolygonApi {
     @POST("problem.viewTestGroup")
     suspend fun getTestGroup(
         @Query("problemId") problemId: Int,
-        @Query("group") group: String,
+        @Query("group") group: String? = null,
         @Query("testset") testset: String = DEFAULT_TESTSET
     ): PolygonResponse<List<TestGroup>>
 
