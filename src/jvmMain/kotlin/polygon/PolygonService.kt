@@ -6,64 +6,11 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import polygon.converter.PolygonSourceTypeToIRLanguageConverter
 import polygon.converter.PolygonTagToIRVerdictConverter
-import util.extract
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.zip.ZipFile
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
 import kotlin.io.path.readBytes
-import kotlin.io.path.writeBytes
-
-private val packagesCache = ConcurrentHashMap<Int, Path>()
-
-@OptIn(ExperimentalPathApi::class)
-@Suppress("BlockingMethodInNonBlockingContext")
-private suspend fun PolygonApi.downloadPackage(problemId: Int, packageId: Int): Path {
-    if (packagesCache.containsKey(packageId)) return packagesCache[packageId]!!
-    val destination = Paths.get("polygon-problems").resolve("id$problemId-package$packageId-${UUID.randomUUID()}")
-    val archivePath = Files.createTempDirectory("${destination.fileName}-").resolve("archive.zip")
-    archivePath.writeBytes(getPackage(problemId, packageId).bytes())
-    ZipFile(archivePath.toFile()).use { it.extract(destination) }
-    Files.delete(archivePath)
-    return destination.also { packagesCache[packageId] = it }
-}
-
-@OptIn(ExperimentalPathApi::class)
-@Suppress("BlockingMethodInNonBlockingContext")
-private suspend fun PolygonApi.getStatementRaw(
-    problemId: Int,
-    packageId: Int,
-    type: String = "pdf",
-    language: String = "russian"
-): ByteArray? {
-    val filePath = downloadPackage(problemId, packageId)
-        .resolve("statements")
-        .resolve(".$type")
-        .resolve(language)
-        .resolve("problem.$type")
-    if (filePath.notExists()) return null
-    return filePath.readBytes()
-}
-
-private suspend fun PolygonApi.getProblem(problemId: Int): Problem {
-    return getProblems().result!!.single { it.id == problemId }
-}
-
-private suspend fun PolygonApi.getStatement(problemId: Int, language: String? = null): Pair<String, Statement>? {
-    return getStatements(problemId).result!!.entries.firstOrNull {
-        language == null || it.key == language
-    }?.let { it.key to it.value }
-}
-
-private suspend fun PolygonApi.getLatestPackageId(problemId: Int): Int {
-    return getPackages(problemId).result!!
-        .filter { it.state == Package.State.READY }
-        .maxOf { it.id }
-}
 
 interface PolygonService {
     suspend fun downloadProblem(problemId: Int, onlyEssentials: Boolean = false): IRProblem

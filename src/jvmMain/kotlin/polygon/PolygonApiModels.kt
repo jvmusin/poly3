@@ -36,8 +36,8 @@ data class ProblemInfo(
     val inputFile: String,
     val outputFile: String,
     val interactive: Boolean,
-    val timeLimit: Int,
-    val memoryLimit: Int
+    val timeLimit: Int, // ms
+    val memoryLimit: Int // mb
 )
 
 @Serializable
@@ -121,6 +121,7 @@ data class PolygonTest(
 data class TestGroup(
     val name: String,
     val pointsPolicy: PointsPolicyType,
+    val feedbackPolicy: String, // add enums
     val dependencies: List<String>
 ) {
     @Serializable
