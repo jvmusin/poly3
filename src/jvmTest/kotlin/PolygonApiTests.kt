@@ -1,3 +1,4 @@
+import io.github.config4k.extract
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forAll
 import io.kotest.koin.KoinListener
@@ -16,7 +17,7 @@ class PolygonApiTests : BehaviorSpec(), KoinTest {
     private val problemId = 159528
     private val api: PolygonApi by inject()
 
-    override fun listeners() = listOf(KoinListener(polygonModule))
+    override fun listeners() = listOf(KoinListener(polygonModule(config.extract("polygon"))))
 
     init {
         Given("getTestGroup") {

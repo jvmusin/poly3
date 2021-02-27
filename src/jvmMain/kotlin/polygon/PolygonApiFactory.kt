@@ -13,15 +13,9 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
-class PolygonApiFactory {
+class PolygonApiFactory(private val config: PolygonConfig) {
 
-    companion object {
-        private const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
-        private const val POLYGON_SECRET = "c2a453543589c5650131b9e2fa8d186ca3ae01b4"
-        private const val POLYGON_URL = "https://polygon.codeforces.com/api/"
-    }
-
-    private class ApiSigAddingInterceptor : Interceptor {
+    private inner class ApiSigAddingInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val original = chain.request()
             val originalUrl = original.url
@@ -31,7 +25,7 @@ class PolygonApiFactory {
             val method = originalUrl.pathSegments[1]
 
             val almostDoneUrl = originalUrl.newBuilder()
-                .addQueryParameter("apiKey", POLYGON_KEY)
+                .addQueryParameter("apiKey", config.apiKey)
                 .addQueryParameter("time", time.toString())
                 .build()
 
@@ -39,7 +33,7 @@ class PolygonApiFactory {
                 .map { it to almostDoneUrl.queryParameter(it) }
                 .sortedWith(compareBy({ it.first }, { it.second }))
                 .joinToString("&") { "${it.first}=${it.second}" }
-            val toHash = "$prefix/$method?$middle#$POLYGON_SECRET"
+            val toHash = "$prefix/$method?$middle#${config.secret}"
             val apiSig = prefix + toHash.sha512()
 
             val finalUrl = almostDoneUrl.newBuilder().addQueryParameter("apiSig", apiSig).build()
@@ -94,7 +88,7 @@ class PolygonApiFactory {
         }
     }
 
-    fun create(): PolygonApi = RetrofitClientFactory.create(POLYGON_URL) {
+    fun create(): PolygonApi = RetrofitClientFactory.create(config.url) {
         addInterceptor(TooManyRequestsRetryInterceptor())
         addInterceptor(Error500RetryInterceptor())
         addInterceptor(ApiSigAddingInterceptor())

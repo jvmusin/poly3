@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
+import io.github.config4k.extract
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.koin.KoinListener
@@ -68,5 +69,5 @@ class PolygonProblemDownloadingTests : StringSpec({
         }
     }
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(polygonModule))
+    override fun listeners() = listOf(KoinListener(polygonModule(config.extract("polygon"))))
 }

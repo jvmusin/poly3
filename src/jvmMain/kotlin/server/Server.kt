@@ -2,6 +2,8 @@ package server
 
 import api.ToastKind
 import bacs.bacsModule
+import io.github.config4k.extract
+import io.github.config4k.toConfig
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -56,7 +58,8 @@ fun Application.module() {
         cookie<Session>("SESSION")
     }
     install(Koin) {
-        modules(sybonModule, bacsModule, polygonModule, serverModule)
+        val config = environment.config.toConfig("root")
+        modules(sybonModule, bacsModule, polygonModule(config.extract("polygon")), serverModule)
     }
 
     routing {

@@ -13,6 +13,7 @@ val logbackVersion: String by project
 val okhttp3Version: String by project
 val jsoupVersion: String by project
 val reactTooltipVersion: String by project
+val config4kVersion: String by project
 
 plugins {
     kotlin("multiplatform") version "1.4.31"
@@ -56,12 +57,12 @@ kotlin {
                 implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-auth:$ktorVersion")
-                implementation("io.ktor:ktor-client-logging:$ktorVersion")
-                implementation("io.ktor:ktor-client-json:$ktorVersion")
-                implementation("io.ktor:ktor-client-serialization:$ktorVersion")
-                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
+//                implementation("io.ktor:ktor-client-core:$ktorVersion")
+//                implementation("io.ktor:ktor-client-auth:$ktorVersion")
+//                implementation("io.ktor:ktor-client-logging:$ktorVersion")
+//                implementation("io.ktor:ktor-client-json:$ktorVersion")
+//                implementation("io.ktor:ktor-client-serialization:$ktorVersion")
+//                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             }
         }
         val commonTest by getting
@@ -91,6 +92,8 @@ kotlin {
                 implementation("org.koin:koin-core:$koinVersion")
                 implementation("org.koin:koin-core-ext:$koinVersion")
                 implementation("org.koin:koin-ktor:$koinVersion")
+
+                implementation("io.github.config4k:config4k:$config4kVersion")
             }
         }
         val jvmTest by getting {

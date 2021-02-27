@@ -3,7 +3,7 @@ package polygon
 import org.koin.dsl.module
 import org.koin.experimental.builder.singleBy
 
-val polygonModule = module {
-    single { PolygonApiFactory().create() }
+fun polygonModule(polygonConfig: PolygonConfig) = module {
+    single { PolygonApiFactory(polygonConfig).create() }
     singleBy<PolygonService, PolygonServiceImpl>()
 }

@@ -1,6 +1,7 @@
 import api.AdditionalProblemProperties
 import bacs.BacsArchiveService
 import bacs.bacsModule
+import io.github.config4k.extract
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.koin.KoinListener
 import org.koin.java.KoinJavaComponent.inject
@@ -35,5 +36,5 @@ class SybonSpecialCollectionTests : StringSpec({
     }
 
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(polygonModule + bacsModule + sybonModule))
+    override fun listeners() = listOf(KoinListener(polygonModule(config.extract("polygon")) + bacsModule + sybonModule))
 }
