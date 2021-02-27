@@ -6,16 +6,14 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
-import util.RetrofitClientFactory
+import retrofit.RetrofitClientFactory
 import util.getLogger
 import util.sha512
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
-class PolygonApiFactory(
-    private val retrofitClientFactory: RetrofitClientFactory
-) {
+class PolygonApiFactory {
 
     companion object {
         private const val POLYGON_KEY = "39f8cd6bb1f5b79054fb69623c624b4b331cd6b6"
@@ -96,7 +94,7 @@ class PolygonApiFactory(
         }
     }
 
-    fun create(): PolygonApi = retrofitClientFactory.create(POLYGON_URL) {
+    fun create(): PolygonApi = RetrofitClientFactory.create(POLYGON_URL) {
         addInterceptor(TooManyRequestsRetryInterceptor())
         addInterceptor(Error500RetryInterceptor())
         addInterceptor(ApiSigAddingInterceptor())

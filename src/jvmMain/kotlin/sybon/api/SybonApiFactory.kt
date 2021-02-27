@@ -2,11 +2,9 @@ package sybon.api
 
 import okhttp3.Interceptor
 import okhttp3.Response
-import util.RetrofitClientFactory
+import retrofit.RetrofitClientFactory
 
-class SybonApiFactory(
-    private val retrofitClientFactory: RetrofitClientFactory
-) {
+class SybonApiFactory {
     companion object {
         private const val ARCHIVE_API_URL = "https://archive.sybon.org/api/"
         private const val CHECKING_API_URL = "https://checking.sybon.org/api/"
@@ -15,7 +13,7 @@ class SybonApiFactory(
         private const val API_KEY = "YBJY9zkkUUigNcYOlFoSg"
     }
 
-    private class ApiKeyInjectorInterceptor : Interceptor {
+    private object ApiKeyInjectorInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val newUrl = chain.request().url.newBuilder().addQueryParameter("api_key", API_KEY).build()
             val newRequest = chain.request().newBuilder().url(newUrl).build()
@@ -23,8 +21,8 @@ class SybonApiFactory(
         }
     }
 
-    private inline fun <reified T> createApi(url: String): T = retrofitClientFactory.create(url) {
-        addInterceptor(ApiKeyInjectorInterceptor())
+    private inline fun <reified T> createApi(url: String): T = RetrofitClientFactory.create(url) {
+        addInterceptor(ApiKeyInjectorInterceptor)
     }
 
     fun createArchiveApi(): SybonArchiveApi = createApi(ARCHIVE_API_URL)

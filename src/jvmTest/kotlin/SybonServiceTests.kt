@@ -7,7 +7,6 @@ import org.koin.test.KoinTest
 import sybon.SybonArchiveService
 import sybon.TestProblemArchive
 import sybon.sybonModule
-import util.retrofitModule
 
 class SybonServiceTests : StringSpec({
     val service by inject(SybonArchiveService::class.java, TestProblemArchive)
@@ -24,5 +23,5 @@ class SybonServiceTests : StringSpec({
         const val A_PLUS_B_SYBON_PROBLEM_ID = 82120
     }
 
-    override fun listeners() = listOf(KoinListener(sybonModule + retrofitModule))
+    override fun listeners() = listOf(KoinListener(sybonModule))
 }

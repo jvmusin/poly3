@@ -4,6 +4,6 @@ import org.koin.dsl.module
 import org.koin.experimental.builder.singleBy
 
 val polygonModule = module {
-    single { PolygonApiFactory(get()).create() }
+    single { PolygonApiFactory().create() }
     singleBy<PolygonService, PolygonServiceImpl>()
 }

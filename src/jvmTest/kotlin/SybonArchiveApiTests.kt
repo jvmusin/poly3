@@ -13,7 +13,6 @@ import sybon.api.SybonArchiveApi
 import sybon.api.SybonCollection
 import sybon.api.SybonProblem
 import sybon.sybonModule
-import util.retrofitModule
 
 class SybonArchiveApiTests : StringSpec({
     val api by inject(SybonArchiveApi::class.java)
@@ -97,5 +96,5 @@ class SybonArchiveApiTests : StringSpec({
         id1 shouldNotBe id2
     }
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(retrofitModule + sybonModule))
+    override fun listeners() = listOf(KoinListener(sybonModule))
 }

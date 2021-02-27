@@ -9,7 +9,6 @@ import polygon.PolygonService
 import polygon.polygonModule
 import sybon.api.SybonArchiveApi
 import sybon.sybonModule
-import util.retrofitModule
 import java.time.LocalDateTime
 import kotlin.time.ExperimentalTime
 
@@ -36,5 +35,5 @@ class SybonSpecialCollectionTests : StringSpec({
     }
 
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(retrofitModule + polygonModule + bacsModule + sybonModule))
+    override fun listeners() = listOf(KoinListener(polygonModule + bacsModule + sybonModule))
 }

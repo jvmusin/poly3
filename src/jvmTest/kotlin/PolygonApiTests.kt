@@ -1,21 +1,55 @@
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.inspectors.forAll
 import io.kotest.koin.KoinListener
-import io.kotest.matchers.collections.shouldHaveSize
-import org.koin.java.KoinJavaComponent.inject
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import polygon.PolygonApi
+import polygon.TestGroup.PointsPolicyType.COMPLETE_GROUP
+import polygon.TestGroup.PointsPolicyType.EACH_TEST
 import polygon.polygonModule
-import util.retrofitModule
 
-class PolygonApiTests : StringSpec({
-    val api by inject(PolygonApi::class.java)
+class PolygonApiTests : BehaviorSpec(), KoinTest {
+    private val problemId = 159528
+    private val api: PolygonApi by inject()
 
-    "getTestGroup works" {
-        val result = api.getTestGroup(144845, null).result!!
-        println(result.size)
-        result shouldHaveSize 4
+    override fun listeners() = listOf(KoinListener(polygonModule))
+
+    init {
+        Given("getTestGroup") {
+            When("asking for problem with test group on all tests") {
+
+                suspend fun result() = api.getTestGroup(problemId, null).result!!
+                val expectedGroups = listOf("samples", "first", "second", "third", "fourth", "fifth")
+
+                Then("returns correct group names") {
+                    result().map { it.name } should containExactlyInAnyOrder(expectedGroups)
+                }
+
+                Then("returns correct group dependencies") {
+                    val byName = result().associateBy { it.name }
+                    byName["second"]!!.dependencies should containExactlyInAnyOrder("samples")
+                    byName["third"]!!.dependencies should containExactlyInAnyOrder("first", "fifth")
+                    byName["fourth"]!!.dependencies should containExactlyInAnyOrder("third")
+                    (expectedGroups - setOf("second", "third", "fourth")).forAll {
+                        byName[it]!!.dependencies.shouldBeEmpty()
+                    }
+                }
+
+                Then("all groups except fourth should have points policy of EACH_TEST") {
+                    val result = result().associateBy { it.name }
+                    result.entries.filter { it.key != "fourth" }.map { it.value }
+                        .forAll { it.pointsPolicy shouldBe EACH_TEST }
+                    result["fourth"]!!.pointsPolicy shouldBe COMPLETE_GROUP
+                }
+
+                Then("fourth group should have points policy of COMPLETE_GROUP") {
+                    result().single { it.name == "fourth" }.pointsPolicy shouldBe COMPLETE_GROUP
+                }
+            }
+        }
     }
-
-}), KoinTest {
-    override fun listeners() = listOf(KoinListener(retrofitModule + polygonModule))
 }

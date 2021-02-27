@@ -18,7 +18,6 @@ import org.slf4j.event.Level
 import polygon.polygonModule
 import server.routes.root
 import sybon.sybonModule
-import util.retrofitModule
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
 import kotlin.time.seconds
@@ -57,7 +56,7 @@ fun Application.module() {
         cookie<Session>("SESSION")
     }
     install(Koin) {
-        modules(retrofitModule, sybonModule, bacsModule, polygonModule, serverModule)
+        modules(sybonModule, bacsModule, polygonModule, serverModule)
     }
 
     routing {
