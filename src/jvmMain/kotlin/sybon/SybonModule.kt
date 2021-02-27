@@ -4,8 +4,8 @@ import org.koin.dsl.module
 import org.koin.experimental.builder.singleBy
 import sybon.api.SybonApiFactory
 
-val sybonModule = module {
-    with(SybonApiFactory()) {
+fun sybonModule(config: SybonConfig) = module {
+    with(SybonApiFactory(config)) {
         single { createArchiveApi() }
         single { createCheckingApi() }
     }
