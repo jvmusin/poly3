@@ -1,5 +1,3 @@
-@file:Suppress("ArrayInDataClass")
-
 package ir
 
 data class IRProblem(
@@ -14,7 +12,7 @@ data class IRProblem(
     val mainSolution get() = solutions.single { it.isMain }
 }
 
-data class IRStatement(val name: String, val content: ByteArray)
+data class IRStatement(val name: String, val content: List<Byte>)
 data class IRTest(val index: Int, val isSample: Boolean, val input: String, val output: String)
 data class IRChecker(val name: String, val content: String)
 data class IRLimits(val timeLimitMillis: Int, val memoryLimitMegabytes: Int)

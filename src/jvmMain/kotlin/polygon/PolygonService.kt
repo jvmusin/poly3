@@ -63,7 +63,7 @@ class PolygonServiceImpl(
             polygonApi.getStatement(problemId)?.let { (language, statement) ->
                 val content = polygonApi.getStatementRaw(problemId, packageId, "pdf", language)
                     ?: throw PolygonProblemDownloadException("Не найдена pdf версия условия")
-                IRStatement(statement.name, content)
+                IRStatement(statement.name, content.toList())
             } ?: throw PolygonProblemDownloadException("Не найдено условие")
         }
 

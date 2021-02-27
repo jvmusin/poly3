@@ -78,7 +78,7 @@ fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = AdditionalP
     }
 
     fun writeStatement() {
-        statementPath.resolve("problem.pdf").writeBytes(statement.content)
+        statementPath.resolve("problem.pdf").writeBytes(statement.content.toByteArray())
         statementPath.resolve("pdf.ini").writeText(
             """
                 [info]
