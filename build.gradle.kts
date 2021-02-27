@@ -3,11 +3,16 @@
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion = "1.5.2"
-val retrofitVersion = "2.9.0"
-val serializationVersion = "1.0.1"
-val kotestVersion = "4.4.1"
-val koinVersion = "2.2.2"
+val ktorVersion: String by project
+val retrofitVersion: String by project
+val serializationVersion: String by project
+val kotestVersion: String by project
+val koinVersion: String by project
+val wrappersSuffix: String by project
+val logbackVersion: String by project
+val okhttp3Version: String by project
+val jsoupVersion: String by project
+val reactTooltipVersion: String by project
 
 plugins {
     kotlin("multiplatform") version "1.4.31"
@@ -65,8 +70,8 @@ kotlin {
                 implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
                 implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
-                implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2")
-                implementation("com.squareup.okhttp3:okhttp:5.0.0-alpha.2")
+                implementation("com.squareup.okhttp3:logging-interceptor:$okhttp3Version")
+                implementation("com.squareup.okhttp3:okhttp:$okhttp3Version")
                 implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:0.8.0")
 
                 implementation("io.ktor:ktor-serialization:$ktorVersion")
@@ -74,10 +79,9 @@ kotlin {
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
                 implementation("io.ktor:ktor-server-sessions:$ktorVersion")
                 implementation("io.ktor:ktor-websockets:$ktorVersion")
-                implementation("ch.qos.logback:logback-classic:1.3.0-alpha5")
+                implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
-                // https://mvnrepository.com/artifact/org.jsoup/jsoup
-                implementation("org.jsoup:jsoup:1.13.1")
+                implementation("org.jsoup:jsoup:$jsoupVersion")
 
                 implementation("io.ktor:ktor-client-cio-jvm:$ktorVersion")
                 implementation("io.ktor:ktor-client-auth-jvm:$ktorVersion")
@@ -101,16 +105,16 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation("org.jetbrains:kotlin-react:17.0.1-pre.146-kotlin-1.4.30")
-                implementation("org.jetbrains:kotlin-react-dom:17.0.1-pre.146-kotlin-1.4.30")
-                implementation("org.jetbrains:kotlin-styled:5.2.1-pre.146-kotlin-1.4.30")
+                implementation("org.jetbrains:kotlin-react:17.0.1-$wrappersSuffix")
+                implementation("org.jetbrains:kotlin-react-dom:17.0.1-$wrappersSuffix")
+                implementation("org.jetbrains:kotlin-styled:5.2.1-$wrappersSuffix")
 
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-websockets-js:$ktorVersion")
 
-                implementation(npm("react-tooltip", "4.2.14", false))
+                implementation(npm("react-tooltip", reactTooltipVersion, false))
             }
         }
         val jsTest by getting
