@@ -3,16 +3,16 @@
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion = "1.5.1"
+val ktorVersion = "1.5.2"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.1"
 val kotestVersion = "4.4.1"
 val koinVersion = "2.2.2"
 
 plugins {
-    kotlin("multiplatform") version "1.4.30"
+    kotlin("multiplatform") version "1.4.31"
     application
-    kotlin("plugin.serialization") version "1.4.30"
+    kotlin("plugin.serialization") version "1.4.31"
 }
 
 group = "jvmusin"
@@ -31,10 +31,6 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = "15"
         }
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-        withJava()
     }
     js(IR) {
         browser {
@@ -45,7 +41,6 @@ kotlin {
             testTask {
                 useKarma {
                     useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
                 }
             }
         }
@@ -134,15 +129,10 @@ tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack") {
 }
 
 tasks.getByName<Jar>("jvmJar") {
-    //todo undo it
+    //creates a big unoptimized js pack, replace 'Development' with 'Production' to make it work better
     val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
     dependsOn(webpackTask) // make sure JS gets compiled first
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
-}
-
-tasks.getByName<JavaExec>("run") {
-    dependsOn(tasks.getByName<Jar>("jvmJar"))
-    classpath(tasks.getByName<Jar>("jvmJar"))
 }
 
 // Alias "installDist" as "stage" (for cloud providers)
@@ -162,8 +152,9 @@ distributions {
     }
 }
 
-tasks.withType(KotlinCompile::class).all {
+tasks.withType<KotlinCompile>().all {
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    kotlinOptions.useIR = true
 }
 
 tasks.withType<Test> {

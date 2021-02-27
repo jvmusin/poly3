@@ -17,7 +17,7 @@ class PolygonProblemDownloadingTests : StringSpec({
 
     "Downloading problem without any built packages fails" {
         shouldThrow<PolygonProblemDownloadException> {
-            service.downloadProblem(157608)
+            service.downloadProblem(157557)
         }
     }
 
