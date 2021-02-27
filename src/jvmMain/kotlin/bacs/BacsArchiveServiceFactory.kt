@@ -10,14 +10,7 @@ import io.ktor.http.URLProtocol.Companion.HTTPS
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
-class BacsArchiveServiceFactory {
-    companion object {
-        private val PROTOCOL = HTTPS
-        private const val HOST = "archive.bacs.cs.istu.ru"
-        private const val BASE_PATH = "repository"
-        private const val AUTH_USERNAME = "sybon"
-        private const val AUTH_PASSWORD = "wjh\$42ds09"
-    }
+class BacsArchiveServiceFactory(private val config: BacsConfig) {
 
     @OptIn(ExperimentalTime::class)
     fun create(): BacsArchiveServiceImpl {
@@ -25,16 +18,16 @@ class BacsArchiveServiceFactory {
             install(Auth) {
                 basic {
                     sendWithoutRequest = true
-                    username = AUTH_USERNAME
-                    password = AUTH_PASSWORD
+                    username = config.username
+                    password = config.password
                 }
             }
             install(Logging) { level = LogLevel.INFO }
             defaultRequest {
                 url {
-                    protocol = PROTOCOL
-                    host = HOST
-                    encodedPath = "$BASE_PATH/$encodedPath"
+                    protocol = HTTPS
+                    host = config.host
+                    encodedPath = "${config.basePath}/$encodedPath"
                 }
             }
             engine {

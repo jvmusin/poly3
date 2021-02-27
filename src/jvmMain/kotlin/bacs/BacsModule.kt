@@ -2,7 +2,6 @@ package bacs
 
 import org.koin.dsl.module
 
-@Suppress("USELESS_CAST")
-val bacsModule = module {
-    single<BacsArchiveService> { BacsArchiveServiceFactory().create() }
+fun bacsModule(config: BacsConfig) = module {
+    single<BacsArchiveService> { BacsArchiveServiceFactory(config).create() }
 }

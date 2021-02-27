@@ -59,7 +59,7 @@ fun Application.module() {
     }
     install(Koin) {
         val config = ConfigFactory.load()
-        modules(sybonModule, bacsModule, polygonModule(config.extract("polygon")), serverModule)
+        modules(sybonModule, bacsModule(config.extract("bacs")), polygonModule(config.extract("polygon")), serverModule)
     }
 
     routing {

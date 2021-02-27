@@ -69,5 +69,5 @@ class PolygonProblemDownloadingTests : StringSpec({
         }
     }
 }), KoinTest {
-    override fun listeners() = listOf(KoinListener(polygonModule(config.extract("polygon"))))
+    override fun listeners() = listOf(KoinListener(polygonModule))
 }
