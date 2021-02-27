@@ -2,8 +2,8 @@ package server
 
 import api.ToastKind
 import bacs.bacsModule
+import com.typesafe.config.ConfigFactory
 import io.github.config4k.extract
-import io.github.config4k.toConfig
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -58,7 +58,7 @@ fun Application.module() {
         cookie<Session>("SESSION")
     }
     install(Koin) {
-        val config = environment.config.toConfig("root")
+        val config = ConfigFactory.load()
         modules(sybonModule, bacsModule, polygonModule(config.extract("polygon")), serverModule)
     }
 

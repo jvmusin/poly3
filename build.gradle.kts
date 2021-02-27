@@ -37,6 +37,7 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = "15"
         }
+        withJava()
     }
     js(IR) {
         browser {
@@ -56,13 +57,6 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-
-//                implementation("io.ktor:ktor-client-core:$ktorVersion")
-//                implementation("io.ktor:ktor-client-auth:$ktorVersion")
-//                implementation("io.ktor:ktor-client-logging:$ktorVersion")
-//                implementation("io.ktor:ktor-client-json:$ktorVersion")
-//                implementation("io.ktor:ktor-client-serialization:$ktorVersion")
-//                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             }
         }
         val commonTest by getting
@@ -142,6 +136,11 @@ tasks.getByName<Jar>("jvmJar") {
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
 }
 
+tasks.getByName<JavaExec>("run") {
+    dependsOn(tasks.getByName<Jar>("jvmJar"))
+    classpath(tasks.getByName<Jar>("jvmJar"))
+}
+
 // Alias "installDist" as "stage" (for cloud providers)
 tasks.create("stage") {
     dependsOn(tasks.getByName("installDist"))
@@ -161,7 +160,6 @@ distributions {
 
 tasks.withType<KotlinCompile>().all {
     kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
-    kotlinOptions.useIR = true
 }
 
 tasks.withType<Test> {
