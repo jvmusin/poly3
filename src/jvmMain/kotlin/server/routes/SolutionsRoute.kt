@@ -12,7 +12,7 @@ import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
-import polygon.PolygonProblemDownloadException
+import polygon.exception.ProblemDownloadingException
 import polygon.PolygonService
 import server.MessageSenderFactory
 import sybon.SybonArchiveService
@@ -35,7 +35,7 @@ fun Route.solutions() {
         val fullName = call.parameters["name"]!!
         val irProblem = try {
             polygonService.downloadProblem(problemId, true)
-        } catch (e: PolygonProblemDownloadException) {
+        } catch (e: ProblemDownloadingException) {
             messageSenderFactory.create(this, fullName)(e.message.orEmpty(), ToastKind.FAILURE)
             call.respond(
                 HttpStatusCode.BadRequest,

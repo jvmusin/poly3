@@ -1,5 +1,6 @@
-package polygon
+package polygon.api
 
+import polygon.exception.NoSuchProblemException
 import util.extract
 import java.nio.file.Files
 import java.nio.file.Path
@@ -7,7 +8,10 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipFile
-import kotlin.io.path.*
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.notExists
+import kotlin.io.path.readBytes
+import kotlin.io.path.writeBytes
 
 private val packagesCache = ConcurrentHashMap<Int, Path>()
 
@@ -40,25 +44,25 @@ suspend fun PolygonApi.getStatementRaw(
     return filePath.readBytes()
 }
 
-suspend fun PolygonApi.getProblem(problemId: Int): Problem {
-    return getProblems().result!!.single { it.id == problemId }
-}
+/**
+ * Returns problem with the given [problemId] from the problem list.
+ *
+ * @param problemId the problem id to return.
+ * @return The problem.
+ * @throws NoSuchProblemException if the problem is not found.
+ * @see PolygonApi.getProblems
+ */
+suspend fun PolygonApi.getProblem(problemId: Int) = getProblems().extract().singleOrNull { it.id == problemId }
+    ?: throw NoSuchProblemException("There is no problem with id $problemId")
 
 suspend fun PolygonApi.getStatement(problemId: Int, language: String? = null): Pair<String, Statement>? {
-    return getStatements(problemId).result!!.entries.firstOrNull {
+    return getStatements(problemId).extract().entries.firstOrNull {
         language == null || it.key == language
     }?.let { it.key to it.value }
 }
 
 suspend fun PolygonApi.getLatestPackageId(problemId: Int): Int {
-    return getPackages(problemId).result!!
+    return getPackages(problemId).extract()
         .filter { it.state == Package.State.READY }
         .maxOf { it.id }
-}
-
-@OptIn(ExperimentalPathApi::class)
-suspend fun PolygonApi.getProblemXml(problemId: Int): String {
-    return downloadPackage(problemId, getLatestPackageId(problemId))
-        .resolve("problem.xml")
-        .readText()
 }

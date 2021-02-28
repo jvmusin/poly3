@@ -1,15 +1,18 @@
 @file:Suppress("RUNTIME_ANNOTATION_NOT_SUPPORTED", "unused")
 
-package polygon
+package polygon.api
 
 import kotlinx.serialization.Serializable
+import polygon.exception.ResultExtractingException
 
 @Serializable
 data class PolygonResponse<T>(
     val status: String,
     val result: T? = null,
     val comment: String? = null
-)
+) {
+    fun extract() = result ?: throw ResultExtractingException(comment)
+}
 
 @Serializable
 data class Problem(
@@ -31,13 +34,22 @@ data class Problem(
     }
 }
 
+/**
+ * Problem info.
+ *
+ * @property inputFile Input file name or **stdin** if no input file is used.
+ * @property outputFile Output file name or **stdout** if no output file is used.
+ * @property interactive Whether the problem is interactive or not.
+ * @property timeLimit Time limit in milliseconds.
+ * @property memoryLimit Memory limit in megabytes.
+ */
 @Serializable
 data class ProblemInfo(
     val inputFile: String,
     val outputFile: String,
     val interactive: Boolean,
-    val timeLimit: Int, // ms
-    val memoryLimit: Int // mb
+    val timeLimit: Int,
+    val memoryLimit: Int
 )
 
 @Serializable

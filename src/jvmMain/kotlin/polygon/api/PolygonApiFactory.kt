@@ -1,11 +1,12 @@
 @file:OptIn(ExperimentalTime::class, ExperimentalSerializationApi::class)
 
-package polygon
+package polygon.api
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import polygon.PolygonConfig
 import retrofit.RetrofitClientFactory
 import util.getLogger
 import util.sha512
@@ -42,6 +43,7 @@ class PolygonApiFactory(private val config: PolygonConfig) {
     }
 
     private class TooManyRequestsRetryInterceptor(
+//        private val retryPolicy: RetryPolicy = RetryPolicy(10.minutes, 1.minutes)
         private val period: Duration = 1.minutes,
         private val retries: Int = 10
     ) : Interceptor {
@@ -62,6 +64,25 @@ class PolygonApiFactory(private val config: PolygonConfig) {
                 }
                 return res
             }
+        }
+    }
+
+    /**
+     * Changes response code from 400 to 200.
+     *
+     * Used to treat *code 400* responses as *code 200* responses.
+     * Since Polygon API returns code 400 when something is wrong,
+     * it also returns the message about that in request body,
+     * so we will have *null* result and *non-null* message
+     * in the [PolygonResponse].
+     */
+    private class Code400To200Interceptor : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val result = chain.proceed(chain.request())
+            if (result.code == 400) {
+                return result.newBuilder().code(200).build()
+            }
+            return result
         }
     }
 
@@ -92,5 +113,6 @@ class PolygonApiFactory(private val config: PolygonConfig) {
         addInterceptor(TooManyRequestsRetryInterceptor())
         addInterceptor(Error500RetryInterceptor())
         addInterceptor(ApiSigAddingInterceptor())
+        addInterceptor(Code400To200Interceptor())
     }
 }

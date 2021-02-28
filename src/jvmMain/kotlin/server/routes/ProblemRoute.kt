@@ -10,7 +10,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import org.koin.ktor.ext.inject
 import polygon.PolygonService
-import polygon.toDto
+import polygon.api.toDto
 import server.MessageSenderFactory
 import sybon.toZipArchive
 import kotlin.io.path.ExperimentalPathApi

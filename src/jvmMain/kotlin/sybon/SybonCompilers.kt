@@ -4,6 +4,13 @@ package sybon
 
 import sybon.api.SybonCompiler
 
+/**
+ * Sybon compilers.
+ *
+ * Contains all known Sybon compilers in one place.
+ *
+ * Call [SybonCompilers.list] to get the list of these compilers.
+ */
 object SybonCompilers {
     val C = SybonCompiler(
         id = 1,
@@ -102,6 +109,9 @@ object SybonCompilers {
         realTimeLimitMillis = 120000
     )
 
+    /**
+     * List of all the sybon compilers.
+     */
     val list = listOf(
         C,
         CPP,

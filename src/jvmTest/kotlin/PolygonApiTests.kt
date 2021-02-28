@@ -3,13 +3,15 @@ import io.kotest.inspectors.forAll
 import io.kotest.koin.KoinListener
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import org.koin.test.KoinTest
 import org.koin.test.inject
-import polygon.PolygonApi
-import polygon.TestGroup.PointsPolicyType.COMPLETE_GROUP
-import polygon.TestGroup.PointsPolicyType.EACH_TEST
+import polygon.api.PolygonApi
+import polygon.api.TestGroup.PointsPolicyType.COMPLETE_GROUP
+import polygon.api.TestGroup.PointsPolicyType.EACH_TEST
 
 class PolygonApiTests : BehaviorSpec(), KoinTest {
     private val api: PolygonApi by inject()
@@ -110,6 +112,43 @@ class PolygonApiTests : BehaviorSpec(), KoinTest {
 
                 Then("fourth group should have points policy of COMPLETE_GROUP") {
                     result().single { it.name == "fourth" }.pointsPolicy shouldBe COMPLETE_GROUP
+                }
+            }
+
+            When("asking for problem with no test groups") {
+
+                val problemId = 157557
+                suspend fun result() = api.getTestGroup(problemId, null)
+
+                Then("returns null result and appropriate status and comment fields") {
+                    with(result()) {
+                        status shouldBe "FAILED"
+                        result.shouldBeNull()
+                        comment shouldBe "testset: Test groups are disabled for the specified testset"
+                    }
+                }
+            }
+        }
+
+        Given("getProblemInfo") {
+            When("asking for problem with OWNER access") {
+                Then("returns info") {
+                    with(api.getProblemInfo(106223).result.shouldNotBeNull()) {
+                        inputFile shouldBe "stdin"
+                        outputFile shouldBe "stdout"
+                        interactive shouldBe false
+                        timeLimit shouldBe 1000
+                        memoryLimit shouldBe 256
+                    }
+                }
+            }
+            When("asking for problem with READ access") {
+                Then("returns problem not found") {
+                    with(api.getProblemInfo(69927)) {
+                        status shouldBe "FAILED"
+                        result.shouldBeNull()
+                        comment shouldBe "problemId: Problem not found"
+                    }
                 }
             }
         }

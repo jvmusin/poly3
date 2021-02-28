@@ -1,4 +1,4 @@
-package polygon
+package polygon.api
 
 import okhttp3.ResponseBody
 import retrofit2.http.POST

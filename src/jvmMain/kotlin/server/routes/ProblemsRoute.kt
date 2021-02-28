@@ -11,7 +11,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import org.koin.ktor.ext.inject
 import polygon.PolygonService
-import polygon.toDto
+import polygon.api.toDto
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.ExperimentalTime
 
