@@ -90,7 +90,7 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
                             service.downloadProblem(problem.id)
                         } catch (e: ProblemDownloadingException) {
                             if (e.cause!!::class == CheckerNotFoundException::class) {
-                                System.err.println("FOUND A PROBLEM WITH NO CPP CHECKER STATEMENT: ${problem.id}")
+                                System.err.println("FOUND A PROBLEM WITH NO CPP CHECKER: ${problem.id}")
                                 throw e
                             } else {
                                 System.err.println("PROBLEM ${problem.id} FAILED WITH AN EXCEPTION ${e.message}")
