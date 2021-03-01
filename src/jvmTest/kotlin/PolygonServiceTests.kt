@@ -1,10 +1,10 @@
 @file:OptIn(ExperimentalTime::class)
 
-import TestProblems.problemWithNoWriteAccess
 import TestProblems.interactiveProblem
 import TestProblems.modifiedProblem
 import TestProblems.noBuildPackagesProblem
 import TestProblems.oldPackageProblem
+import TestProblems.problemWithNoWriteAccess
 import TestProblems.problemWithoutCppChecker
 import TestProblems.problemWithoutPdfStatement
 import TestProblems.problemWithoutStatement
@@ -25,8 +25,8 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
     override fun listeners() = listOf(KoinListener(polygonModule))
 
     private suspend inline fun <reified TException : Throwable> downloadProblemWithInnerException(
-            problemId: Int,
-            includeTests: Boolean = false
+        problemId: Int,
+        includeTests: Boolean = false
     ) {
         shouldThrowExactly<ProblemDownloadingException> {
             service.downloadProblem(problemId, includeTests)
