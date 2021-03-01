@@ -4,7 +4,7 @@ import ir.IRVerdict
 
 object PolygonTagToIRVerdictConverter {
     fun convert(tag: String): IRVerdict {
-        return when(tag) {
+        return when (tag) {
             "MA", "OK" -> IRVerdict.OK
             "WA" -> IRVerdict.WRONG_ANSWER
             "TL", "TO" -> IRVerdict.TIME_LIMIT_EXCEEDED

@@ -12,7 +12,6 @@ import sybon.api.ResourceLimits
 import sybon.api.SybonArchiveApi
 import sybon.api.SybonCollection
 import sybon.api.SybonProblem
-import sybon.sybonModule
 
 class SybonArchiveApiTests : StringSpec({
     val api by inject(SybonArchiveApi::class.java)

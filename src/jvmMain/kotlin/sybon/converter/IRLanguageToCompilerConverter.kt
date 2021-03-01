@@ -1,8 +1,8 @@
 package sybon.converter
 
 import ir.IRLanguage
-import sybon.api.SybonCompiler
 import sybon.SybonCompilers
+import sybon.api.SybonCompiler
 
 object IRLanguageToCompilerConverter {
     private fun convert(language: IRLanguage): SybonCompiler? {

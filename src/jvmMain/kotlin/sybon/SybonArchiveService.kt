@@ -37,8 +37,7 @@ class SybonArchiveServiceImpl(
                 if (e.code() == 500) {
                     getLogger(javaClass).debug("Sybon returned 500 error on problem import, will try again")
                     null
-                }
-                else throw SybonProblemImportException("Problem import into sybon failed: ${e.message()}", e)
+                } else throw SybonProblemImportException("Problem import into sybon failed: ${e.message()}", e)
             }
         }
 

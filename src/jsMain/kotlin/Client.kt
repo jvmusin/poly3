@@ -1,7 +1,6 @@
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.css.*
-import kotlinx.css.properties.LineHeight
 import react.child
 import react.dom.render
 import styled.injectGlobal

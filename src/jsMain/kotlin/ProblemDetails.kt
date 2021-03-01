@@ -30,7 +30,10 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
     val (finalProblemName, setFinalProblemName) = useState("")
     val (nameAvailability, setNameAvailability) = useState(NameAvailability.LOADING)
     fun buildAdditionalProperties() = AdditionalProblemProperties(
-        prefix, suffix, ((timeLimitSeconds.toDoubleOrNull() ?: 0.0) * 1000).roundToInt(), memoryLimitMegabytes.toIntOrNull() ?: 0
+        prefix = prefix,
+        suffix = suffix,
+        timeLimitMillis = ((timeLimitSeconds.toDoubleOrNull() ?: 0.0) * 1000).roundToInt(),
+        memoryLimitMegabytes = memoryLimitMegabytes.toIntOrNull() ?: 0
     )
 
     useEffect(listOf(problem)) {

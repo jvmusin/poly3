@@ -17,7 +17,6 @@ import sybon.api.SybonSubmissionResult.TestGroupResult
 import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult
 import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult.ResourceUsage
 import sybon.api.SybonSubmitSolution
-import sybon.sybonModule
 import util.encodeBase64
 
 class SybonCheckingApiTests : StringSpec({

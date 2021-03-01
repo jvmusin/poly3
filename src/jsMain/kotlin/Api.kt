@@ -25,7 +25,9 @@ import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import kotlin.js.Date
-import kotlin.time.*
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
+import kotlin.time.seconds
 
 object Api {
     private val client = HttpClient {

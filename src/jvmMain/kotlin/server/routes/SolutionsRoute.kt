@@ -12,8 +12,8 @@ import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
-import polygon.exception.ProblemDownloadingException
 import polygon.PolygonService
+import polygon.exception.ProblemDownloadingException
 import server.MessageSenderFactory
 import sybon.SybonArchiveService
 import sybon.SybonCheckingService

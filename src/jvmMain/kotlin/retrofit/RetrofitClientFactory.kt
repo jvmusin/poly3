@@ -7,7 +7,6 @@ import okhttp3.Dispatcher
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory

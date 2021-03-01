@@ -6,7 +6,6 @@ import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
 import sybon.SybonArchiveService
 import sybon.TestProblemArchive
-import sybon.sybonModule
 
 class SybonServiceTests : StringSpec({
     val service by inject(SybonArchiveService::class.java, TestProblemArchive)

@@ -5,9 +5,7 @@ import io.kotest.koin.KoinListener
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
 import polygon.PolygonService
-import polygon.polygonModule
 import sybon.api.SybonArchiveApi
-import sybon.sybonModule
 import java.time.LocalDateTime
 import kotlin.time.ExperimentalTime
 

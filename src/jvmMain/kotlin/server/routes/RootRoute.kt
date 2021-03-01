@@ -4,7 +4,7 @@ package server.routes
 
 import io.ktor.http.content.*
 import io.ktor.routing.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.ExperimentalTime
 
