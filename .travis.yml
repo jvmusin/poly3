@@ -3,6 +3,10 @@ language: java
 jdk:
   - openjdk15
 
+branches:
+  only:
+    - master
+
 before_install:
   - chmod +x gradlew
 
