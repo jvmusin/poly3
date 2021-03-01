@@ -331,6 +331,7 @@ class BacsArchiveServiceImpl(
         }
 
         getLogger(javaClass).debug(content)
+        throw Exception(content)
 
         val row = Jsoup.parse(content).body()
             .getElementsByTag("table")[0]
