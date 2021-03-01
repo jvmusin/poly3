@@ -359,6 +359,7 @@ class BacsArchiveServiceImpl(
         return try {
             getProblemStatus(problemId).state
         } catch (e: Exception) {
+            throw e
             getLogger(javaClass).trace("Failed to get problem status", e)
             BacsProblemState.UNKNOWN
         }
