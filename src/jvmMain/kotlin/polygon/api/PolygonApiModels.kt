@@ -11,6 +11,14 @@ data class PolygonResponse<T>(
     val result: T? = null,
     val comment: String? = null
 ) {
+    /**
+     * Extracts [result] from the response.
+     *
+     * If [result] is null, throws [ResultExtractingException] with [comment] as an exception message.
+     *
+     * @return Unboxed *non-null* [result].
+     * @throws ResultExtractingException if [result] is *null*.
+     */
     fun extract() = result ?: throw ResultExtractingException(comment)
 }
 

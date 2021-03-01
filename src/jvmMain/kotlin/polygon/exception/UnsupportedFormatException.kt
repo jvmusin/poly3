@@ -5,4 +5,4 @@ package polygon.exception
  *
  * Thrown if problem format is not supported.
  */
-class FormatNotSupportedException(message: String) : PolygonException(message)
+class UnsupportedFormatException(message: String) : PolygonException(message)

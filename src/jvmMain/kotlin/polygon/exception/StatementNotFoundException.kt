@@ -5,4 +5,4 @@ package polygon.exception
  *
  * Thrown if problem statement is missing.
  */
-class StatementNotFoundException(message: String) : ResourceNotFoundException(message)
+open class StatementNotFoundException(message: String) : ResourceNotFoundException(message)

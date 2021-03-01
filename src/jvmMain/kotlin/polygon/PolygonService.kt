@@ -82,7 +82,7 @@ class PolygonServiceImpl(
                 )
             }
             if (latestPackage == null) {
-                throw NoBuiltPackagesException("У задачи нет собранных пакетов. Соберите пакет")
+                throw NoPackagesBuiltException("У задачи нет собранных пакетов. Соберите пакет")
             }
             if (latestPackage != revision) {
                 throw OldBuiltPackageException("Последний собранный для задачи пакет не актуален. Соберите новый")
@@ -90,9 +90,9 @@ class PolygonServiceImpl(
         }
 
         val info = async {
-            polygonApi.getProblemInfo(problemId).result!!.apply {
+            polygonApi.getProblemInfo(problemId).extract().apply {
                 if (interactive) {
-                    throw FormatNotSupportedException("Интерактивные задачи не поддерживаются")
+                    throw UnsupportedFormatException("Интерактивные задачи не поддерживаются")
                 }
             }
         }
@@ -101,7 +101,7 @@ class PolygonServiceImpl(
         val statement = async {
             polygonApi.getStatement(problemId)?.let { (language, statement) ->
                 val content = polygonApi.getStatementRaw(problemId, packageId, "pdf", language)
-                    ?: throw StatementNotFoundException("Не найдена pdf версия условия")
+                    ?: throw PdfStatementNotFoundException("Не найдена pdf версия условия")
                 IRStatement(statement.name, content.toList())
             } ?: throw StatementNotFoundException("Не найдено условие")
         }
@@ -130,7 +130,7 @@ class PolygonServiceImpl(
 
         val tests = async {
             if (!includeTests) return@async emptyList<IRTest>()
-            val tests = polygonApi.getTests(problemId).result!!.sortedBy { it.index }
+            val tests = polygonApi.getTests(problemId).extract().sortedBy { it.index }
             val inputs = tests.map { async { polygonApi.getTestInput(problemId, it.index) } }
             val answers = tests.map { async { polygonApi.getTestAnswer(problemId, it.index) } }
             val ins = inputs.awaitAll()
@@ -142,7 +142,7 @@ class PolygonServiceImpl(
         }
 
         val solutions = async {
-            polygonApi.getSolutions(problemId).result!!.map { solution ->
+            polygonApi.getSolutions(problemId).extract().map { solution ->
                 val content = polygonApi.getSolutionContent(problemId, solution.name).use {
                     it.bytes().decodeToString()
                 }
@@ -156,7 +156,7 @@ class PolygonServiceImpl(
             }
         }
 
-        val limits = async { info.await().run { IRLimits(timeLimit, memoryLimit) } }
+        val limits = async { with(info.await()) { IRLimits(timeLimit, memoryLimit) } }
 
         IRProblem(
             problem.name,
@@ -169,6 +169,6 @@ class PolygonServiceImpl(
         ).also { cache[FullPackageId(packageId, includeTests)] = it }
     }
 
-    override suspend fun getProblems() = polygonApi.getProblems().result!!
-    override suspend fun getProblemInfo(problemId: Int) = polygonApi.getProblemInfo(problemId).result!!
+    override suspend fun getProblems() = polygonApi.getProblems().extract()
+    override suspend fun getProblemInfo(problemId: Int) = polygonApi.getProblemInfo(problemId).extract()
 }
