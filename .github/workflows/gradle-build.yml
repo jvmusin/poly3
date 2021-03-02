@@ -24,3 +24,9 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
+        env:
+          POLYGON_APIKEY: ${{ secrets.POLYGON_APIKEY }}
+          POLYGON_SECRET: ${{ secrets.POLYGON_SECRET }}
+          BACS_USERNAME: ${{ secrets.BACS_USERNAME }}
+          BACS_PASSWORD: ${{ secrets.BACS_PASSWORD }}
+          SYBON_APIKEY: ${{ secrets.SYBON_APIKEY }}
