@@ -1,6 +1,10 @@
 @file:OptIn(ExperimentalTime::class)
 
-import api.*
+import api.Problem
+import api.ProblemInfo
+import api.Solution
+import api.Toast
+import api.ToastKind
 import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
@@ -13,12 +17,21 @@ import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.strong
 import org.w3c.dom.get
-import react.*
-import react.dom.*
+import react.RProps
+import react.child
+import react.dom.div
+import react.dom.h1
+import react.dom.header
+import react.dom.hr
+import react.dom.span
+import react.functionalComponent
+import react.useEffect
+import react.useEffectWithCleanup
+import react.useState
 import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
-val scope = MainScope()
+val mainScope = MainScope()
 
 fun showToast(toast: Toast) {
     val toastElement = document.getElementsByClassName("toast-container")[0]!!.append {
@@ -48,10 +61,10 @@ val App = functionalComponent<RProps> {
     val (solutions, setSolutions) = useState<List<Solution>>(emptyList())
 
     useEffect(emptyList()) {
-        scope.launch {
+        mainScope.launch {
             Api.registerNotifications()
         }
-        scope.launch {
+        mainScope.launch {
             setProblems(Api.getProblems().sortedByDescending { it.id })
         }
     }
@@ -61,11 +74,11 @@ val App = functionalComponent<RProps> {
         if (selectedProblem != null) {
             setSelectedProblemInfo(null)
             setSolutions(emptyList())
-            scope.launch {
+            mainScope.launch {
                 val problemInfo = Api.getProblemInfo(selectedProblem.id)
                 if (!cancelled) setSelectedProblemInfo(problemInfo)
             }
-            scope.launch {
+            mainScope.launch {
                 val newSolutions = Api.getSolutions(selectedProblem)
                 if (!cancelled) setSolutions(newSolutions)
             }
@@ -83,7 +96,7 @@ val App = functionalComponent<RProps> {
                 +"Это конвертер задач из полигона в бакс Полибакс"
                 attrs {
                     onClickFunction = {
-                        scope.launch {
+                        mainScope.launch {
                             Api.bumpTestNotification()
                         }
                     }
@@ -104,29 +117,38 @@ val App = functionalComponent<RProps> {
             div("row") {
                 div("col-4") {
                     div("problem-list") {
-                        child(ProblemList, jsObject {
-                            this.problems = problems
-                            this.selectedProblem = selectedProblem
-                            this.setSelectedProblem = { problem -> setSelectedProblem(problem) }
-                        })
+                        child(
+                            ProblemList,
+                            jsObject {
+                                this.problems = problems
+                                this.selectedProblem = selectedProblem
+                                this.setSelectedProblem = { problem -> setSelectedProblem(problem) }
+                            }
+                        )
                     }
                 }
                 div("col-8") {
                     div("problem-details") {
                         if (selectedProblem != null) {
-                            child(ProblemDetails, jsObject {
-                                problem = selectedProblem
-                                problemInfo = selectedProblemInfo
-                            })
+                            child(
+                                ProblemDetails,
+                                jsObject {
+                                    problem = selectedProblem
+                                    problemInfo = selectedProblemInfo
+                                }
+                            )
                         }
                     }
                     if (solutions.isNotEmpty()) {
                         div("problem-solutions") {
                             hr { }
-                            child(SolutionsList, jsObject {
-                                this.problem = selectedProblem!!
-                                this.solutions = solutions
-                            })
+                            child(
+                                SolutionsList,
+                                jsObject {
+                                    this.problem = selectedProblem!!
+                                    this.solutions = solutions
+                                }
+                            )
                         }
                     }
                 }

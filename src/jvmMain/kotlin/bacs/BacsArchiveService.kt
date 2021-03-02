@@ -3,16 +3,30 @@
 package bacs
 
 import api.AdditionalProblemProperties
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.util.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.receive
+import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
+import io.ktor.http.content.PartData
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.close
+import io.ktor.utils.io.core.BytePacketBuilder
+import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.core.ExperimentalIoApi
+import io.ktor.utils.io.core.Input
+import io.ktor.utils.io.core.buildPacket
+import io.ktor.utils.io.core.readAvailable
+import io.ktor.utils.io.core.readBytes
+import io.ktor.utils.io.core.writeFully
+import io.ktor.utils.io.core.writeText
+import io.ktor.utils.io.write
+import io.ktor.utils.io.writeFully
 import ir.IRProblem
 import org.jsoup.Jsoup
 import sybon.toZipArchive
@@ -22,10 +36,8 @@ import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.fileSize
 import kotlin.io.path.readBytes
-import kotlin.io.use
 import kotlin.random.Random
-import kotlin.text.toByteArray
-import kotlin.time.*
+import kotlin.time.ExperimentalTime
 
 interface BacsArchiveService {
     suspend fun getProblemState(problemId: String): BacsProblemState
@@ -144,10 +156,6 @@ class BacsArchiveServiceImpl(
                 headersBuilder[HttpHeaders.ContentDisposition] = "filename=${filename.quote()}"
                 contentType?.run { headersBuilder[HttpHeaders.ContentType] = this.toString() }
                 val headers = headersBuilder.build()
-
-                /**
-                 * Append a form [part].
-                 */
                 this.parts += FormPart(key, InputProvider(size) { buildPacket { this.bodyBuilder() } }, headers)
             }
 

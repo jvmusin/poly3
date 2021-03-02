@@ -1,14 +1,34 @@
 package polygon
 
-import ir.*
+import ir.IRChecker
+import ir.IRLimits
+import ir.IRProblem
+import ir.IRSolution
+import ir.IRStatement
+import ir.IRTest
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import polygon.api.*
+import polygon.api.PolygonApi
+import polygon.api.Problem
+import polygon.api.ProblemInfo
+import polygon.api.downloadPackage
+import polygon.api.getLatestPackageId
+import polygon.api.getProblem
+import polygon.api.getStatement
+import polygon.api.getStatementRaw
 import polygon.converter.PolygonSourceTypeToIRLanguageConverter
 import polygon.converter.PolygonTagToIRVerdictConverter
-import polygon.exception.*
-import java.util.*
+import polygon.exception.AccessDeniedException
+import polygon.exception.CheckerNotFoundException
+import polygon.exception.NoPackagesBuiltException
+import polygon.exception.NoSuchProblemException
+import polygon.exception.OldBuiltPackageException
+import polygon.exception.PdfStatementNotFoundException
+import polygon.exception.ProblemDownloadingException
+import polygon.exception.ProblemModifiedException
+import polygon.exception.StatementNotFoundException
+import polygon.exception.UnsupportedFormatException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
@@ -70,7 +90,7 @@ class PolygonServiceImpl(
 
     @OptIn(ExperimentalPathApi::class) // TODO ask why file-level opt-ins don't work with Koin
     private suspend fun downloadProblemInternal(problemId: Int, includeTests: Boolean) = coroutineScope {
-        //eagerly check for access
+        // eagerly check for access
         val problem = polygonApi.getProblem(problemId).apply {
             if (accessType == Problem.AccessType.READ) {
                 throw AccessDeniedException("Нет доступа на запись. Дайте WRITE доступ пользователю Musin")
@@ -78,7 +98,7 @@ class PolygonServiceImpl(
             if (modified) {
                 throw ProblemModifiedException(
                     "Файлы задачи изменены. Сначала откатите изменения или закоммитьте их и соберите новый пакет " +
-                            "(скорее всего (99.9%) косяк Рустама)"
+                        "(скорее всего (99.9%) косяк Рустама)"
                 )
             }
             if (latestPackage == null) {

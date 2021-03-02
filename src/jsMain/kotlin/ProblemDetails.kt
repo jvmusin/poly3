@@ -10,8 +10,17 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.HTMLInputElement
-import react.*
-import react.dom.*
+import react.RProps
+import react.dom.button
+import react.dom.div
+import react.dom.h2
+import react.dom.input
+import react.dom.label
+import react.dom.span
+import react.functionalComponent
+import react.useEffect
+import react.useEffectWithCleanup
+import react.useState
 import kotlin.math.roundToInt
 
 external interface ProblemDetailsProps : RProps {
@@ -55,7 +64,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
     useEffectWithCleanup(listOf(finalProblemName)) {
         setNameAvailability(NameAvailability.LOADING)
         var cancelled = false
-        scope.launch {
+        mainScope.launch {
             val availability = try {
                 Api.getNameAvailability(finalProblemName)
             } catch (e: Throwable) {
@@ -124,7 +133,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                         +"Скачать пакет"
                         attrs {
                             onClickFunction = {
-                                scope.launch {
+                                mainScope.launch {
                                     Api.downloadPackage(problem, buildAdditionalProperties())
                                 }
                             }
@@ -136,7 +145,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
                         +"Закинуть в бакс"
                         attrs {
                             onClickFunction = {
-                                scope.launch {
+                                mainScope.launch {
                                     Api.transferToBacsArchive(problem, buildAdditionalProperties())
                                 }
                             }

@@ -1,7 +1,9 @@
 @file:Suppress("UNUSED_VARIABLE")
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 val ktorVersion: String by project
 val retrofitVersion: String by project
@@ -19,6 +21,7 @@ plugins {
     kotlin("multiplatform") version "1.4.31"
     application
     kotlin("plugin.serialization") version "1.4.31"
+    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 }
 
 group = "jvmusin"
@@ -130,7 +133,7 @@ tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack") {
 }
 
 tasks.getByName<Jar>("jvmJar") {
-    //creates a big unoptimized js pack, replace 'Development' with 'Production' to make it work better
+    // creates a big unoptimized js pack, replace 'Development' with 'Production' to make it work better
     val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
     dependsOn(webpackTask) // make sure JS gets compiled first
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
@@ -166,6 +169,12 @@ tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+}
+
+subprojects {
+    configure<KtlintExtension>() {
+        debug.set(true)
     }
 }

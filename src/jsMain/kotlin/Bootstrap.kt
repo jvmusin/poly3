@@ -1,3 +1,5 @@
+@file:Suppress("ClassName")
+
 import org.w3c.dom.Element
 
 external object bootstrap {

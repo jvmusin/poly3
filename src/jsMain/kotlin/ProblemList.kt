@@ -2,7 +2,14 @@ import api.Problem
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
 import react.RProps
-import react.dom.*
+import react.dom.button
+import react.dom.div
+import react.dom.h2
+import react.dom.i
+import react.dom.small
+import react.dom.span
+import react.dom.strong
+import react.dom.ul
 import react.functionalComponent
 
 external interface ProblemListProps : RProps {

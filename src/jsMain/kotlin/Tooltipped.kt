@@ -15,7 +15,6 @@ fun RBuilder.tooltipped(id: String, value: String, build: RBuilder.() -> Unit) {
         attrs.id = id
         build()
     }
-
 }
 
 fun RBuilder.tooltippedText(id: String, value: String, tooltip: String) {

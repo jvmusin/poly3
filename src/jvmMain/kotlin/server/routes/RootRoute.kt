@@ -2,8 +2,10 @@
 
 package server.routes
 
-import io.ktor.http.content.*
-import io.ktor.routing.*
+import io.ktor.http.content.resources
+import io.ktor.http.content.static
+import io.ktor.routing.Route
+import io.ktor.routing.route
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.ExperimentalTime

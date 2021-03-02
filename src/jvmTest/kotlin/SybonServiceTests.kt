@@ -7,16 +7,18 @@ import org.koin.test.KoinTest
 import sybon.SybonArchiveService
 import sybon.TestProblemArchive
 
-class SybonServiceTests : StringSpec({
-    val service by inject(SybonArchiveService::class.java, TestProblemArchive)
+class SybonServiceTests :
+    StringSpec({
+        val service by inject(SybonArchiveService::class.java, TestProblemArchive)
 
-    "Import problem" {
-        val problem = service.importProblem(A_PLUS_B_BACS_PROBLEM_ID)
-        problem.shouldNotBeNull()
-        problem.id shouldBe A_PLUS_B_SYBON_PROBLEM_ID
-        problem.internalProblemId shouldBe A_PLUS_B_BACS_PROBLEM_ID
-    }
-}), KoinTest {
+        "Import problem" {
+            val problem = service.importProblem(A_PLUS_B_BACS_PROBLEM_ID)
+            problem.shouldNotBeNull()
+            problem.id shouldBe A_PLUS_B_SYBON_PROBLEM_ID
+            problem.internalProblemId shouldBe A_PLUS_B_BACS_PROBLEM_ID
+        }
+    }),
+    KoinTest {
     companion object {
         const val A_PLUS_B_BACS_PROBLEM_ID = "1000pre"
         const val A_PLUS_B_SYBON_PROBLEM_ID = 82120

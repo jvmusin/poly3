@@ -7,7 +7,8 @@ import ir.IRProblem
 import util.toZipArchive
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
+import java.util.Locale
+import java.util.UUID
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeBytes
@@ -93,7 +94,7 @@ fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = AdditionalP
 
     fun writeTests() {
         fun writeTest(index: Int, type: String, content: String) {
-            testsPath.resolve("${index}.$type").writeText(content)
+            testsPath.resolve("$index.$type").writeText(content)
         }
         for (t in tests) writeTest(t.index, "in", t.input)
         for (t in tests) writeTest(t.index, "out", t.output)

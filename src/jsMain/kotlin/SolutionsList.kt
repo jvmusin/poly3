@@ -7,8 +7,20 @@ import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import react.*
-import react.dom.*
+import react.RProps
+import react.child
+import react.dom.div
+import react.dom.h3
+import react.dom.span
+import react.dom.table
+import react.dom.tbody
+import react.dom.th
+import react.dom.thead
+import react.dom.tr
+import react.functionalComponent
+import react.useEffect
+import react.useEffectWithCleanup
+import react.useState
 
 external interface SolutionsListProps : RProps {
     var problem: Problem
@@ -28,7 +40,7 @@ val SolutionsList = functionalComponent<SolutionsListProps> { props ->
         if (!isRunning) return@useEffectWithCleanup {}
         var cancelled = false
 
-        scope.launch {
+        mainScope.launch {
             val newSybonProblemId = try {
                 Api.prepareProblem(props.problem)
             } catch (e: Exception) {
@@ -91,12 +103,15 @@ val SolutionsList = functionalComponent<SolutionsListProps> { props ->
                     }
                     tbody {
                         for (solution in props.solutions) {
-                            child(SolutionRow, jsObject {
-                                this.problem = props.problem
-                                this.solution = solution
-                                this.runTriggered = solutionsTriggered
-                                this.sybonProblemId = sybonProblemId
-                            })
+                            child(
+                                SolutionRow,
+                                jsObject {
+                                    this.problem = props.problem
+                                    this.solution = solution
+                                    this.runTriggered = solutionsTriggered
+                                    this.sybonProblemId = sybonProblemId
+                                }
+                            )
                         }
                     }
                 }

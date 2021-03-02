@@ -1,9 +1,10 @@
 package server.routes
 
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.response.respondText
+import io.ktor.routing.Route
+import io.ktor.routing.get
 
 private val index = """
     <!doctype html>

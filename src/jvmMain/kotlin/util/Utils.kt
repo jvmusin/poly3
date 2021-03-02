@@ -3,7 +3,7 @@ package util
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.MessageDigest
-import java.util.*
+import java.util.Base64
 
 fun String.sha512(): String {
     val digest = MessageDigest.getInstance("SHA-512").digest(toByteArray())

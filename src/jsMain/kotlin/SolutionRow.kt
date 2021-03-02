@@ -32,7 +32,7 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
         var cancelled = false
         if (props.runTriggered) {
             setResult(null)
-            scope.launch {
+            mainScope.launch {
                 try {
                     val res = Api.testSolution(props.problem, props.sybonProblemId!!, props.solution.name)
                     if (!cancelled) setResult(res)

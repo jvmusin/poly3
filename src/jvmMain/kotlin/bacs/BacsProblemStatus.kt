@@ -12,4 +12,3 @@ data class BacsProblemStatus(
         else -> BacsProblemState.UNKNOWN
     }
 }
-

@@ -1,16 +1,36 @@
 @file:OptIn(ExperimentalTime::class)
 
-import api.*
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import io.ktor.client.features.websocket.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
+import api.AdditionalProblemProperties
+import api.NameAvailability
+import api.Problem
+import api.ProblemInfo
+import api.Solution
+import api.SubmissionResult
+import api.Toast
+import api.ToastKind
+import io.ktor.client.HttpClient
+import io.ktor.client.call.receive
+import io.ktor.client.features.defaultRequest
+import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.features.websocket.DefaultClientWebSocketSession
+import io.ktor.client.features.websocket.WebSockets
+import io.ktor.client.features.websocket.webSocket
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readBytes
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.URLProtocol
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
+import io.ktor.http.cio.websocket.send
+import io.ktor.http.isSecure
+import io.ktor.http.isWebsocket
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.delay
@@ -88,7 +108,7 @@ object Api {
 
     suspend fun registerNotifications() {
         val delayDuration = 1.seconds
-        scope.launch {
+        mainScope.launch {
             var first = true
             while (true) {
                 try {
@@ -103,7 +123,7 @@ object Api {
                                 Toast(
                                     "Соединение",
                                     "Соединение восстановлено. " +
-                                            "Возможно, стоит перезагрузить страницу, чтобы подгрузить обновления",
+                                        "Возможно, стоит перезагрузить страницу, чтобы подгрузить обновления",
                                     ToastKind.SUCCESS
                                 )
                             )

@@ -1,14 +1,21 @@
 package server.routes
 
-import api.*
+import api.AdditionalProblemProperties
+import api.Language
+import api.Solution
+import api.SubmissionResult
+import api.ToastKind
+import api.Verdict
 import bacs.BacsArchiveService
-import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.http.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.websocket.*
+import io.ktor.application.call
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.cio.websocket.Frame
+import io.ktor.http.cio.websocket.readText
+import io.ktor.http.cio.websocket.send
+import io.ktor.response.respond
+import io.ktor.routing.Route
+import io.ktor.routing.get
+import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
@@ -43,9 +50,12 @@ fun Route.solutions() {
             )
             return@get
         }
-        call.respond(HttpStatusCode.OK, irProblem.solutions.map {
-            Solution(it.name, Language.valueOf(it.language.name), Verdict.valueOf(it.verdict.name))
-        })
+        call.respond(
+            HttpStatusCode.OK,
+            irProblem.solutions.map {
+                Solution(it.name, Language.valueOf(it.language.name), Verdict.valueOf(it.verdict.name))
+            }
+        )
     }
 
     webSocket("prepare") {

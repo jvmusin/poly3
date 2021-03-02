@@ -1,17 +1,20 @@
 package server.routes
 
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.sessions.*
-import io.ktor.websocket.*
+import io.ktor.application.call
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respond
+import io.ktor.routing.Route
+import io.ktor.routing.get
+import io.ktor.routing.post
+import io.ktor.sessions.getOrSet
+import io.ktor.sessions.sessions
+import io.ktor.websocket.webSocket
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.koin.ktor.ext.inject
 import server.MessageSenderFactory
 import server.Session
 import util.getLogger
-import java.util.*
+import java.util.UUID
 
 fun Route.notifications() {
     val messageSenderFactory: MessageSenderFactory by inject()
@@ -27,7 +30,7 @@ fun Route.notifications() {
         messageSenderFactory.registerClient(this)
         try {
             getLogger(javaClass).info("Subscribed WS")
-            incoming.receive()  // block connection
+            incoming.receive() // block connection
         } catch (e: ClosedReceiveChannelException) {
             getLogger(javaClass).info("WS connection closed: ${e.message}")
         }
