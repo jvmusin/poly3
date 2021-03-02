@@ -43,7 +43,7 @@ interface PolygonService {
     /**
      * Downloads the problem with the given [problemId].
      *
-     * Tests might be skipped by setting [includeTests] to *false*.
+     * Tests might be skipped by setting [includeTests] to *false* (they are skipped by default).
      *
      * @param problemId id of the problem to download.
      * @param includeTests if true then the problem tests will also be downloaded.
@@ -62,7 +62,7 @@ interface PolygonService {
     /**
      * Returns problem information for the problem with the given [problemId].
      *
-     * @param problemId problem id to download information for.
+     * @param problemId problem id to return information for.
      * @return Problem information.
      * @throws NoSuchProblemException if the problem is not found or if access to the problem is denied.
      */
