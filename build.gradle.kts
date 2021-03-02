@@ -1,9 +1,9 @@
 @file:Suppress("UNUSED_VARIABLE")
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 val ktorVersion: String by project
 val retrofitVersion: String by project
@@ -21,7 +21,7 @@ plugins {
     kotlin("multiplatform") version "1.4.31"
     application
     kotlin("plugin.serialization") version "1.4.31"
-    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+    // id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 }
 
 group = "jvmusin"
@@ -168,13 +168,13 @@ tasks.withType<KotlinCompile>().all {
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
-        events("passed", "skipped", "failed")
+        events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
         exceptionFormat = TestExceptionFormat.FULL
     }
 }
 
-subprojects {
-    configure<KtlintExtension>() {
-        debug.set(true)
-    }
-}
+// subprojects {
+//     configure<KtlintExtension>() {
+//         debug.set(true)
+//     }
+// }
