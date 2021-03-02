@@ -60,10 +60,9 @@ fun Route.solutions() {
 
     webSocket("prepare") {
         val problemId = call.parameters["problem-id"]!!.toInt()
-        val problem = polygonService.downloadProblem(problemId, true)
         val properties = AdditionalProblemProperties(suffix = "-test")
+        val fullName = properties.buildFullName(polygonService.downloadProblem(problemId).name) // pass the name
 
-        val fullName = properties.buildFullName(problem.name)
         val sendMessage = messageSenderFactory.create(this, fullName)
         transferProblemToBacs(sendMessage, problemId, properties, false, polygonService, bacsArchiveService)
 
