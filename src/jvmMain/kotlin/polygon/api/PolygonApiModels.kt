@@ -3,8 +3,21 @@
 package polygon.api
 
 import kotlinx.serialization.Serializable
+import polygon.exception.NoSuchProblemException
 import polygon.exception.ResultExtractingException
 
+/**
+ * Polygon response.
+ *
+ * Represents Polygon response.
+ * If [result] is *not null*, then it can be taken.
+ * Otherwise, the request failed and the reason is explained in [comment].
+ *
+ * @param T type of the [result].
+ * @property status Might be **OK** or **FAILED** depending on whether request succeeded or not.
+ * @property result The result of the request or *null* if the request failed.
+ * @property comment *null* if the request succeeded or the reason why it's failed.
+ */
 @Serializable
 data class PolygonResponse<T>(
     val status: String,
@@ -17,9 +30,14 @@ data class PolygonResponse<T>(
      * If [result] is null, throws [ResultExtractingException] with [comment] as an exception message.
      *
      * @return Unboxed *non-null* [result].
+     * @throws NoSuchProblemException if some problem was requested but was not found.
      * @throws ResultExtractingException if [result] is *null*.
      */
-    fun extract() = result ?: throw ResultExtractingException(comment)
+    fun extract() = when {
+        result != null -> result
+        comment == "problemId: Problem not found" -> throw NoSuchProblemException(comment)
+        else -> throw ResultExtractingException(comment)
+    }
 }
 
 @Serializable

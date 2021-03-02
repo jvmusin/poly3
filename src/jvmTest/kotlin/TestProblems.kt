@@ -1,6 +1,6 @@
 object TestProblems {
-    const val noBuildPackagesProblem = 159635
-    const val problemWithNoWriteAccess = 69927
+    const val noBuiltPackagesProblem = 159635
+    const val problemWithOnlyReadAccess = 69927
     const val modifiedProblem = 157878
     const val totallyUnknownProblem = 157877
     const val oldPackageProblem = 157883

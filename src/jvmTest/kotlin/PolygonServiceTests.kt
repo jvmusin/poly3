@@ -2,9 +2,9 @@
 
 import TestProblems.interactiveProblem
 import TestProblems.modifiedProblem
-import TestProblems.noBuildPackagesProblem
+import TestProblems.noBuiltPackagesProblem
 import TestProblems.oldPackageProblem
-import TestProblems.problemWithNoWriteAccess
+import TestProblems.problemWithOnlyReadAccess
 import TestProblems.problemWithoutCppChecker
 import TestProblems.problemWithoutPdfStatement
 import TestProblems.problemWithoutStatement
@@ -12,11 +12,21 @@ import TestProblems.totallyUnknownProblem
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.throwable.shouldHaveCauseOfType
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import polygon.PolygonService
-import polygon.exception.*
+import polygon.exception.AccessDeniedException
+import polygon.exception.CheckerNotFoundException
+import polygon.exception.NoPackagesBuiltException
+import polygon.exception.NoSuchProblemException
+import polygon.exception.OldBuiltPackageException
+import polygon.exception.PdfStatementNotFoundException
+import polygon.exception.ProblemDownloadingException
+import polygon.exception.ProblemModifiedException
+import polygon.exception.StatementNotFoundException
+import polygon.exception.UnsupportedFormatException
 import kotlin.time.ExperimentalTime
 
 class PolygonServiceTests : BehaviorSpec(), KoinTest {
@@ -42,7 +52,7 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
             }
             When("no WRITE access") {
                 Then("throws ProblemDownloadingException with cause AccessDeniedException") {
-                    downloadProblemWithInnerException<AccessDeniedException>(problemWithNoWriteAccess)
+                    downloadProblemWithInnerException<AccessDeniedException>(problemWithOnlyReadAccess)
                 }
             }
             When("problem is modified") {
@@ -52,7 +62,7 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
             }
             When("no packages build") {
                 Then("throws ProblemDownloadingException with cause NoPackagesBuiltException") {
-                    downloadProblemWithInnerException<NoPackagesBuiltException>(noBuildPackagesProblem)
+                    downloadProblemWithInnerException<NoPackagesBuiltException>(noBuiltPackagesProblem)
                 }
             }
             When("last built package is old") {
@@ -78,6 +88,30 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
             When("problem has no cpp checker") {
                 Then("throws ProblemDownloadingException with cause CheckerNotFoundException") {
                     downloadProblemWithInnerException<CheckerNotFoundException>(problemWithoutCppChecker)
+                }
+            }
+        }
+
+        Given("getProblemInfo") {
+            When("have WRITE access") {
+                Then("returns info") {
+                    with(service.getProblemInfo(noBuiltPackagesProblem)) {
+                        inputFile shouldBe "stdin"
+                        outputFile shouldBe "stdout"
+                        interactive shouldBe false
+                        timeLimit shouldBe 1000
+                        memoryLimit shouldBe 256
+                    }
+                }
+            }
+            When("have READ access") {
+                Then("throws NoSuchProblemException") {
+                    shouldThrowExactly<NoSuchProblemException> { service.getProblemInfo(problemWithOnlyReadAccess) }
+                }
+            }
+            When("accessing unknown problem") {
+                Then("throws NoSuchProblemException") {
+                    shouldThrowExactly<NoSuchProblemException> { service.getProblemInfo(totallyUnknownProblem) }
                 }
             }
         }

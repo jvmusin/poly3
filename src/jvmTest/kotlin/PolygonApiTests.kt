@@ -23,7 +23,7 @@ class PolygonApiTests : BehaviorSpec(), KoinTest {
             When("asking for problem with test group on all tests") {
 
                 val problemId = 159528
-                suspend fun result() = api.getTestGroup(problemId, null).result!!
+                suspend fun result() = api.getTestGroup(problemId, null).extract()
                 val expectedGroups = listOf("samples", "first", "second", "third", "fourth", "fifth")
 
                 Then("returns correct group names") {
@@ -55,7 +55,7 @@ class PolygonApiTests : BehaviorSpec(), KoinTest {
             When("asking for problem with test group on all tests except samples") {
 
                 val problemId = 159558
-                suspend fun result() = api.getTestGroup(problemId, null).result!!
+                suspend fun result() = api.getTestGroup(problemId, null).extract()
                 val expectedGroups = listOf("first", "second", "third", "fourth", "fifth")
 
                 Then("returns correct group names") {
@@ -86,7 +86,7 @@ class PolygonApiTests : BehaviorSpec(), KoinTest {
             When("asking for problem with test groups and no points") {
 
                 val problemId = 159559
-                suspend fun result() = api.getTestGroup(problemId, null).result!!
+                suspend fun result() = api.getTestGroup(problemId, null).extract()
                 val expectedGroups = listOf("samples", "first", "second", "third", "fourth", "fifth")
 
                 Then("returns correct group names") {
