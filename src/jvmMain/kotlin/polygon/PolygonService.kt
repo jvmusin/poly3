@@ -145,7 +145,7 @@ class PolygonServiceImpl(
         cache[FullPackageId(packageId, includeTests)]
             .also { if (it != null) return@coroutineScope it }
         if (!includeTests)
-            cache[FullPackageId(packageId, false)]
+            cache[FullPackageId(packageId, true)]
                 .also { if (it != null) return@coroutineScope it }
 
         val tests = async {

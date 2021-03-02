@@ -3,7 +3,7 @@ package server.routes
 import api.AdditionalProblemProperties
 import api.ToastKind
 import bacs.BacsArchiveService
-import io.ktor.features.*
+import io.ktor.features.BadRequestException
 import ir.IRProblem
 import polygon.PolygonService
 import polygon.exception.ProblemDownloadingException
@@ -12,7 +12,7 @@ import server.MessageSender
 suspend fun downloadProblem(sendMessage: MessageSender, problemId: Int, polygonService: PolygonService): IRProblem {
     return try {
         sendMessage("Выкачиваем задачу из полигона")
-        polygonService.downloadProblem(problemId)
+        polygonService.downloadProblem(problemId, true)
     } catch (e: ProblemDownloadingException) {
         val msg = "Не удалось выкачать задачу из полигона: ${e.message}"
         sendMessage(msg, ToastKind.FAILURE)

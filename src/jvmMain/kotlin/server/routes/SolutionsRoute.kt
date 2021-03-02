@@ -41,7 +41,7 @@ fun Route.solutions() {
         val problemId = call.parameters["problem-id"]!!.toInt()
         val fullName = call.parameters["name"]!!
         val irProblem = try {
-            polygonService.downloadProblem(problemId, true)
+            polygonService.downloadProblem(problemId)
         } catch (e: ProblemDownloadingException) {
             messageSenderFactory.create(this, fullName)(e.message.orEmpty(), ToastKind.FAILURE)
             call.respond(
