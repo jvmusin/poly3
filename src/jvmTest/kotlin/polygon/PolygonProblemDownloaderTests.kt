@@ -1,19 +1,20 @@
-import TestProblems.interactiveProblem
-import TestProblems.modifiedProblem
-import TestProblems.noBuiltPackagesProblem
-import TestProblems.oldPackageProblem
-import TestProblems.problemWithOnlyReadAccess
-import TestProblems.problemWithoutCppChecker
-import TestProblems.problemWithoutPdfStatement
-import TestProblems.problemWithoutStatement
-import TestProblems.totallyUnknownProblem
+package polygon
+
+import polygon.TestProblems.interactiveProblem
+import polygon.TestProblems.modifiedProblem
+import polygon.TestProblems.noBuiltPackagesProblem
+import polygon.TestProblems.oldPackageProblem
+import polygon.TestProblems.problemWithOnlyReadAccess
+import polygon.TestProblems.problemWithoutCppChecker
+import polygon.TestProblems.problemWithoutPdfStatement
+import polygon.TestProblems.problemWithoutStatement
+import polygon.TestProblems.totallyUnknownProblem
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.koin.test.KoinTest
 import org.koin.test.inject
-import polygon.PolygonProblemDownloader
 import polygon.exception.downloading.ProblemDownloadingException
 import polygon.exception.downloading.format.ProblemModifiedException
 import polygon.exception.downloading.format.UnsupportedFormatException
@@ -24,6 +25,7 @@ import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.resource.StatementNotFoundException
 import polygon.exception.response.AccessDeniedException
 import polygon.exception.response.NoSuchProblemException
+import polygonModule
 
 class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
     override fun listeners() = listOf(KoinListener(polygonModule))

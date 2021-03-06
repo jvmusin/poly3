@@ -1,6 +1,8 @@
-import bacs.BacsArchiveService
+package bacs
+
 import bacs.BacsProblemState.IMPORTED
 import bacs.BacsProblemState.NOT_FOUND
+import bacsModule
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
 import io.kotest.matchers.shouldBe

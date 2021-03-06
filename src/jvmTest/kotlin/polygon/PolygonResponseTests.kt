@@ -1,3 +1,5 @@
+package polygon
+
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
@@ -8,6 +10,7 @@ import polygon.api.PolygonApi
 import polygon.exception.response.NoSuchProblemException
 import polygon.exception.response.NoSuchTestGroupException
 import polygon.exception.response.TestGroupsDisabledException
+import polygonModule
 
 class PolygonResponseTests : BehaviorSpec(), KoinTest {
     override fun listeners() = listOf(KoinListener(polygonModule))

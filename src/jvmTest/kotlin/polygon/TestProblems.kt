@@ -1,3 +1,5 @@
+package polygon
+
 object TestProblems {
     const val noBuiltPackagesProblem = 159635
     const val problemWithOnlyReadAccess = 69927

@@ -1,3 +1,5 @@
+package sybon
+
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.koin.KoinListener
 import io.kotest.matchers.collections.shouldBeSingleton
@@ -9,7 +11,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
-import sybon.SybonCompilers
 import sybon.api.SybonCheckingApi
 import sybon.api.SybonSubmissionResult
 import sybon.api.SybonSubmissionResult.BuildResult
@@ -17,6 +18,7 @@ import sybon.api.SybonSubmissionResult.TestGroupResult
 import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult
 import sybon.api.SybonSubmissionResult.TestGroupResult.TestResult.ResourceUsage
 import sybon.api.SybonSubmitSolution
+import sybonModule
 import util.encodeBase64
 
 class SybonCheckingApiTests :

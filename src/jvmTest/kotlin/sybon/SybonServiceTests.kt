@@ -1,11 +1,12 @@
+package sybon
+
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.koin.KoinListener
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
-import sybon.SybonArchiveService
-import sybon.TestProblemArchive
+import sybonModule
 
 class SybonServiceTests :
     StringSpec({

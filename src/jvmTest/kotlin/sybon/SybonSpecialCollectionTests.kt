@@ -1,11 +1,16 @@
+package sybon
+
 import api.AdditionalProblemProperties
 import bacs.BacsArchiveService
+import bacsModule
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.koin.KoinListener
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
 import polygon.PolygonService
+import polygonModule
 import sybon.api.SybonArchiveApi
+import sybonModule
 import java.time.LocalDateTime
 import kotlin.time.ExperimentalTime
 

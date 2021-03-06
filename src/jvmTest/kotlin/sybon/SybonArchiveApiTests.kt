@@ -1,3 +1,5 @@
+package sybon
+
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.koin.KoinListener
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
@@ -7,11 +9,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.koin.java.KoinJavaComponent.inject
 import org.koin.test.KoinTest
-import sybon.TestProblemArchive
 import sybon.api.ResourceLimits
 import sybon.api.SybonArchiveApi
 import sybon.api.SybonCollection
 import sybon.api.SybonProblem
+import sybonModule
 
 class SybonArchiveApiTests :
     StringSpec({

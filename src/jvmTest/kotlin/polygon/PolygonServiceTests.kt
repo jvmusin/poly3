@@ -1,8 +1,10 @@
 @file:OptIn(ExperimentalTime::class)
 
-import TestProblems.noBuiltPackagesProblem
-import TestProblems.problemWithOnlyReadAccess
-import TestProblems.totallyUnknownProblem
+package polygon
+
+import polygon.TestProblems.noBuiltPackagesProblem
+import polygon.TestProblems.problemWithOnlyReadAccess
+import polygon.TestProblems.totallyUnknownProblem
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
@@ -10,10 +12,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.throwable.shouldHaveCauseOfType
 import org.koin.test.KoinTest
 import org.koin.test.inject
-import polygon.PolygonService
 import polygon.exception.downloading.ProblemDownloadingException
 import polygon.exception.downloading.resource.CheckerNotFoundException
 import polygon.exception.response.NoSuchProblemException
+import polygonModule
 import kotlin.time.ExperimentalTime
 
 class PolygonServiceTests : BehaviorSpec(), KoinTest {
