@@ -45,7 +45,7 @@ fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = AdditionalP
                 memory = ${memoryLimitMegabytes}MiB
                 
                 [tests]
-                group_pre = ${tests.filter { it.isSample }.joinToString(" ") { it.index.toString() }}
+                group_pre = ${requireNotNull(tests).filter { it.isSample }.joinToString(" ") { it.index.toString() }}
                 score_pre = 0
                 continue_condition_pre = WHILE_OK
                 score = 100
@@ -96,6 +96,7 @@ fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = AdditionalP
         fun writeTest(index: Int, type: String, content: String) {
             testsPath.resolve("$index.$type").writeText(content)
         }
+        requireNotNull(tests)
         for (t in tests) writeTest(t.index, "in", t.input)
         for (t in tests) writeTest(t.index, "out", t.output)
     }
