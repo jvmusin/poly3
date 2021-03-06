@@ -2,13 +2,15 @@
 
 package polygon.api
 
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import okhttp3.Interceptor
 import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
 import org.slf4j.LoggerFactory.getLogger
 import polygon.PolygonConfig
 import retrofit.RetrofitClientFactory
+import retrofit.bufferedBody
+import util.RetryPolicy
 import util.sha512
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -43,27 +45,29 @@ class PolygonApiFactory(private val config: PolygonConfig) {
     }
 
     private class TooManyRequestsRetryInterceptor(
-//        private val retryPolicy: RetryPolicy = RetryPolicy(10.minutes, 1.minutes)
-        private val period: Duration = 1.minutes,
-        private val retries: Int = 10
+        private val retryPolicy: RetryPolicy = RetryPolicy(10.minutes, 1.minutes)
     ) : Interceptor {
-        override fun intercept(chain: Interceptor.Chain): Response {
+
+        companion object {
+            const val TOO_MANY_REQUESTS_MESSAGE = "Too many requests. Please, wait few seconds and try again"
+
+            private fun Response.isTooManyRequests() =
+                code == 400 && bufferedBody().let { it != null && TOO_MANY_REQUESTS_MESSAGE in it.string() }
+        }
+
+        @Suppress("BlockingMethodInNonBlockingContext")
+        override fun intercept(chain: Interceptor.Chain) = runBlocking {
             var done = 0
-            while (true) {
-                val res = chain.proceed(chain.request())
-                if (res.code == 400 && res.body != null && done++ < retries) {
-                    val body = res.body!!.bytes().decodeToString()
-                    if (body.contains("Too many requests. Please, wait few seconds and try again")) {
-                        getLogger(javaClass).warn(
-                            "Too many requests to Polygon API. Now sleep for $period and make try #${done + 1} of $retries"
-                        )
-                        Thread.sleep(period.toLongMilliseconds()) // we can't delay the coroutine here since intercept is not a suspend function =(
-                        continue
-                    }
-                    return res.newBuilder().body(body.toResponseBody()).build()
+            retryPolicy.evalWhileFails({ res ->
+                if (!res.isTooManyRequests()) true
+                else {
+                    getLogger(javaClass).warn(
+                        "Too many requests to Polygon API. " +
+                            "Now sleep for ${retryPolicy.retryAfter} and make try #${++done + 1}"
+                    )
+                    false
                 }
-                return res
-            }
+            }) { chain.proceed(chain.request()) }
         }
     }
 
@@ -86,7 +90,7 @@ class PolygonApiFactory(private val config: PolygonConfig) {
         }
     }
 
-    private class Error500RetryInterceptor(
+    private class ServerErrorRetryInterceptor(
         private val period: Duration = 1.minutes,
         private val retries: Int = 10
     ) : Interceptor {
@@ -110,9 +114,9 @@ class PolygonApiFactory(private val config: PolygonConfig) {
     }
 
     fun create(): PolygonApi = RetrofitClientFactory.create(config.url) {
-        addInterceptor(TooManyRequestsRetryInterceptor())
-        addInterceptor(Error500RetryInterceptor())
-        addInterceptor(ApiSigAddingInterceptor())
         addInterceptor(Code400To200Interceptor())
+        addInterceptor(ServerErrorRetryInterceptor())
+        addInterceptor(TooManyRequestsRetryInterceptor())
+        addInterceptor(ApiSigAddingInterceptor())
     }
 }
