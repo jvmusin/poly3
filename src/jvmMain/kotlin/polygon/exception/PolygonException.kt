@@ -7,4 +7,4 @@ import ConverterException
  *
  * Thrown if something bad happened to Polygon.
  */
-abstract class PolygonException(message: String? = null, cause: Throwable? = null) : ConverterException(message, cause)
+abstract class PolygonException(message: String, cause: Throwable? = null) : ConverterException(message, cause)

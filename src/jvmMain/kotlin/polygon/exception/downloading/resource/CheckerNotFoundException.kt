@@ -1,4 +1,4 @@
-package polygon.exception
+package polygon.exception.downloading.resource
 
 /**
  * Checker not found exception.

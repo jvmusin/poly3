@@ -1,4 +1,4 @@
-package polygon.exception
+package polygon.exception.downloading.packages
 
 /**
  * No built packages exception.

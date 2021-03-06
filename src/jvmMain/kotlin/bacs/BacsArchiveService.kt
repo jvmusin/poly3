@@ -40,6 +40,7 @@ import kotlin.random.Random
 import kotlin.time.ExperimentalTime
 
 interface BacsArchiveService {
+    // TODO should throw unauthorized exception
     suspend fun getProblemState(problemId: String): BacsProblemState
     suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties): String
 }
@@ -56,8 +57,8 @@ class BacsArchiveServiceImpl(
          * I removed two last symbols from the end of the whole multipart form.
          * I made the quotes to always be in multipart's ContentDisposition values.
          * It might be a bug or not, I'll check the sources later to understand,
-         * Why they choose to quote names only if needed, since it breaks
-         * Compatibility with old servers.
+         * why they choose to quote names only if needed, since it breaks
+         * compatibility with old servers.
          */
 
         /**

@@ -1,4 +1,4 @@
-package polygon.exception
+package polygon.exception.downloading.resource
 
 /**
  * PDF statement not found exception.

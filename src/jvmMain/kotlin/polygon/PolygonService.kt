@@ -1,38 +1,11 @@
 package polygon
 
-import ir.IRChecker
-import ir.IRLimits
 import ir.IRProblem
-import ir.IRSolution
-import ir.IRStatement
-import ir.IRTest
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import polygon.api.PolygonApi
 import polygon.api.Problem
 import polygon.api.ProblemInfo
-import polygon.api.downloadPackage
-import polygon.api.getLatestPackageId
-import polygon.api.getProblem
-import polygon.api.getStatement
-import polygon.api.getStatementRaw
-import polygon.converter.PolygonSourceTypeToIRLanguageConverter
-import polygon.converter.PolygonTagToIRVerdictConverter
-import polygon.exception.AccessDeniedException
-import polygon.exception.CheckerNotFoundException
-import polygon.exception.NoPackagesBuiltException
-import polygon.exception.NoSuchProblemException
-import polygon.exception.OldBuiltPackageException
-import polygon.exception.PdfStatementNotFoundException
-import polygon.exception.ProblemDownloadingException
-import polygon.exception.ProblemModifiedException
-import polygon.exception.StatementNotFoundException
-import polygon.exception.UnsupportedFormatException
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.notExists
-import kotlin.io.path.readBytes
+import polygon.exception.response.NoSuchProblemException
+import polygon.exception.downloading.ProblemDownloadingException
 
 /**
  * Polygon service.
@@ -73,120 +46,14 @@ class PolygonServiceImpl(
     private val polygonApi: PolygonApi
 ) : PolygonService {
 
-    data class FullPackageId(
-        val packageId: Int,
-        val includeTests: Boolean
-    )
-
-    private val cache = ConcurrentHashMap<FullPackageId, IRProblem>()
+    private val polygonProblemDownloader = PolygonProblemDownloader(polygonApi)
 
     override suspend fun downloadProblem(problemId: Int, includeTests: Boolean): IRProblem {
-        try {
-            return downloadProblemInternal(problemId, includeTests)
+        return try {
+            polygonProblemDownloader.downloadProblem(problemId, includeTests)
         } catch (e: Exception) {
             throw ProblemDownloadingException("Не удалось скачать задачу: ${e.message}", e)
         }
-    }
-
-    @OptIn(ExperimentalPathApi::class) // TODO ask why file-level opt-ins don't work with Koin
-    private suspend fun downloadProblemInternal(problemId: Int, includeTests: Boolean) = coroutineScope {
-        // eagerly check for access
-        val problem = polygonApi.getProblem(problemId).apply {
-            if (accessType == Problem.AccessType.READ) {
-                throw AccessDeniedException("Нет доступа на запись. Дайте WRITE доступ пользователю Musin")
-            }
-            if (modified) {
-                throw ProblemModifiedException(
-                    "Файлы задачи изменены. Сначала откатите изменения или закоммитьте их и соберите новый пакет " +
-                        "(скорее всего (99.9%) косяк Рустама)"
-                )
-            }
-            if (latestPackage == null) {
-                throw NoPackagesBuiltException("У задачи нет собранных пакетов. Соберите пакет")
-            }
-            if (latestPackage != revision) {
-                throw OldBuiltPackageException("Последний собранный для задачи пакет не актуален. Соберите новый")
-            }
-        }
-
-        val info = async {
-            polygonApi.getProblemInfo(problemId).extract().apply {
-                if (interactive) {
-                    throw UnsupportedFormatException("Интерактивные задачи не поддерживаются")
-                }
-            }
-        }
-        val packageId = polygonApi.getLatestPackageId(problemId)
-
-        val statement = async {
-            polygonApi.getStatement(problemId)?.let { (language, statement) ->
-                val content = polygonApi.getStatementRaw(problemId, packageId, "pdf", language)
-                    ?: throw PdfStatementNotFoundException("Не найдена pdf версия условия")
-                IRStatement(statement.name, content.toList())
-            } ?: throw StatementNotFoundException("Не найдено условие")
-        }
-
-        val checker = async {
-            val name = "check.cpp"
-            val file = polygonApi.downloadPackage(problemId, packageId).resolve(name)
-            if (file.notExists()) {
-                throw CheckerNotFoundException(
-                    "Не найден чекер '$name'. Другие чекеры не поддерживаются"
-                )
-            }
-            IRChecker(name, file.readBytes().decodeToString())
-        }
-
-        // fail fast
-        statement.await()
-        checker.await()
-        info.await()
-
-        cache[FullPackageId(packageId, includeTests)]
-            .also { if (it != null) return@coroutineScope it }
-        if (!includeTests)
-            cache[FullPackageId(packageId, true)]
-                .also { if (it != null) return@coroutineScope it }
-
-        val tests = async {
-            if (!includeTests) return@async emptyList<IRTest>()
-            val tests = polygonApi.getTests(problemId).extract().sortedBy { it.index }
-            val inputs = tests.map { async { polygonApi.getTestInput(problemId, it.index) } }
-            val answers = tests.map { async { polygonApi.getTestAnswer(problemId, it.index) } }
-            val ins = inputs.awaitAll()
-            val outs = answers.awaitAll()
-            tests.indices.map { i ->
-                val test = tests[i]
-                IRTest(test.index, test.useInStatements, ins[i], outs[i])
-            }
-        }
-
-        val solutions = async {
-            polygonApi.getSolutions(problemId).extract().map { solution ->
-                val content = polygonApi.getSolutionContent(problemId, solution.name).use {
-                    it.bytes().decodeToString()
-                }
-                IRSolution(
-                    name = solution.name,
-                    verdict = PolygonTagToIRVerdictConverter.convert(solution.tag),
-                    isMain = solution.tag == "MA",
-                    language = PolygonSourceTypeToIRLanguageConverter.convert(solution.sourceType),
-                    content = content
-                )
-            }
-        }
-
-        val limits = async { with(info.await()) { IRLimits(timeLimit, memoryLimit) } }
-
-        IRProblem(
-            problem.name,
-            problem.owner,
-            statement.await(),
-            limits.await(),
-            tests.await(),
-            checker.await(),
-            solutions.await()
-        ).also { cache[FullPackageId(packageId, includeTests)] = it }
     }
 
     override suspend fun getProblems() = polygonApi.getProblems().extract()

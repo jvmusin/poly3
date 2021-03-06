@@ -1,6 +1,6 @@
 package polygon.api
 
-import polygon.exception.NoSuchProblemException
+import polygon.exception.response.NoSuchProblemException
 import util.extract
 import java.nio.file.Files
 import java.nio.file.Path

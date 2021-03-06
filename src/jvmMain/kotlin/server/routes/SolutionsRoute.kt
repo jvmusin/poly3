@@ -20,7 +20,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
 import polygon.PolygonService
-import polygon.exception.ProblemDownloadingException
+import polygon.exception.downloading.ProblemDownloadingException
 import server.MessageSenderFactory
 import sybon.SybonArchiveService
 import sybon.SybonCheckingService

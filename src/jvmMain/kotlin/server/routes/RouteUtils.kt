@@ -6,7 +6,7 @@ import bacs.BacsArchiveService
 import io.ktor.features.BadRequestException
 import ir.IRProblem
 import polygon.PolygonService
-import polygon.exception.ProblemDownloadingException
+import polygon.exception.downloading.ProblemDownloadingException
 import server.MessageSender
 
 suspend fun downloadProblem(sendMessage: MessageSender, problemId: Int, polygonService: PolygonService): IRProblem {

@@ -17,16 +17,16 @@ import io.kotest.matchers.throwable.shouldHaveCauseOfType
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import polygon.PolygonService
-import polygon.exception.AccessDeniedException
-import polygon.exception.CheckerNotFoundException
-import polygon.exception.NoPackagesBuiltException
-import polygon.exception.NoSuchProblemException
-import polygon.exception.OldBuiltPackageException
-import polygon.exception.PdfStatementNotFoundException
-import polygon.exception.ProblemDownloadingException
-import polygon.exception.ProblemModifiedException
-import polygon.exception.StatementNotFoundException
-import polygon.exception.UnsupportedFormatException
+import polygon.exception.response.AccessDeniedException
+import polygon.exception.downloading.resource.CheckerNotFoundException
+import polygon.exception.downloading.packages.NoPackagesBuiltException
+import polygon.exception.response.NoSuchProblemException
+import polygon.exception.downloading.packages.OldBuiltPackageException
+import polygon.exception.downloading.resource.PdfStatementNotFoundException
+import polygon.exception.downloading.ProblemDownloadingException
+import polygon.exception.downloading.format.ProblemModifiedException
+import polygon.exception.downloading.resource.StatementNotFoundException
+import polygon.exception.downloading.format.UnsupportedProblemFormatException
 import kotlin.time.ExperimentalTime
 
 class PolygonServiceTests : BehaviorSpec(), KoinTest {
@@ -72,7 +72,7 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
             }
             When("problem is interactive") {
                 Then("throws ProblemDownloadingException with cause UnsupportedFormatException") {
-                    downloadProblemWithInnerException<UnsupportedFormatException>(interactiveProblem)
+                    downloadProblemWithInnerException<UnsupportedProblemFormatException>(interactiveProblem)
                 }
             }
             When("problem has no statement") {

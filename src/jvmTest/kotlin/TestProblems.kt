@@ -8,4 +8,7 @@ object TestProblems {
     const val problemWithoutStatement = 155265
     const val problemWithoutPdfStatement = 159743
     const val problemWithoutCppChecker = 159744
+
+    const val problemWithTestGroups = 159528
+    const val problemWithTestGroupsExceptSamples = 159558
 }
