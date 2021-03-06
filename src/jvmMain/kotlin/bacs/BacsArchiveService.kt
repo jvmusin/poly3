@@ -376,9 +376,9 @@ class BacsArchiveServiceImpl(
         problemId: String,
         retryPolicy: RetryPolicy = RetryPolicy()
     ): BacsProblemState {
-        return retryPolicy.evalWhileFails({ it != null && it != BacsProblemState.PENDING_IMPORT }) {
+        return retryPolicy.evalWhileFails({ it != BacsProblemState.PENDING_IMPORT }) {
             getProblemStatus(problemId).state
-        }!!
+        }
     }
 
     override suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties): String {
