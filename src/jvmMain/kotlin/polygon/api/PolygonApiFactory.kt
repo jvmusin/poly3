@@ -12,12 +12,25 @@ import retrofit.RetrofitClientFactory
 import retrofit.bufferedBody
 import util.RetryPolicy
 import util.sha512
-import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
+/**
+ * PolygonAPI factory.
+ *
+ * Used to create [PolygonApi].
+ *
+ * @property config Polygon API configuration.
+ */
 class PolygonApiFactory(private val config: PolygonConfig) {
 
+    /**
+     * ApiSig adding interceptor.
+     *
+     * Adds *apiSig* to every request made to Polygon API.
+     *
+     * Uses [PolygonConfig.apiKey] and [PolygonConfig.secret] to change the request URL.
+     */
     private inner class ApiSigAddingInterceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val original = chain.request()
@@ -44,75 +57,87 @@ class PolygonApiFactory(private val config: PolygonConfig) {
         }
     }
 
-    private class TooManyRequestsRetryInterceptor(
+    /**
+     * Polygon retry interceptor.
+     *
+     * Retries the request while [needRepeat] returns *true*.
+     *
+     * Duration of time it tries to repeat the request and delay between sequential requests
+     * are configured via [retryPolicy].
+     *
+     * @property retryPolicy Configures duration of time it tries to repeat the request
+     *                       and delays between sequential requests.
+     */
+    private abstract class PolygonRetryInterceptor(
         private val retryPolicy: RetryPolicy = RetryPolicy(10.minutes, 1.minutes)
     ) : Interceptor {
-
-        companion object {
-            const val TOO_MANY_REQUESTS_MESSAGE = "Too many requests. Please, wait few seconds and try again"
-
-            private fun Response.isTooManyRequests() =
-                code == 400 && bufferedBody().let { it != null && TOO_MANY_REQUESTS_MESSAGE in it.string() }
-        }
+        abstract fun needRepeat(response: Response): Boolean
 
         @Suppress("BlockingMethodInNonBlockingContext")
         override fun intercept(chain: Interceptor.Chain) = runBlocking {
             var done = 0
             retryPolicy.evalWhileFails({ res ->
-                if (!res.isTooManyRequests()) true
-                else {
+                if (needRepeat(res)) {
+                    val body = res.bufferedBody()?.string() ?: "NO BODY"
                     getLogger(javaClass).warn(
-                        "Too many requests to Polygon API. " +
+                        "Polygon API responded with code ${res.code} and body '$body'\n" +
                             "Now sleep for ${retryPolicy.retryAfter} and make try #${++done + 1}"
                     )
                     false
-                }
+                } else true
             }) { chain.proceed(chain.request()) }
         }
+    }
+
+    /**
+     * Too many requests retry interceptor.
+     *
+     * Retries the request if Polygon API said TOO MANY REQUESTS.
+     */
+    private class TooManyRequestsRetryInterceptor : PolygonRetryInterceptor() {
+        companion object {
+            const val TOO_MANY_REQUESTS_MESSAGE = "Too many requests. Please, wait few seconds and try again"
+        }
+
+        override fun needRepeat(response: Response): Boolean {
+            return response.code == 400 && response.bufferedBody()?.string() == TOO_MANY_REQUESTS_MESSAGE
+        }
+    }
+
+    /**
+     * Server error retry interceptor.
+     *
+     * Retries the request if Polygon API responded with 5xx code.
+     */
+    private class ServerErrorRetryInterceptor : PolygonRetryInterceptor() {
+        override fun needRepeat(response: Response) = response.code in 500..599
     }
 
     /**
      * Changes response code from 400 to 200.
      *
      * Used to treat *code 400* responses as *code 200* responses.
-     * Since Polygon API returns code 400 when something is wrong,
-     * it also returns the message about that in request body,
+     *
+     * Polygon API returns code *400* when something is wrong,
+     * but it also returns the message about that in request body,
      * so we will have *null* result and *non-null* message
      * in the [PolygonResponse].
      */
     private class Code400To200Interceptor : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val result = chain.proceed(chain.request())
-            if (result.code == 400) {
-                return result.newBuilder().code(200).build()
-            }
-            return result
-        }
-    }
-
-    private class ServerErrorRetryInterceptor(
-        private val period: Duration = 1.minutes,
-        private val retries: Int = 10
-    ) : Interceptor {
-        override fun intercept(chain: Interceptor.Chain): Response {
-            var done = 0
-            while (true) {
-                val res = chain.proceed(chain.request())
-                if ((res.code in 500..599) && done++ < retries) {
-                    getLogger(javaClass).warn(
-                        "Polygon API responded with ${res.code} error. Now sleep for $period and make try #${done + 1} of $retries"
-                    )
-                    val body = res.body!!.bytes().decodeToString()
-                    getLogger(javaClass).warn(
-                        "Responded with this text: $body"
-                    )
-                    continue
-                }
-                return res
+            return when (result.code) {
+                400 -> result.newBuilder().code(200).build()
+                else -> result
             }
         }
     }
 
+    /**
+     * Creates PolygonAPI using configuration data from [config].
+     *
+     * @return New PolygonAPI instance.
+     */
     fun create(): PolygonApi = RetrofitClientFactory.create(config.url) {
         addInterceptor(Code400To200Interceptor())
         addInterceptor(ServerErrorRetryInterceptor())
