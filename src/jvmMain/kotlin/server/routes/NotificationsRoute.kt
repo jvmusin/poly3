@@ -11,9 +11,9 @@ import io.ktor.sessions.sessions
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import org.koin.ktor.ext.inject
+import org.slf4j.LoggerFactory.getLogger
 import server.MessageSenderFactory
 import server.Session
-import util.getLogger
 import java.util.UUID
 
 fun Route.notifications() {

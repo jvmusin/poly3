@@ -2,11 +2,11 @@
 
 package sybon
 
+import org.slf4j.LoggerFactory.getLogger
 import retrofit2.HttpException
 import sybon.api.SybonArchiveApi
 import sybon.api.SybonProblem
 import util.RetryPolicy
-import util.getLogger
 import kotlin.time.ExperimentalTime
 
 interface SybonArchiveService {
@@ -35,7 +35,8 @@ class SybonArchiveServiceImpl(
                 getLogger(javaClass).debug("Problem import into sybon succeed")
             } catch (e: HttpException) {
                 if (e.code() == 500) {
-                    getLogger(javaClass).debug("Sybon returned 500 error on problem import, will try again")
+                    getLogger(javaClass)
+                        .debug("Sybon returned 500 error on problem import, will try again")
                     null
                 } else throw SybonProblemImportException("Problem import into sybon failed: ${e.message()}", e)
             }

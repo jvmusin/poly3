@@ -6,9 +6,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import org.slf4j.LoggerFactory.getLogger
 import polygon.PolygonConfig
 import retrofit.RetrofitClientFactory
-import util.getLogger
 import util.sha512
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime

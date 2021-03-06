@@ -1,5 +1,6 @@
 package util
 
+import org.slf4j.LoggerFactory.getLogger
 import java.io.BufferedOutputStream
 import java.io.FileOutputStream
 import java.nio.file.Files

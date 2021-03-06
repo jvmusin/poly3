@@ -29,9 +29,9 @@ import io.ktor.utils.io.write
 import io.ktor.utils.io.writeFully
 import ir.IRProblem
 import org.jsoup.Jsoup
+import org.slf4j.LoggerFactory.getLogger
 import sybon.toZipArchive
 import util.RetryPolicy
-import util.getLogger
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.fileSize
