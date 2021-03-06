@@ -4,8 +4,9 @@ import ir.IRProblem
 import polygon.api.PolygonApi
 import polygon.api.Problem
 import polygon.api.ProblemInfo
-import polygon.exception.response.NoSuchProblemException
 import polygon.exception.downloading.ProblemDownloadingException
+import polygon.exception.response.AccessDeniedException
+import polygon.exception.response.NoSuchProblemException
 
 /**
  * Polygon service.
@@ -21,7 +22,9 @@ interface PolygonService {
      * @param problemId id of the problem to download.
      * @param includeTests if true then the problem tests will also be downloaded.
      * @return The problem with or without tests, depending on [includeTests] parameter.
-     * @throws ProblemDownloadingException if the downloading failed.
+     * @throws NoSuchProblemException if the problem does not exist.
+     * @throws AccessDeniedException if not enough rights to download the problem.
+     * @throws ProblemDownloadingException if something gone wrong while downloading the problem.
      */
     suspend fun downloadProblem(problemId: Int, includeTests: Boolean = false): IRProblem
 
@@ -43,14 +46,13 @@ interface PolygonService {
 }
 
 class PolygonServiceImpl(
-    private val polygonApi: PolygonApi
+    private val polygonApi: PolygonApi,
+    private val problemDownloader: PolygonProblemDownloader
 ) : PolygonService {
-
-    private val polygonProblemDownloader = PolygonProblemDownloader(polygonApi)
 
     override suspend fun downloadProblem(problemId: Int, includeTests: Boolean): IRProblem {
         return try {
-            polygonProblemDownloader.downloadProblem(problemId, includeTests)
+            problemDownloader.downloadProblem(problemId, includeTests)
         } catch (e: Exception) {
             throw ProblemDownloadingException("Не удалось скачать задачу: ${e.message}", e)
         }

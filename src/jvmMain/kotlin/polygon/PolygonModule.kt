@@ -12,4 +12,5 @@ import polygon.api.PolygonApiFactory
 fun polygonModule(polygonConfig: PolygonConfig) = module {
     single { PolygonApiFactory(polygonConfig).create() }
     singleBy<PolygonService, PolygonServiceImpl>()
+    singleBy<PolygonProblemDownloader, PolygonProblemDownloaderImpl>()
 }

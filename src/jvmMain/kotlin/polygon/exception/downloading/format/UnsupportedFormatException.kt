@@ -7,4 +7,4 @@ import polygon.exception.downloading.ProblemDownloadingException
  *
  * Thrown if problem format is not supported for some reason.
  */
-class UnsupportedProblemFormatException(message: String) : ProblemDownloadingException(message)
+class UnsupportedFormatException(message: String) : ProblemDownloadingException(message)

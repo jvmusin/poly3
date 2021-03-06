@@ -1,13 +1,7 @@
 @file:OptIn(ExperimentalTime::class)
 
-import TestProblems.interactiveProblem
-import TestProblems.modifiedProblem
 import TestProblems.noBuiltPackagesProblem
-import TestProblems.oldPackageProblem
 import TestProblems.problemWithOnlyReadAccess
-import TestProblems.problemWithoutCppChecker
-import TestProblems.problemWithoutPdfStatement
-import TestProblems.problemWithoutStatement
 import TestProblems.totallyUnknownProblem
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
@@ -17,16 +11,9 @@ import io.kotest.matchers.throwable.shouldHaveCauseOfType
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import polygon.PolygonService
-import polygon.exception.response.AccessDeniedException
-import polygon.exception.downloading.resource.CheckerNotFoundException
-import polygon.exception.downloading.packages.NoPackagesBuiltException
-import polygon.exception.response.NoSuchProblemException
-import polygon.exception.downloading.packages.OldBuiltPackageException
-import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.ProblemDownloadingException
-import polygon.exception.downloading.format.ProblemModifiedException
-import polygon.exception.downloading.resource.StatementNotFoundException
-import polygon.exception.downloading.format.UnsupportedProblemFormatException
+import polygon.exception.downloading.resource.CheckerNotFoundException
+import polygon.exception.response.NoSuchProblemException
 import kotlin.time.ExperimentalTime
 
 class PolygonServiceTests : BehaviorSpec(), KoinTest {
@@ -44,54 +31,6 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
     }
 
     init {
-        Given("downloadProblem") {
-            When("problem is unknown") {
-                Then("throws ProblemDownloadingException with cause NoSuchProblemException") {
-                    downloadProblemWithInnerException<NoSuchProblemException>(totallyUnknownProblem)
-                }
-            }
-            When("no WRITE access") {
-                Then("throws ProblemDownloadingException with cause AccessDeniedException") {
-                    downloadProblemWithInnerException<AccessDeniedException>(problemWithOnlyReadAccess)
-                }
-            }
-            When("problem is modified") {
-                Then("throws ProblemDownloadingException with cause NoPackagesBuiltException") {
-                    downloadProblemWithInnerException<ProblemModifiedException>(modifiedProblem)
-                }
-            }
-            When("no packages build") {
-                Then("throws ProblemDownloadingException with cause NoPackagesBuiltException") {
-                    downloadProblemWithInnerException<NoPackagesBuiltException>(noBuiltPackagesProblem)
-                }
-            }
-            When("last built package is old") {
-                Then("throws ProblemDownloadingException with cause OldBuiltPackageException") {
-                    downloadProblemWithInnerException<OldBuiltPackageException>(oldPackageProblem)
-                }
-            }
-            When("problem is interactive") {
-                Then("throws ProblemDownloadingException with cause UnsupportedFormatException") {
-                    downloadProblemWithInnerException<UnsupportedProblemFormatException>(interactiveProblem)
-                }
-            }
-            When("problem has no statement") {
-                Then("throws ProblemDownloadingException with cause StatementNotFoundException") {
-                    downloadProblemWithInnerException<StatementNotFoundException>(problemWithoutStatement)
-                }
-            }
-            When("problem has no pdf statement") {
-                Then("throws ProblemDownloadingException with cause PdfStatementNotFoundException") {
-                    downloadProblemWithInnerException<PdfStatementNotFoundException>(problemWithoutPdfStatement)
-                }
-            }
-            When("problem has no cpp checker") {
-                Then("throws ProblemDownloadingException with cause CheckerNotFoundException") {
-                    downloadProblemWithInnerException<CheckerNotFoundException>(problemWithoutCppChecker)
-                }
-            }
-        }
-
         Given("getProblemInfo") {
             When("have WRITE access") {
                 Then("returns info") {

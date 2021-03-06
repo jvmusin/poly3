@@ -19,14 +19,16 @@ import polygon.api.getStatement
 import polygon.api.getStatementRaw
 import polygon.converter.PolygonSourceTypeToIRLanguageConverter
 import polygon.converter.PolygonTagToIRVerdictConverter
+import polygon.exception.downloading.ProblemDownloadingException
 import polygon.exception.downloading.format.ProblemModifiedException
-import polygon.exception.downloading.format.UnsupportedProblemFormatException
+import polygon.exception.downloading.format.UnsupportedFormatException
 import polygon.exception.downloading.packages.NoPackagesBuiltException
 import polygon.exception.downloading.packages.OldBuiltPackageException
 import polygon.exception.downloading.resource.CheckerNotFoundException
 import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.resource.StatementNotFoundException
 import polygon.exception.response.AccessDeniedException
+import polygon.exception.response.NoSuchProblemException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
@@ -36,12 +38,26 @@ import kotlin.io.path.readText
  * Polygon problem downloader
  *
  * Used for downloading problems from Polygon.
- *
- * @property polygonApi Polygon API.
  */
-class PolygonProblemDownloader(
+interface PolygonProblemDownloader {
+    /**
+     * Downloads the problem with the given [problemId].
+     *
+     * Tests might be skipped by setting [includeTests].
+     *
+     * @param problemId id of the problem to download.
+     * @param includeTests if true then the problem tests will also be downloaded.
+     * @return The problem with or without tests, depending on [includeTests] parameter.
+     * @throws NoSuchProblemException if the problem does not exist.
+     * @throws AccessDeniedException if not enough rights to download the problem.
+     * @throws ProblemDownloadingException if something gone wrong while downloading the problem.
+     */
+    suspend fun downloadProblem(problemId: Int, includeTests: Boolean): IRProblem
+}
+
+class PolygonProblemDownloaderImpl(
     private val polygonApi: PolygonApi
-) {
+) : PolygonProblemDownloader {
 
     /**
      * Full package id.
@@ -96,12 +112,12 @@ class PolygonProblemDownloader(
      *
      * @param problemId id of the problem.
      * @return Problem info for the problem with given [problemId] from Polygon API.
-     * @throws UnsupportedProblemFormatException if the problem has unsupported format.
+     * @throws UnsupportedFormatException if the problem has unsupported format.
      */
     private suspend fun getProblemInfo(problemId: Int): ProblemInfo {
         return polygonApi.getProblemInfo(problemId).extract().apply {
             if (interactive) {
-                throw UnsupportedProblemFormatException("Интерактивные задачи не поддерживаются")
+                throw UnsupportedFormatException("Интерактивные задачи не поддерживаются")
             }
         }
     }
@@ -166,7 +182,7 @@ class PolygonProblemDownloader(
     }
 
     @OptIn(ExperimentalPathApi::class)
-    suspend fun downloadProblem(problemId: Int, includeTests: Boolean) = coroutineScope {
+    override suspend fun downloadProblem(problemId: Int, includeTests: Boolean) = coroutineScope {
         // eagerly check for access
         val problem = getProblem(problemId)
 
@@ -179,9 +195,9 @@ class PolygonProblemDownloader(
          * Only these methods can throw an exception about incorrectly formatted problem,
          * so throw them as soon as possible.
          */
+        info.await()
         statement.await()
         checker.await()
-        info.await()
 
         val cached = getProblemFromCache(packageId.await(), includeTests)
         if (cached != null) return@coroutineScope cached

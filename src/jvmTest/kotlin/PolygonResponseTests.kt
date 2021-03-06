@@ -1,6 +1,7 @@
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
+import io.kotest.matchers.shouldBe
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import polygon.api.PolygonApi
@@ -33,6 +34,17 @@ class PolygonResponseTests : BehaviorSpec(), KoinTest {
                 Then("throws NoSuchTestGroupException") {
                     shouldThrowExactly<NoSuchTestGroupException> {
                         api.getTestGroup(TestProblems.problemWithTestGroups, "unknown-test-group").extract()
+                    }
+                }
+            }
+            When("requested normal problem") {
+                Then("returns correct result") {
+                    with(api.getProblemInfo(TestProblems.problemWithTestGroups).extract()) {
+                        inputFile shouldBe "stdin"
+                        outputFile shouldBe "stdout"
+                        interactive shouldBe false
+                        timeLimit shouldBe 1000
+                        memoryLimit shouldBe 256
                     }
                 }
             }
