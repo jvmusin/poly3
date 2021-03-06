@@ -24,31 +24,31 @@ data class RetryPolicy(
 
     /**
      * Evaluates the given [function] at least once.
-     * Returns result as soon as [check] returns *true* for the first time
+     * Returns result as soon as [condition] returns *true* for the first time
      * or when [tryFor] period is gone.
      *
      * Does retries every [retryAfter] until [tryFor] time is gone.
      *
-     * The returned value is either the result of [function] when [check] returned *true* for the first time or
+     * The returned value is either the result of [function] when [condition] returned *true* for the first time or
      * the last calculated by [function] value if [tryFor] time is gone.
      *
      * @param T type of the result.
-     * @param check function to check if the result is correct and can be returned.
+     * @param condition function to check if the result is correct and can be returned.
      * @param function function to generate result.
      * @return First successful or last calculated result.
      */
     @Suppress("REDUNDANT_INLINE_SUSPEND_FUNCTION_TYPE")
-    suspend inline fun <T> evalWhileFails(check: (T?) -> Boolean, function: suspend () -> T?): T? {
+    suspend inline fun <T> evalWhileFails(condition: (T) -> Boolean, function: suspend () -> T): T {
         val start = TimeSource.Monotonic.markNow()
         var first = true
         var res: T? = null
         while (first || start.elapsedNow() < tryFor) {
             first = false
             res = function()
-            if (check(res)) return res
+            if (condition(res)) return res
             delay(retryAfter)
         }
-        return res
+        return res!!
     }
 
     /**
