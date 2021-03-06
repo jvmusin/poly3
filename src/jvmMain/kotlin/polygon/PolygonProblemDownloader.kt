@@ -64,7 +64,7 @@ class PolygonProblemDownloaderImpl(
      *
      * Used as a key for the cache of problems.
      *
-     * @property packageId if of problem's package.
+     * @property packageId Id of problem's package.
      * @property includeTests Includes tests or not.
      */
     private data class FullPackageId(
@@ -122,6 +122,15 @@ class PolygonProblemDownloaderImpl(
         }
     }
 
+    /**
+     * Returns problem statement.
+     *
+     * @param problemId id of the problem.
+     * @param packageId id of the problem package.
+     * @return Problem statement.
+     * @throws StatementNotFoundException if there are no statements for the problem.
+     * @throws PdfStatementNotFoundException if there are no pdf statements for the problem.
+     */
     private suspend fun downloadStatement(problemId: Int, packageId: Int): IRStatement {
         return polygonApi.getStatement(problemId)?.let { (language, statement) ->
             val content = polygonApi.getStatementRaw(problemId, packageId, "pdf", language)
@@ -130,6 +139,14 @@ class PolygonProblemDownloaderImpl(
         } ?: throw StatementNotFoundException("Не найдено условие")
     }
 
+    /**
+     * Returns problem checker.
+     *
+     * @param problemId id of the problem.
+     * @param packageId if of the problem package.
+     * @return Problem Checker.
+     * @throws CheckerNotFoundException if checker is not in *.cpp* format.
+     */
     @OptIn(ExperimentalPathApi::class)
     private suspend fun downloadChecker(problemId: Int, packageId: Int): IRChecker {
         val name = "check.cpp"
@@ -142,6 +159,12 @@ class PolygonProblemDownloaderImpl(
         return IRChecker(name, file.readText())
     }
 
+    /**
+     * Returns problem tests.
+     *
+     * @param problemId id of the problem
+     * @return Problem tests.
+     */
     private suspend fun getTests(problemId: Int) = coroutineScope {
         val tests = polygonApi.getTests(problemId).extract().sortedBy { it.index }
         val inputs = tests.map { async { polygonApi.getTestInput(problemId, it.index) } }
@@ -154,6 +177,12 @@ class PolygonProblemDownloaderImpl(
         }
     }
 
+    /**
+     * Returns problem solutions.
+     *
+     * @param problemId id of the problem
+     * @return Problem solutions.
+     */
     private suspend fun getSolutions(problemId: Int): List<IRSolution> {
         return polygonApi.getSolutions(problemId).extract().map { solution ->
             val content = polygonApi.getSolutionContent(problemId, solution.name).use {
@@ -169,6 +198,13 @@ class PolygonProblemDownloaderImpl(
         }
     }
 
+    /**
+     * Returns problem from the cache or *null* if it's not in the cache.
+     *
+     * @param packageId id of the problem.
+     * @param includeTests whether to include tests or not.
+     * @return [IRProblem] instance of the problem or *null* if it's not in the cache.
+     */
     private fun getProblemFromCache(packageId: Int, includeTests: Boolean): IRProblem? {
         cache[FullPackageId(packageId, includeTests)].also { if (it != null) return it }
         if (!includeTests) {
@@ -177,6 +213,13 @@ class PolygonProblemDownloaderImpl(
         return null
     }
 
+    /**
+     * Saves problem into the cache.
+     *
+     * @param packageId if of the problem.
+     * @param includeTests whether to include tests or not.
+     * @param problem Problem instance to save.
+     */
     private fun putProblemToCache(packageId: Int, includeTests: Boolean, problem: IRProblem) {
         cache[FullPackageId(packageId, includeTests)] = problem
     }
