@@ -123,6 +123,8 @@ kotlin {
 
 application {
     mainClass.set("server.ServerKt")
+    // to set jvm args, put them below
+    // applicationDefaultJvmArgs = listOf("-Dio.netty.noKeySetOptimization=true", "-Dio.netty.noUnsafe=true")
 }
 
 tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
