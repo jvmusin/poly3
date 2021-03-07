@@ -73,7 +73,7 @@ enum class IRTestGroupPointsPolicy {
      *
      * Intended to use in samples group.
      */
-    NO_POINTS
+    SAMPLES
 }
 
 data class IRTestGroup(
