@@ -160,7 +160,7 @@ class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
                     Then("downloads tests correctly") {
                         with(downloader.downloadProblem(problemWithNormalTestGroupsAndPoints, true)) {
                             tests shouldBe listOf(
-                                IRTest(1, true, "1\r\n", "ans1\r\n", 0, "samples"),
+                                IRTest(1, true, "1\r\n", "ans1\r\n", null, "samples"),
                                 IRTest(2, false, "2\r\n", "ans2\r\n", null, "first"),
                                 IRTest(3, false, "3\r\n", "ans3\r\n", null, "first"),
                                 IRTest(4, false, "4\r\n", "ans4\r\n", 5, "second"),
@@ -172,7 +172,7 @@ class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
                     Then("downloads test groups correctly") {
                         with(downloader.downloadProblem(problemWithNormalTestGroupsAndPoints, false)) {
                             groups shouldBe listOf(
-                                IRTestGroup("samples", IRTestGroupPointsPolicy.EACH_TEST, listOf(1), null),
+                                IRTestGroup("samples", IRTestGroupPointsPolicy.NO_POINTS, listOf(1), null),
                                 IRTestGroup("first", IRTestGroupPointsPolicy.COMPLETE_GROUP, listOf(2, 3), 10),
                                 IRTestGroup("second", IRTestGroupPointsPolicy.EACH_TEST, listOf(4, 5), null),
                                 IRTestGroup("third", IRTestGroupPointsPolicy.EACH_TEST, listOf(6), null),

@@ -273,7 +273,10 @@ class PolygonProblemDownloaderImpl(
 
         val groups = rawTestGroups.associateBy { it.name }
         return rawTests.sequentiallyGroupedBy { it.group!! }.map { (groupName, tests) ->
-            val pointsPolicy = PolygonPointsPolicyConverter.convert(groups[groupName]!!.pointsPolicy)
+            val pointsPolicy = when {
+                tests.any { it.useInStatements } -> IRTestGroupPointsPolicy.NO_POINTS
+                else -> PolygonPointsPolicyConverter.convert(groups[groupName]!!.pointsPolicy)
+            }
             val points = when (pointsPolicy) {
                 IRTestGroupPointsPolicy.COMPLETE_GROUP -> tests.sumOf { it.points!!.toInt() }
                 else -> null

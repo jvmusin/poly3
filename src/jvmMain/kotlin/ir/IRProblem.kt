@@ -52,9 +52,28 @@ enum class IRLanguage(val fullName: String) {
     OTHER("Other")
 }
 
+/**
+ * IR test group points policy.
+ *
+ * Used to understand how to score solutions with test groups.
+ */
 enum class IRTestGroupPointsPolicy {
+    /**
+     * Give scores only when all tests in the group are passed.
+     */
     COMPLETE_GROUP,
-    EACH_TEST
+
+    /**
+     * Give scores for each passed test in the group.
+     */
+    EACH_TEST,
+
+    /**
+     * Do not give any points for passing tests in this group.
+     *
+     * Intended to use in samples group.
+     */
+    NO_POINTS
 }
 
 data class IRTestGroup(
