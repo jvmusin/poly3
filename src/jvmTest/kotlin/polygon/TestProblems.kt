@@ -54,4 +54,14 @@ object TestProblems {
      * Problem that has 3 tests, first two are samples, ang groups **'first', 'second', 'second'**.
      */
     const val problemWhereSamplesAreNotFormingFirstTestGroup = 160344
+
+    /**
+     * Problem that has points on sample.
+     */
+    const val problemWithPointsOnSample = 160360
+
+    /**
+     * Problem that has points on samples group.
+     */
+    const val problemWithPointsOnSamplesGroup = 160362
 }

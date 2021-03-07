@@ -33,6 +33,7 @@ import polygon.exception.downloading.resource.StatementNotFoundException
 import polygon.exception.downloading.tests.MissingTestGroupException
 import polygon.exception.downloading.tests.NonSequentialTestIndicesException
 import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupException
+import polygon.exception.downloading.tests.PointsOnSampleException
 import polygon.exception.downloading.tests.SamplesNotFirstException
 import polygon.exception.downloading.tests.SamplesNotFormingFirstTestGroupException
 import polygon.exception.response.AccessDeniedException
@@ -219,8 +220,8 @@ class PolygonProblemDownloaderImpl(
             throw NonSequentialTestIndicesException("Номера тестов должны идти от 1 до их количества")
         }
 
-        val samplesCount = tests.count { it.useInStatements }
-        val anySamples = samplesCount > 0
+        val samples = tests.filter { it.useInStatements }
+        val anySamples = samples.any()
 
         if (anySamples) {
             if (!tests.first().useInStatements || tests.sequentiallyGroupedBy { it.useInStatements }.size > 2) {
@@ -234,8 +235,14 @@ class PolygonProblemDownloaderImpl(
         if (groups.size != groups.distinctBy { it.key }.size) {
             throw NonSequentialTestsInTestGroupException("Тесты из одной группы должны идти последовательно")
         }
-        if (anySamples && groups.first().size != samplesCount) {
-            throw SamplesNotFormingFirstTestGroupException("Сэмплы должны образовывать первую группу тестов")
+        if (anySamples) {
+            if (groups.first().size != samples.size) {
+                throw SamplesNotFormingFirstTestGroupException("Сэмплы должны образовывать первую группу тестов")
+            }
+            if (samples.any { (it.points ?: 0.0) != 0.0 }) {
+                // TODO check if we really need to check for null here
+                throw PointsOnSampleException("Сэмплы не должны давать баллы")
+            }
         }
     }
 

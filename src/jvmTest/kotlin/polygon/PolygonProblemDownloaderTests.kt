@@ -10,13 +10,15 @@ import polygon.TestProblems.interactiveProblem
 import polygon.TestProblems.modifiedProblem
 import polygon.TestProblems.noBuiltPackagesProblem
 import polygon.TestProblems.oldPackageProblem
+import polygon.TestProblems.problemWhereSampleGoesSecond
+import polygon.TestProblems.problemWhereSamplesAreFirstAndThirdTests
 import polygon.TestProblems.problemWhereSamplesAreNotFormingFirstTestGroup
 import polygon.TestProblems.problemWithMissingTestGroups
 import polygon.TestProblems.problemWithNonSequentialTestIndices
 import polygon.TestProblems.problemWithNonSequentialTestsInTestGroup
 import polygon.TestProblems.problemWithOnlyReadAccess
-import polygon.TestProblems.problemWhereSampleGoesSecond
-import polygon.TestProblems.problemWhereSamplesAreFirstAndThirdTests
+import polygon.TestProblems.problemWithPointsOnSample
+import polygon.TestProblems.problemWithPointsOnSamplesGroup
 import polygon.TestProblems.problemWithoutCppChecker
 import polygon.TestProblems.problemWithoutPdfStatement
 import polygon.TestProblems.problemWithoutStatement
@@ -32,6 +34,7 @@ import polygon.exception.downloading.resource.StatementNotFoundException
 import polygon.exception.downloading.tests.MissingTestGroupException
 import polygon.exception.downloading.tests.NonSequentialTestIndicesException
 import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupException
+import polygon.exception.downloading.tests.PointsOnSampleException
 import polygon.exception.downloading.tests.SamplesNotFirstException
 import polygon.exception.downloading.tests.SamplesNotFormingFirstTestGroupException
 import polygon.exception.response.AccessDeniedException
@@ -136,6 +139,16 @@ class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
                         downloadProblemWithException<SamplesNotFormingFirstTestGroupException>(
                             problemWhereSamplesAreNotFormingFirstTestGroup
                         )
+                    }
+                }
+                And("sample has points") {
+                    Then("throws PointsOnSampleException") {
+                        downloadProblemWithException<PointsOnSampleException>(problemWithPointsOnSample)
+                    }
+                }
+                And("samples group has points") {
+                    Then("throws PointsOnSampleException") {
+                        downloadProblemWithException<PointsOnSampleException>(problemWithPointsOnSamplesGroup)
                     }
                 }
             }
