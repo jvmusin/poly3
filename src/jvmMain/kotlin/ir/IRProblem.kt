@@ -5,7 +5,8 @@ data class IRProblem(
     val owner: String,
     val statement: IRStatement,
     val limits: IRLimits,
-    val tests: List<IRTest>,
+    val tests: List<IRTest>?,
+    val groups: List<IRTestGroup>?,
     val checker: IRChecker,
     val solutions: List<IRSolution>
 ) {
@@ -13,7 +14,15 @@ data class IRProblem(
 }
 
 data class IRStatement(val name: String, val content: List<Byte>)
-data class IRTest(val index: Int, val isSample: Boolean, val input: String, val output: String)
+data class IRTest(
+    val index: Int,
+    val isSample: Boolean,
+    val input: String,
+    val output: String,
+    val points: Int?,
+    val groupName: String?
+)
+
 data class IRChecker(val name: String, val content: String)
 data class IRLimits(val timeLimitMillis: Int, val memoryLimitMegabytes: Int)
 data class IRSolution(
@@ -52,5 +61,5 @@ data class IRTestGroup(
     val name: String,
     val pointsPolicy: IRTestGroupPointsPolicy,
     val testIndices: List<Int>,
-    val points: Int
+    val points: Int?
 )

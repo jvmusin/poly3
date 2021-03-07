@@ -6,10 +6,12 @@ import ir.IRProblem
 import ir.IRSolution
 import ir.IRStatement
 import ir.IRTest
+import ir.IRTestGroup
+import ir.IRTestGroupPointsPolicy
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import polygon.api.PolygonApi
+import polygon.api.PolygonTest
 import polygon.api.Problem
 import polygon.api.ProblemInfo
 import polygon.api.downloadPackage
@@ -17,6 +19,7 @@ import polygon.api.getLatestPackageId
 import polygon.api.getProblem
 import polygon.api.getStatement
 import polygon.api.getStatementRaw
+import polygon.converter.PolygonPointsPolicyConverter
 import polygon.converter.PolygonSourceTypeToIRLanguageConverter
 import polygon.converter.PolygonTagToIRVerdictConverter
 import polygon.exception.downloading.ProblemDownloadingException
@@ -27,8 +30,15 @@ import polygon.exception.downloading.packages.OldBuiltPackageException
 import polygon.exception.downloading.resource.CheckerNotFoundException
 import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.resource.StatementNotFoundException
+import polygon.exception.downloading.tests.MissingTestGroupException
+import polygon.exception.downloading.tests.NonSequentialTestIndicesException
+import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupException
+import polygon.exception.downloading.tests.SamplesNotFirstException
+import polygon.exception.downloading.tests.SamplesNotFormingFirstTestGroupException
 import polygon.exception.response.AccessDeniedException
 import polygon.exception.response.NoSuchProblemException
+import polygon.exception.response.TestGroupsDisabledException
+import util.sequentiallyGroupedBy
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.notExists
@@ -129,7 +139,7 @@ class PolygonProblemDownloaderImpl(
      * @param packageId id of the problem package.
      * @return Problem statement.
      * @throws StatementNotFoundException if there are no statements for the problem.
-     * @throws PdfStatementNotFoundException if there are no pdf statements for the problem.
+     * @throws PdfStatementNotFoundException if there are no *.pdf* statements for the problem.
      */
     private suspend fun downloadStatement(problemId: Int, packageId: Int): IRStatement {
         return polygonApi.getStatement(problemId)?.let { (language, statement) ->
@@ -144,8 +154,8 @@ class PolygonProblemDownloaderImpl(
      *
      * @param problemId id of the problem.
      * @param packageId if of the problem package.
-     * @return Problem Checker.
-     * @throws CheckerNotFoundException if checker is not in *.cpp* format.
+     * @return Problem checker.
+     * @throws CheckerNotFoundException if checker is not found or is not in *.cpp* format.
      */
     @OptIn(ExperimentalPathApi::class)
     private suspend fun downloadChecker(problemId: Int, packageId: Int): IRChecker {
@@ -160,42 +170,146 @@ class PolygonProblemDownloaderImpl(
     }
 
     /**
-     * Returns problem tests.
-     *
-     * @param problemId id of the problem
-     * @return Problem tests.
-     */
-    private suspend fun getTests(problemId: Int) = coroutineScope {
-        val tests = polygonApi.getTests(problemId).extract().sortedBy { it.index }
-        val inputs = tests.map { async { polygonApi.getTestInput(problemId, it.index) } }
-        val answers = tests.map { async { polygonApi.getTestAnswer(problemId, it.index) } }
-        val ins = inputs.awaitAll()
-        val outs = answers.awaitAll()
-        tests.indices.map { i ->
-            val test = tests[i]
-            IRTest(test.index, test.useInStatements, ins[i], outs[i])
-        }
-    }
-
-    /**
      * Returns problem solutions.
      *
-     * @param problemId id of the problem
+     * @param problemId id of the problem.
      * @return Problem solutions.
      */
     private suspend fun getSolutions(problemId: Int): List<IRSolution> {
         return polygonApi.getSolutions(problemId).extract().map { solution ->
-            val content = polygonApi.getSolutionContent(problemId, solution.name).use {
-                it.bytes().decodeToString()
-            }
             IRSolution(
                 name = solution.name,
                 verdict = PolygonTagToIRVerdictConverter.convert(solution.tag),
                 isMain = solution.tag == "MA",
                 language = PolygonSourceTypeToIRLanguageConverter.convert(solution.sourceType),
-                content = content
+                content = polygonApi.getSolutionContent(problemId, solution.name)
             )
         }
+    }
+
+    /**
+     * Validates tests and test groups.
+     *
+     * Test indices should go from **1** to **number of tests**.
+     * If it's not so, then [NonSequentialTestIndicesException] is thrown.
+     *
+     * Samples should go before ordinal tests.
+     * If it's not so, [SamplesNotFirstException] is thrown.
+     *
+     * When test groups are enabled, then all tests should have test group.
+     * If it's not so, then [MissingTestGroupException] is thrown.
+     *
+     * All tests within the same test group should go one-after-another.
+     * There should be no two tests from the same test group
+     * when there is a test with some other test group between them.
+     * If it's not so, then [NonSequentialTestsInTestGroupException] is thrown.
+     *
+     * Samples should form the first test group.
+     * If it's not so, then [SamplesNotFormingFirstTestGroupException] is thrown.
+     *
+     * @param tests tests for the problem.
+     * @throws NonSequentialTestIndicesException if test indices don't go from 1 to its count.
+     * @throws SamplesNotFirstException if samples don't go first.
+     * @throws MissingTestGroupException if some tests have test groups and some don't (if test groups enabled).
+     * @throws NonSequentialTestsInTestGroupException if test groups don't go sequentially (if test groups enabled).
+     * @throws SamplesNotFormingFirstTestGroupException if samples don't form the first test group (if test groups enabled).
+     */
+    private fun validateTests(tests: List<PolygonTest>, testGroupsEnabled: Boolean) {
+        if (tests.withIndex().any { (index, test) -> index + 1 != test.index }) {
+            throw NonSequentialTestIndicesException("Номера тестов должны идти от 1 до их количества")
+        }
+
+        val samplesCount = tests.count { it.useInStatements }
+        val anySamples = samplesCount > 0
+
+        if (anySamples) {
+            if (!tests.first().useInStatements || tests.sequentiallyGroupedBy { it.useInStatements }.size > 2) {
+                throw SamplesNotFirstException("Сэмплы должны идти перед всеми остальными тестами")
+            }
+        }
+
+        if (!testGroupsEnabled) return
+
+        val groups = tests.sequentiallyGroupedBy { it.group }
+        if (groups.size != groups.distinctBy { it.key }.size) {
+            throw NonSequentialTestsInTestGroupException("Тесты из одной группы должны идти последовательно")
+        }
+        if (anySamples && groups.first().size != samplesCount) {
+            throw SamplesNotFormingFirstTestGroupException("Сэмплы должны образовывать первую группу тестов")
+        }
+    }
+
+    /**
+     * Returns test groups.
+     *
+     * If test groups are disabled for the problem, returns *null*.
+     *
+     * Points for the test group are set iff points policy is set to **COMPLETE_GROUP**.
+     * In such case, points for the test group are equal to the sum of points of tests within this test group.
+     * Otherwise, points are set to *null*.
+     *
+     * @param problemId id of the problem.
+     * @param rawTests raw Polygon tests.
+     * @return Test groups or *null* if test groups are disabled.
+     * @throws MissingTestGroupException if test groups are enabled and there are tests without test group set.
+     */
+    private suspend fun getTestGroups(problemId: Int, rawTests: List<PolygonTest>): List<IRTestGroup>? {
+        val rawTestGroups = try {
+            polygonApi.getTestGroup(problemId).extract()
+        } catch (e: TestGroupsDisabledException) {
+            return null
+        }
+
+        if (rawTests.any { it.group == null }) {
+            throw MissingTestGroupException("Группы тестов должны быть установлены на всех тестах")
+        }
+
+        val groups = rawTestGroups.associateBy { it.name }
+        return rawTests.sequentiallyGroupedBy { it.group!! }.map { (groupName, tests) ->
+            val pointsPolicy = PolygonPointsPolicyConverter.convert(groups[groupName]!!.pointsPolicy)
+            val points = when (pointsPolicy) {
+                IRTestGroupPointsPolicy.COMPLETE_GROUP -> tests.sumOf { it.points!!.toInt() }
+                else -> null
+            }
+            IRTestGroup(groupName, pointsPolicy, tests.map { it.index }, points)
+        }
+    }
+
+    /**
+     * Returns problem tests and test groups.
+     *
+     * Tests are validated using [validateTests].
+     *
+     * If test groups are disabled, then returns *null* test groups.
+     *
+     * If tests are skipped via *[includeTests] = false*, then returns *null* tests.
+     *
+     * Points for the test are set iff test groups are enabled
+     * and the corresponding test group has **EACH_TEST** points policy.
+     *
+     * @param problemId id of the problem.
+     * @param includeTests whether to include tests or not.
+     * @return Pair of problem tests and test groups.
+     */
+    private suspend fun getTestsAndTestGroups(problemId: Int, includeTests: Boolean) = coroutineScope {
+        val rawTests = polygonApi.getTests(problemId).extract().sortedBy { it.index }
+        val testGroups = getTestGroups(problemId, rawTests)
+        validateTests(rawTests, testGroups != null)
+
+        if (!includeTests) return@coroutineScope null to testGroups
+
+        val testGroupsByName = testGroups?.associateBy { it.name }
+        val inputs = rawTests.map { async { polygonApi.getTestInput(problemId, it.index) } }
+        val answers = rawTests.map { async { polygonApi.getTestAnswer(problemId, it.index) } }
+        val tests = rawTests.indices.map { i ->
+            val test = rawTests[i]
+            val group = testGroupsByName?.get(test.group)
+            val points = group
+                ?.takeIf { it.pointsPolicy == IRTestGroupPointsPolicy.EACH_TEST }
+                ?.let { test.points!!.toInt() }
+            IRTest(test.index, test.useInStatements, inputs[i].await(), answers[i].await(), points, test.group)
+        }
+        tests to testGroups
     }
 
     /**
@@ -218,9 +332,9 @@ class PolygonProblemDownloaderImpl(
      *
      * @param packageId if of the problem.
      * @param includeTests whether to include tests or not.
-     * @param problem Problem instance to save.
+     * @param problem [IRProblem] instance to save.
      */
-    private fun putProblemToCache(packageId: Int, includeTests: Boolean, problem: IRProblem) {
+    private fun saveProblemToCache(packageId: Int, includeTests: Boolean, problem: IRProblem) {
         cache[FullPackageId(packageId, includeTests)] = problem
     }
 
@@ -229,23 +343,28 @@ class PolygonProblemDownloaderImpl(
         // eagerly check for access
         val problem = getProblem(problemId)
 
-        val info = async { getProblemInfo(problemId) }
-        val packageId = async { polygonApi.getLatestPackageId(problemId) }
-        val statement = async { downloadStatement(problemId, packageId.await()) }
-        val checker = async { downloadChecker(problemId, packageId.await()) }
+        val packageId = polygonApi.getLatestPackageId(problemId)
 
-        /*
-         * Only these methods can throw an exception about incorrectly formatted problem,
-         * so throw them as soon as possible.
-         */
-        info.await()
-        statement.await()
-        checker.await()
-
-        val cached = getProblemFromCache(packageId.await(), includeTests)
+        val cached = getProblemFromCache(packageId, includeTests)
         if (cached != null) return@coroutineScope cached
 
-        val tests = async { if (!includeTests) emptyList() else getTests(problemId) }
+        val info = async { getProblemInfo(problemId) }
+        val statement = async { downloadStatement(problemId, packageId) }
+        val checker = async { downloadChecker(problemId, packageId) }
+
+        val testsAndTestGroups = async {
+            /*
+             * These methods can throw an exception about incorrectly formatted problem,
+             * so throw them as soon as possible before downloading tests data.
+             */
+            run {
+                info.await()
+                statement.await()
+                checker.await()
+            }
+            getTestsAndTestGroups(problemId, includeTests)
+        }
+
         val solutions = async { getSolutions(problemId) }
         val limits = async { with(info.await()) { IRLimits(timeLimit, memoryLimit) } }
 
@@ -254,9 +373,10 @@ class PolygonProblemDownloaderImpl(
             owner = problem.owner,
             statement = statement.await(),
             limits = limits.await(),
-            tests = tests.await(),
+            tests = testsAndTestGroups.await().first,
+            groups = testsAndTestGroups.await().second,
             checker = checker.await(),
             solutions = solutions.await()
-        ).also { putProblemToCache(packageId.await(), includeTests, it) }
+        ).also { saveProblemToCache(packageId, includeTests, it) }
     }
 }
