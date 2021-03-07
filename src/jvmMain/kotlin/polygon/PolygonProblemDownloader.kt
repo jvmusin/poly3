@@ -261,6 +261,7 @@ class PolygonProblemDownloaderImpl(
      * @param rawTests raw Polygon tests.
      * @return Test groups or *null* if test groups are disabled.
      * @throws MissingTestGroupException if test groups are enabled and there are tests without test group set.
+     * @throws TestPointsDisabledException if test groups are enabled, but test points are not.
      * @throws NonIntegralTestPointsException if tests have non-integral points.
      */
     private suspend fun getTestGroups(problemId: Int, rawTests: List<PolygonTest>): List<IRTestGroup>? {
@@ -279,7 +280,7 @@ class PolygonProblemDownloaderImpl(
                     "галочка 'Are test points enabled?' в полигоне"
             )
         }
-        if (rawTests.any { it.points.let { p -> p != null && p.toInt().toDouble() != p } }) {
+        if (rawTests.any { it.points != it.points!!.toInt().toDouble() }) {
             throw NonIntegralTestPointsException("Баллы должны быть целочисленными")
         }
 
