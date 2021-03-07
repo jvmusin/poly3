@@ -17,6 +17,7 @@ import polygon.TestProblems.oldPackageProblem
 import polygon.TestProblems.problemWhereSampleGoesSecond
 import polygon.TestProblems.problemWhereSamplesAreFirstAndThirdTests
 import polygon.TestProblems.problemWhereSamplesAreNotFormingFirstTestGroup
+import polygon.TestProblems.problemWithNonIntegralTestPoints
 import polygon.TestProblems.problemWithMissingTestGroups
 import polygon.TestProblems.problemWithNonSequentialTestIndices
 import polygon.TestProblems.problemWithNonSequentialTestsInTestGroup
@@ -37,6 +38,7 @@ import polygon.exception.downloading.resource.CheckerNotFoundException
 import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.resource.StatementNotFoundException
 import polygon.exception.downloading.tests.MissingTestGroupException
+import polygon.exception.downloading.tests.NonIntegralTestPointsException
 import polygon.exception.downloading.tests.NonSequentialTestIndicesException
 import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupException
 import polygon.exception.downloading.tests.PointsOnSampleException
@@ -154,6 +156,11 @@ class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
                 And("samples group has points") {
                     Then("throws PointsOnSampleException") {
                         downloadProblemWithException<PointsOnSampleException>(problemWithPointsOnSamplesGroup)
+                    }
+                }
+                And("points are not integral") {
+                    Then("throws NonIntegralTestPointsException") {
+                        downloadProblemWithException<NonIntegralTestPointsException>(problemWithNonIntegralTestPoints)
                     }
                 }
                 And("everything is alright") {

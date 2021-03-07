@@ -83,4 +83,11 @@ object TestProblems {
      * Test inputs are **numbers of tests** and answers are **ans{number of test}**.
      */
     const val problemWithNormalTestGroupsAndPoints = 160358
+
+    /**
+     * Problem with double test points
+     *
+     * It has two tests: sample and a test with score of **1.5**.
+     */
+    const val problemWithNonIntegralTestPoints = 160371
 }

@@ -31,6 +31,7 @@ import polygon.exception.downloading.resource.CheckerNotFoundException
 import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.resource.StatementNotFoundException
 import polygon.exception.downloading.tests.MissingTestGroupException
+import polygon.exception.downloading.tests.NonIntegralTestPointsException
 import polygon.exception.downloading.tests.NonSequentialTestIndicesException
 import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupException
 import polygon.exception.downloading.tests.PointsOnSampleException
@@ -239,7 +240,7 @@ class PolygonProblemDownloaderImpl(
             if (groups.first().size != samples.size) {
                 throw SamplesNotFormingFirstTestGroupException("Сэмплы должны образовывать первую группу тестов")
             }
-            if (samples.any { (it.points ?: 0.0) != 0.0 }) {
+            if (samples.any { it.points != 0.0 }) {
                 // TODO check if we really need to check for null here
                 throw PointsOnSampleException("Сэмплы не должны давать баллы")
             }
@@ -259,6 +260,7 @@ class PolygonProblemDownloaderImpl(
      * @param rawTests raw Polygon tests.
      * @return Test groups or *null* if test groups are disabled.
      * @throws MissingTestGroupException if test groups are enabled and there are tests without test group set.
+     * @throws NonIntegralTestPointsException if tests have non-integral points.
      */
     private suspend fun getTestGroups(problemId: Int, rawTests: List<PolygonTest>): List<IRTestGroup>? {
         val rawTestGroups = try {
@@ -269,6 +271,9 @@ class PolygonProblemDownloaderImpl(
 
         if (rawTests.any { it.group == null }) {
             throw MissingTestGroupException("Группы тестов должны быть установлены на всех тестах")
+        }
+        if (rawTests.any { it.points.let { p -> p != null && p.toInt().toDouble() != p } }) {
+            throw NonIntegralTestPointsException("Баллы должны быть целочисленными")
         }
 
         val groups = rawTestGroups.associateBy { it.name }
