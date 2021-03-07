@@ -27,8 +27,6 @@ data class PolygonResponse<T>(
     /**
      * Extracts [result] from the response.
      *
-     * If [result] is null, throws [PolygonResponseException].
-     *
      * @return Unboxed *non-null* [result].
      * @throws NoSuchProblemException if some problem was requested but was not found.
      * @throws TestGroupsDisabledException if test groups are disabled for the problem/testset.
