@@ -3,7 +3,11 @@ package polygon
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import ir.IRTest
+import ir.IRTestGroup
+import ir.IRTestGroupPointsPolicy
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import polygon.TestProblems.interactiveProblem
@@ -16,6 +20,7 @@ import polygon.TestProblems.problemWhereSamplesAreNotFormingFirstTestGroup
 import polygon.TestProblems.problemWithMissingTestGroups
 import polygon.TestProblems.problemWithNonSequentialTestIndices
 import polygon.TestProblems.problemWithNonSequentialTestsInTestGroup
+import polygon.TestProblems.problemWithNormalTestGroupsAndPoints
 import polygon.TestProblems.problemWithOnlyReadAccess
 import polygon.TestProblems.problemWithPointsOnSample
 import polygon.TestProblems.problemWithPointsOnSamplesGroup
@@ -149,6 +154,30 @@ class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
                 And("samples group has points") {
                     Then("throws PointsOnSampleException") {
                         downloadProblemWithException<PointsOnSampleException>(problemWithPointsOnSamplesGroup)
+                    }
+                }
+                And("everything is alright") {
+                    Then("downloads tests correctly") {
+                        with(downloader.downloadProblem(problemWithNormalTestGroupsAndPoints, true)) {
+                            tests shouldBe listOf(
+                                IRTest(1, true, "1\r\n", "ans1\r\n", 0, "samples"),
+                                IRTest(2, false, "2\r\n", "ans2\r\n", null, "first"),
+                                IRTest(3, false, "3\r\n", "ans3\r\n", null, "first"),
+                                IRTest(4, false, "4\r\n", "ans4\r\n", 5, "second"),
+                                IRTest(5, false, "5\r\n", "ans5\r\n", 5, "second"),
+                                IRTest(6, false, "6\r\n", "ans6\r\n", 0, "third")
+                            )
+                        }
+                    }
+                    Then("downloads test groups correctly") {
+                        with(downloader.downloadProblem(problemWithNormalTestGroupsAndPoints, false)) {
+                            groups shouldBe listOf(
+                                IRTestGroup("samples", IRTestGroupPointsPolicy.EACH_TEST, listOf(1), null),
+                                IRTestGroup("first", IRTestGroupPointsPolicy.COMPLETE_GROUP, listOf(2, 3), 10),
+                                IRTestGroup("second", IRTestGroupPointsPolicy.EACH_TEST, listOf(4, 5), null),
+                                IRTestGroup("third", IRTestGroupPointsPolicy.EACH_TEST, listOf(6), null),
+                            )
+                        }
                     }
                 }
             }

@@ -56,12 +56,31 @@ object TestProblems {
     const val problemWhereSamplesAreNotFormingFirstTestGroup = 160344
 
     /**
-     * Problem that has points on sample.
+     * Problem that has 10 points on sample and no other tests.
      */
     const val problemWithPointsOnSample = 160360
 
     /**
-     * Problem that has points on samples group.
+     * Problem that has 10 points on samples group and no other tests except this one.
      */
     const val problemWithPointsOnSamplesGroup = 160362
+
+    /**
+     * Problem with normal test groups and points.
+     *
+     * Has 6 tests:
+     * * 1 - samples - no points
+     * * 2 - first - no points
+     * * 3 - first - 10 points
+     * * 4 - second - 5 points
+     * * 5 - second - 5 points
+     * * 6 - third - no points
+     *
+     * And points policies:
+     * * first - COMPLETE_GROUP
+     * * samples, second, third - EACH_TEST
+     *
+     * Test inputs are **numbers of tests** and answers are **ans{number of test}**.
+     */
+    const val problemWithNormalTestGroupsAndPoints = 160358
 }
