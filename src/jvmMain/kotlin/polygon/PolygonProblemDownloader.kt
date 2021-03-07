@@ -37,6 +37,7 @@ import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupExceptio
 import polygon.exception.downloading.tests.PointsOnSampleException
 import polygon.exception.downloading.tests.SamplesNotFirstException
 import polygon.exception.downloading.tests.SamplesNotFormingFirstTestGroupException
+import polygon.exception.downloading.tests.TestPointsDisabledException
 import polygon.exception.response.AccessDeniedException
 import polygon.exception.response.NoSuchProblemException
 import polygon.exception.response.TestGroupsDisabledException
@@ -271,6 +272,10 @@ class PolygonProblemDownloaderImpl(
 
         if (rawTests.any { it.group == null }) {
             throw MissingTestGroupException("Группы тестов должны быть установлены на всех тестах")
+        }
+        if (rawTests.any { it.points == null }) {
+            throw TestPointsDisabledException("Если используются группы тестов, то баллы должны быть включены, " +
+                "галочка 'Are test points enabled?' в полигоне")
         }
         if (rawTests.any { it.points.let { p -> p != null && p.toInt().toDouble() != p } }) {
             throw NonIntegralTestPointsException("Баллы должны быть целочисленными")

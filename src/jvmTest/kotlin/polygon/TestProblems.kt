@@ -90,4 +90,13 @@ object TestProblems {
      * It has two tests: sample and a test with score of **1.5**.
      */
     const val problemWithNonIntegralTestPoints = 160371
+
+    /**
+     * Problem with test groups but no points enabled
+     *
+     * Test points are disabled.
+     *
+     * Has two tests - first test is a sample with group **'sample'**, second test has group **'first'**.
+     */
+    const val problemWithTestGroupsButNoPointsEnabled = 160373
 }

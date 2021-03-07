@@ -17,14 +17,15 @@ import polygon.TestProblems.oldPackageProblem
 import polygon.TestProblems.problemWhereSampleGoesSecond
 import polygon.TestProblems.problemWhereSamplesAreFirstAndThirdTests
 import polygon.TestProblems.problemWhereSamplesAreNotFormingFirstTestGroup
-import polygon.TestProblems.problemWithNonIntegralTestPoints
 import polygon.TestProblems.problemWithMissingTestGroups
+import polygon.TestProblems.problemWithNonIntegralTestPoints
 import polygon.TestProblems.problemWithNonSequentialTestIndices
 import polygon.TestProblems.problemWithNonSequentialTestsInTestGroup
 import polygon.TestProblems.problemWithNormalTestGroupsAndPoints
 import polygon.TestProblems.problemWithOnlyReadAccess
 import polygon.TestProblems.problemWithPointsOnSample
 import polygon.TestProblems.problemWithPointsOnSamplesGroup
+import polygon.TestProblems.problemWithTestGroupsButNoPointsEnabled
 import polygon.TestProblems.problemWithoutCppChecker
 import polygon.TestProblems.problemWithoutPdfStatement
 import polygon.TestProblems.problemWithoutStatement
@@ -44,6 +45,7 @@ import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupExceptio
 import polygon.exception.downloading.tests.PointsOnSampleException
 import polygon.exception.downloading.tests.SamplesNotFirstException
 import polygon.exception.downloading.tests.SamplesNotFormingFirstTestGroupException
+import polygon.exception.downloading.tests.TestPointsDisabledException
 import polygon.exception.response.AccessDeniedException
 import polygon.exception.response.NoSuchProblemException
 import polygonModule
@@ -161,6 +163,13 @@ class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
                 And("points are not integral") {
                     Then("throws NonIntegralTestPointsException") {
                         downloadProblemWithException<NonIntegralTestPointsException>(problemWithNonIntegralTestPoints)
+                    }
+                }
+                And("points are disabled") {
+                    Then("throws TestPointsDisabledException") {
+                        downloadProblemWithException<TestPointsDisabledException>(
+                            problemWithTestGroupsButNoPointsEnabled
+                        )
                     }
                 }
                 And("everything is alright") {
