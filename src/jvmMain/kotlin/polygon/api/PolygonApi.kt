@@ -70,7 +70,7 @@ interface PolygonApi {
     suspend fun getSolutionContent(
         @Query("problemId") problemId: Int,
         @Query("name") name: String
-    ): ResponseBody
+    ): String
 
     @POST("problem.script")
     suspend fun getScript(
