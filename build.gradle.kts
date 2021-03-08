@@ -174,7 +174,10 @@ tasks.withType<KotlinCompile>().all {
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
-        events(TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+        events(*TestLogEvent.values())
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
         exceptionFormat = TestExceptionFormat.FULL
     }
 }
