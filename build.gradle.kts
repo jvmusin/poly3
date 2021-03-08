@@ -77,9 +77,12 @@ kotlin {
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
                 implementation("io.ktor:ktor-server-sessions:$ktorVersion")
                 implementation("io.ktor:ktor-websockets:$ktorVersion")
-                implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
                 implementation("org.jsoup:jsoup:$jsoupVersion")
+
+                implementation("org.apache.logging.log4j:log4j-api:2.14.0")
+                implementation("org.apache.logging.log4j:log4j-core:2.14.0")
+                implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
 
                 implementation("io.ktor:ktor-client-cio-jvm:$ktorVersion")
                 implementation("io.ktor:ktor-client-auth-jvm:$ktorVersion")
