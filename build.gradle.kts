@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val ktorVersion = "1.5.2"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.1"
-val kotestVersion = "4.4.1"
+val kotestVersion = "4.4.3"
 val koinVersion = "2.2.2"
 val wrappersSuffix = "pre.147-kotlin-1.4.30"
 val okhttp3Version = "5.0.0-alpha.2"
