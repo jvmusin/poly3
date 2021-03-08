@@ -107,7 +107,7 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation("org.jetbrains:kotlin-react:17.0.1-pre.147-kotlin-1.4.30")
+                implementation("org.jetbrains:kotlin-react:17.0.1-pre.148-kotlin-1.4.30")
                 implementation("org.jetbrains:kotlin-react-dom:17.0.1-$wrappersSuffix")
                 implementation("org.jetbrains:kotlin-styled:5.2.1-$wrappersSuffix")
 
