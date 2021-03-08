@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val ktorVersion: String by project
 val retrofitVersion: String by project
 val serializationVersion: String by project
-val kotestVersion: String by project
+val kotestVersion = "4.4.1"
 val koinVersion: String by project
 val wrappersSuffix: String by project
 val logbackVersion: String by project
