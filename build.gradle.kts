@@ -10,11 +10,13 @@ val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.1"
 val kotestVersion = "4.4.1"
 val koinVersion = "2.2.2"
-val wrappersSuffix = "pre.147-kotlin-1.4.30"
+val kotlinReactVersion = "17.0.1-pre.147-kotlin-1.4.30"
+val kotlinStyledVersion = "5.2.1-pre.147-kotlin-1.4.30"
 val okhttp3Version = "5.0.0-alpha.2"
 val jsoupVersion = "1.13.1"
 val reactTooltipVersion = "4.2.15"
 val config4kVersion = "0.4.2"
+val log4j2Version = "2.14.0"
 
 plugins {
     kotlin("multiplatform") version "1.4.31"
@@ -79,9 +81,9 @@ kotlin {
 
                 implementation("org.jsoup:jsoup:$jsoupVersion")
 
-                implementation("org.apache.logging.log4j:log4j-api:2.14.0")
-                implementation("org.apache.logging.log4j:log4j-core:2.14.0")
-                implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.0")
+                implementation("org.apache.logging.log4j:log4j-api:$log4j2Version")
+                implementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
+                implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4j2Version")
 
                 implementation("io.ktor:ktor-client-cio-jvm:$ktorVersion")
                 implementation("io.ktor:ktor-client-auth-jvm:$ktorVersion")
@@ -107,9 +109,9 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation("org.jetbrains:kotlin-react:17.0.1-pre.147-kotlin-1.4.30")
-                implementation("org.jetbrains:kotlin-react-dom:17.0.1-$wrappersSuffix")
-                implementation("org.jetbrains:kotlin-styled:5.2.1-$wrappersSuffix")
+                implementation("org.jetbrains:kotlin-react:$kotlinReactVersion")
+                implementation("org.jetbrains:kotlin-react-dom:$kotlinReactVersion")
+                implementation("org.jetbrains:kotlin-styled:$kotlinStyledVersion")
 
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")
