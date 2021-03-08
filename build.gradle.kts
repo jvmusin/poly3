@@ -5,17 +5,16 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion: String by project
-val retrofitVersion: String by project
-val serializationVersion: String by project
+val ktorVersion = "1.5.2"
+val retrofitVersion = "2.9.0"
+val serializationVersion = "1.0.1"
 val kotestVersion = "4.4.1"
-val koinVersion: String by project
-val wrappersSuffix: String by project
-val logbackVersion: String by project
-val okhttp3Version: String by project
-val jsoupVersion: String by project
-val reactTooltipVersion: String by project
-val config4kVersion: String by project
+val koinVersion = "2.2.2"
+val wrappersSuffix = "pre.147-kotlin-1.4.30"
+val okhttp3Version = "5.0.0-alpha.2"
+val jsoupVersion = "1.13.1"
+val reactTooltipVersion = "4.2.15"
+val config4kVersion = "0.4.2"
 
 plugins {
     kotlin("multiplatform") version "1.4.31"
