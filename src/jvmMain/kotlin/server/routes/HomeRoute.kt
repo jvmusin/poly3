@@ -6,6 +6,7 @@ import io.ktor.response.respondText
 import io.ktor.routing.Route
 import io.ktor.routing.get
 
+@Suppress("SpellCheckingInspection")
 private val index = """
     <!doctype html>
     <html lang="en">

@@ -6,7 +6,6 @@ import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.ktor.util.InternalAPI
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
@@ -92,7 +91,7 @@ class SybonCheckingApiTests :
     companion object {
         const val A_PLUS_B_PROBLEM_ID = 8716
 
-        @OptIn(InternalAPI::class)
+        @Suppress("SpellCheckingInspection")
         val OK_CPP_SOLUTION = """
         #include <iostream>
         int main() {

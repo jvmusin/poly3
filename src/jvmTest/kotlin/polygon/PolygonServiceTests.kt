@@ -2,16 +2,15 @@
 
 package polygon
 
-import polygon.TestProblems.noBuiltPackagesProblem
-import polygon.TestProblems.problemWithOnlyReadAccess
-import polygon.TestProblems.totallyUnknownProblem
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.koin.KoinListener
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.throwable.shouldHaveCauseOfType
 import org.koin.test.KoinTest
 import org.koin.test.inject
+import polygon.TestProblems.noBuiltPackagesProblem
+import polygon.TestProblems.problemWithOnlyReadAccess
+import polygon.TestProblems.totallyUnknownProblem
 import polygon.exception.downloading.ProblemDownloadingException
 import polygon.exception.downloading.resource.CheckerNotFoundException
 import polygon.exception.response.NoSuchProblemException
@@ -22,15 +21,6 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
     private val service: PolygonService by inject()
 
     override fun listeners() = listOf(KoinListener(polygonModule))
-
-    private suspend inline fun <reified TException : Throwable> downloadProblemWithInnerException(
-        problemId: Int,
-        includeTests: Boolean = false
-    ) {
-        shouldThrowExactly<ProblemDownloadingException> {
-            service.downloadProblem(problemId, includeTests)
-        }.shouldHaveCauseOfType<TException>()
-    }
 
     init {
         Given("getProblemInfo") {
@@ -47,12 +37,16 @@ class PolygonServiceTests : BehaviorSpec(), KoinTest {
             }
             When("have READ access") {
                 Then("throws NoSuchProblemException") {
-                    shouldThrowExactly<NoSuchProblemException> { service.getProblemInfo(problemWithOnlyReadAccess) }
+                    shouldThrowExactly<NoSuchProblemException> {
+                        service.getProblemInfo(problemWithOnlyReadAccess)
+                    }
                 }
             }
             When("accessing unknown problem") {
                 Then("throws NoSuchProblemException") {
-                    shouldThrowExactly<NoSuchProblemException> { service.getProblemInfo(totallyUnknownProblem) }
+                    shouldThrowExactly<NoSuchProblemException> {
+                        service.getProblemInfo(totallyUnknownProblem)
+                    }
                 }
             }
         }
