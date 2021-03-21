@@ -1,3 +1,6 @@
+[![Kotlin CI with Gradle](https://github.com/jvmusin/poly3/actions/workflows/gradle-build.yml/badge.svg)](https://github.com/jvmusin/poly3/actions/workflows/gradle-build.yml)
+
+
 # Полибакс
 
 Сервис для перекидывания задач из [Codeforces.Polygon][Polygon] в [BACS].
