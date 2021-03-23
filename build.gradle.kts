@@ -21,7 +21,7 @@ val log4j2Version = "2.14.1"
 plugins {
     kotlin("multiplatform") version "1.4.31"
     application
-    kotlin("plugin.serialization") version "1.4.31"
+    kotlin("plugin.serialization") version "1.4.32"
     // id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 }
 
