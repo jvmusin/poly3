@@ -16,7 +16,7 @@ import server.MessageSenderFactory
 import server.Session
 import java.util.UUID
 
-fun Route.notifications() {
+fun Route.notificationsRoute() {
     val messageSenderFactory: MessageSenderFactory by inject()
 
     get("register-session") {

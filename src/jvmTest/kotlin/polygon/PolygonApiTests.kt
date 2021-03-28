@@ -1,9 +1,5 @@
 package polygon
 
-import polygon.TestProblems.problemWithOnlyReadAccess
-import polygon.TestProblems.problemWithTestGroups
-import polygon.TestProblems.problemWithTestGroupsExceptSamples
-import polygon.TestProblems.problemWithoutPdfStatement
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.inspectors.forAll
 import io.kotest.koin.KoinListener
@@ -15,6 +11,10 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import org.koin.test.KoinTest
 import org.koin.test.inject
+import polygon.TestProblems.problemWithOnlyReadAccess
+import polygon.TestProblems.problemWithTestGroups
+import polygon.TestProblems.problemWithTestGroupsExceptSamples
+import polygon.TestProblems.problemWithoutPdfStatement
 import polygon.api.PolygonApi
 import polygon.api.TestGroup.PointsPolicyType.COMPLETE_GROUP
 import polygon.api.TestGroup.PointsPolicyType.EACH_TEST

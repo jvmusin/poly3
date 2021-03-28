@@ -3,6 +3,7 @@
 package bacs
 
 import api.AdditionalProblemProperties
+import api.AdditionalProblemProperties.Companion.defaultProperties
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.request.post
@@ -39,15 +40,10 @@ import kotlin.io.path.readBytes
 import kotlin.random.Random
 import kotlin.time.ExperimentalTime
 
-interface BacsArchiveService {
-    // TODO should throw unauthorized exception
-    suspend fun getProblemState(problemId: String): BacsProblemState
-    suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties): String
-}
+/** Allows communicating to Bacs Archive. */
+class BacsArchiveService(private val client: HttpClient) {
 
-class BacsArchiveServiceImpl(
-    private val client: HttpClient
-) : BacsArchiveService {
+    /** Includes mostly the fix for multipart requests.*/
     @SuppressWarnings("ALL")
     companion object {
         const val PENDING_IMPORT = "PENDING_IMPORT"
@@ -295,6 +291,10 @@ class BacsArchiveServiceImpl(
         }
     }
 
+    /**
+     * Uploads packed to zip archive problem located at [zip]
+     * throwing [BacsProblemUploadException] in case of uploading failure.
+     */
     @OptIn(ExperimentalPathApi::class)
     private suspend fun uploadProblem(zip: Path) {
         val response = client.post<HttpResponse>("/upload") {
@@ -313,7 +313,7 @@ class BacsArchiveServiceImpl(
 
         val content = response.receive<String>()
         if (response.status != HttpStatusCode.OK) {
-            throw BacsProblemImportException("Code ${response.status}, Message $content")
+            throw BacsProblemUploadException("Code ${response.status}, Message $content")
         }
 
         getLogger(javaClass).debug(content)
@@ -325,9 +325,10 @@ class BacsArchiveServiceImpl(
             flags.isEmpty() -> "there are no flags"
             else -> "but found flags ${flags.joinToString(",")}"
         }
-        throw BacsProblemImportException("Flag $PENDING_IMPORT not found, $extra")
+        throw BacsProblemUploadException("Flag $PENDING_IMPORT not found, $extra")
     }
 
+    /** Retrieves problem status in form if [BacsProblemStatus]. */
     private suspend fun getProblemStatus(problemId: String): BacsProblemStatus {
         val content = client.post<String>("/status") {
             body = MultiPartFormDataContent(
@@ -363,7 +364,8 @@ class BacsArchiveServiceImpl(
         return BacsProblemStatus(name, flags, revision)
     }
 
-    override suspend fun getProblemState(problemId: String): BacsProblemState {
+    /** Retrieves problem state in form if [BacsProblemState]. */
+    suspend fun getProblemState(problemId: String): BacsProblemState {
         return try {
             getProblemStatus(problemId).state
         } catch (e: Exception) {
@@ -372,6 +374,11 @@ class BacsArchiveServiceImpl(
         }
     }
 
+    /**
+     * Waits for some time until problem with the given [problemId] is imported.
+     *
+     * Uses [retryPolicy] to schedule requests.
+     */
     private suspend fun waitTillProblemIsImported(
         problemId: String,
         retryPolicy: RetryPolicy = RetryPolicy()
@@ -381,13 +388,14 @@ class BacsArchiveServiceImpl(
         }
     }
 
-    override suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties): String {
+    /** Uploads [problem] to Bacs archive with extra [properties]. */
+    suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties = defaultProperties): String {
         val zip = problem.toZipArchive(properties)
         uploadProblem(zip)
         val fullName = properties.buildFullName(problem.name)
         val state = waitTillProblemIsImported(fullName)
         if (state != BacsProblemState.IMPORTED)
-            throw BacsProblemImportException("Задача $fullName не импортирована, статус $state")
+            throw BacsProblemUploadException("Задача $fullName не импортирована, статус $state")
         return fullName
     }
 }

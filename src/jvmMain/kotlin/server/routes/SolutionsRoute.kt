@@ -29,7 +29,7 @@ import sybon.TestProblemArchive
 import sybon.converter.IRLanguageToCompilerConverter.toSybonCompiler
 import sybon.converter.SybonSubmissionResultToSubmissionResultConverter.toSubmissionResult
 
-fun Route.solutions() {
+fun Route.solutionsRoute() {
 
     val bacsArchiveService: BacsArchiveService by inject()
     val polygonService: PolygonService by inject()

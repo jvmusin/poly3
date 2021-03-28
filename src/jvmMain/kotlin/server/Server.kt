@@ -27,7 +27,7 @@ import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.get
 import org.slf4j.event.Level
 import polygon.polygonModule
-import server.routes.root
+import server.routes.rootRoute
 import sybon.sybonModule
 import kotlin.time.ExperimentalTime
 import kotlin.time.days
@@ -77,6 +77,6 @@ fun Application.module() {
     }
 
     routing {
-        root()
+        rootRoute()
     }
 }

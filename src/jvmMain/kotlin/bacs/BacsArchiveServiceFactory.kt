@@ -11,10 +11,12 @@ import io.ktor.http.URLProtocol.Companion.HTTPS
 import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
+/** Factory for [BacsArchiveService]. */
 class BacsArchiveServiceFactory(private val config: BacsConfig) {
 
+    /** Creates [BacsArchiveService] using auth credentials and other settings from [config]. */
     @OptIn(ExperimentalTime::class)
-    fun create(): BacsArchiveServiceImpl {
+    fun create(): BacsArchiveService {
         val client = HttpClient(CIO) {
             install(Auth) {
                 basic {
@@ -35,6 +37,6 @@ class BacsArchiveServiceFactory(private val config: BacsConfig) {
                 this.requestTimeout = 2.minutes.toLongMilliseconds()
             }
         }
-        return BacsArchiveServiceImpl(client)
+        return BacsArchiveService(client)
     }
 }

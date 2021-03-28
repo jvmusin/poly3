@@ -3,6 +3,7 @@
 package sybon
 
 import api.AdditionalProblemProperties
+import api.AdditionalProblemProperties.Companion.defaultProperties
 import ir.IRProblem
 import util.toZipArchive
 import java.nio.file.Path
@@ -14,7 +15,12 @@ import kotlin.io.path.createDirectories
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writeText
 
-fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = AdditionalProblemProperties()): Path {
+/**
+ * Packs `this` [IRProblem] into a zip-archive using extra [properties].
+ *
+ * @return file where the zip is located.
+ */
+fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = defaultProperties): Path {
     val fullName = properties.buildFullName(name)
     val destinationPath = Paths.get(
         "sybon-packages",

@@ -34,6 +34,6 @@ private val index = """
     </html>
 """.trimIndent()
 
-fun Route.home() {
+fun Route.homeRoute() {
     get { call.respondText(index, ContentType.Text.Html) }
 }
