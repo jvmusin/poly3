@@ -10,35 +10,29 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 import kotlin.time.minutes
 
-interface SybonCheckingService {
-    suspend fun getResult(id: Int): SybonSubmissionResult
+/**
+ * Sybon checking service.
+ *
+ * Allows submitting and retrieving submission results from Sybon.
+ *
+ * @property sybonCheckingApi api to use.
+ */
+@Suppress("MemberVisibilityCanBePrivate")
+class SybonCheckingService(private val sybonCheckingApi: SybonCheckingApi) {
 
-    @OptIn(ExperimentalTime::class)
+    /**
+     * Returns [SybonSubmissionResult] of submission with the given [id].
+     */
+    suspend fun getResult(id: Int) = sybonCheckingApi.getResults(id.toString()).single()
+
+    /**
+     * Submits solution with the given [solutionText] to the problem with the given [problemId], compiling under [compiler].
+     *
+     * Retrieves solution result accordingly to [checkResultRetryPolicy] and returns [SybonSubmissionResult] when it's ready.
+     */
     suspend fun submitSolution(
         problemId: Int,
-        solution: String,
-        compiler: SybonCompiler,
-        checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 30.minutes)
-    ): SybonSubmissionResult
-
-    @OptIn(ExperimentalTime::class)
-    suspend fun submitSolutionTimed(
-        problemId: Int,
-        solution: String,
-        compiler: SybonCompiler,
-        checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 30.minutes)
-    ) = measureTimedValue { submitSolution(problemId, solution, compiler, checkResultRetryPolicy) }
-}
-
-class SybonCheckingServiceImpl(
-    private val sybonCheckingApi: SybonCheckingApi
-) : SybonCheckingService {
-
-    override suspend fun getResult(id: Int) = sybonCheckingApi.getResults(id.toString()).single()
-
-    override suspend fun submitSolution(
-        problemId: Int,
-        solution: String,
+        solutionText: String,
         compiler: SybonCompiler,
         checkResultRetryPolicy: RetryPolicy
     ): SybonSubmissionResult {
@@ -46,7 +40,7 @@ class SybonCheckingServiceImpl(
             SybonSubmitSolution(
                 compilerId = compiler.id,
                 problemId = problemId,
-                solution = solution.encodeBase64(),
+                solution = solutionText.encodeBase64(),
                 continueCondition = SybonSubmitSolution.ContinueCondition.WhileOk
             )
         )
@@ -57,4 +51,17 @@ class SybonCheckingServiceImpl(
             else null
         } ?: throw SybonSolutionTestingTimeoutException("Solution was not tested in ${checkResultRetryPolicy.tryFor}")
     }
+
+    /**
+     * Submits solution with the given [solutionText] to the problem with the given [problemId] using the given [compiler].
+     *
+     * Retrieves solution result accordingly to [checkResultRetryPolicy] and returns [SybonSubmissionResult] when it's ready.
+     */
+    @OptIn(ExperimentalTime::class)
+    suspend fun submitSolutionTimed(
+        problemId: Int,
+        solutionText: String,
+        compiler: SybonCompiler,
+        checkResultRetryPolicy: RetryPolicy = RetryPolicy(tryFor = 30.minutes)
+    ) = measureTimedValue { submitSolution(problemId, solutionText, compiler, checkResultRetryPolicy) }
 }

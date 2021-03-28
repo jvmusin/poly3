@@ -1,7 +1,6 @@
 package sybon
 
 import org.koin.dsl.module
-import org.koin.experimental.builder.singleBy
 import sybon.api.SybonApiFactory
 
 fun sybonModule(config: SybonConfig) = module {
@@ -12,5 +11,5 @@ fun sybonModule(config: SybonConfig) = module {
 
     single<SybonArchiveService>(MainProblemArchive) { SybonArchiveServiceImpl(get(), MainProblemArchive.collectionId) }
     single<SybonArchiveService>(TestProblemArchive) { SybonArchiveServiceImpl(get(), TestProblemArchive.collectionId) }
-    singleBy<SybonCheckingService, SybonCheckingServiceImpl>()
+    single { SybonCheckingService(get()) }
 }
