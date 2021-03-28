@@ -23,7 +23,7 @@ class PolygonService(
      * @throws AccessDeniedException if not enough rights to download the problem.
      * @throws ProblemDownloadingException if something went wrong while downloading the problem.
      */
-    suspend fun downloadProblem(problemId: Int, includeTests: Boolean): IRProblem {
+    suspend fun downloadProblem(problemId: Int, includeTests: Boolean = false): IRProblem {
         return try {
             problemDownloader.downloadProblem(problemId, includeTests)
         } catch (e: Exception) {
