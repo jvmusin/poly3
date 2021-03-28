@@ -10,11 +10,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.ExperimentalTime
 
-fun Route.root() {
+fun Route.rootRoute() {
     static("static") { resources() }
-    home()
-    notifications()
+    homeRoute()
+    notificationsRoute()
     route("problems") {
-        problems()
+        problemsRoute()
     }
 }

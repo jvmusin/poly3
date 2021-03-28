@@ -5,17 +5,19 @@ package server.routes
 import api.NameAvailability
 import bacs.BacsArchiveService
 import bacs.BacsProblemState
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.application.call
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respond
+import io.ktor.routing.Route
+import io.ktor.routing.get
+import io.ktor.routing.route
 import org.koin.ktor.ext.inject
 import polygon.PolygonService
 import polygon.api.toDto
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.ExperimentalTime
 
-fun Route.problems() {
+fun Route.problemsRoute() {
     val bacsArchiveService: BacsArchiveService by inject()
     val polygonService: PolygonService by inject()
 
@@ -33,6 +35,6 @@ fun Route.problems() {
         call.respond(HttpStatusCode.OK, availability)
     }
     route("{problem-id}") {
-        problem()
+        problemRoute()
     }
 }

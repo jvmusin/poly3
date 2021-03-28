@@ -25,7 +25,7 @@ import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalPathApi::class, ExperimentalTime::class)
-fun Route.problem() {
+fun Route.problemRoute() {
 
     val bacsArchiveService: BacsArchiveService by inject()
     val polygonService: PolygonService by inject()
@@ -68,6 +68,6 @@ fun Route.problem() {
         call.respond(HttpStatusCode.OK)
     }
     route("solutions") {
-        solutions()
+        solutionsRoute()
     }
 }
