@@ -9,19 +9,27 @@ import sybon.api.SybonProblem
 import util.RetryPolicy
 import kotlin.time.ExperimentalTime
 
-interface SybonArchiveService {
-    suspend fun getProblems(): List<SybonProblem>
-    suspend fun importProblem(bacsProblemId: String, retryPolicy: RetryPolicy = RetryPolicy()): SybonProblem?
-}
-
-class SybonArchiveServiceImpl(
+/** Service used to communicate with Sybon Archive via [SybonArchiveApi]).
+ *
+ *  Uses the only collection with the given [collectionId].
+ */
+@Suppress("MemberVisibilityCanBePrivate")
+class SybonArchiveService(
     private val sybonArchiveApi: SybonArchiveApi,
     private val collectionId: Int
-) : SybonArchiveService {
+) {
 
-    override suspend fun getProblems() = sybonArchiveApi.getCollection(collectionId).problems
+    /** Returns all problems from the collection with id [collectionId]. */
+    suspend fun getProblems() = sybonArchiveApi.getCollection(collectionId).problems
 
-    override suspend fun importProblem(bacsProblemId: String, retryPolicy: RetryPolicy): SybonProblem? {
+    /**
+     * Imports problem with [bacsProblemId] to Sybon's collection [collectionId].
+     *
+     * (Re)tries to import the problem accordingly to [retryPolicy].
+     *
+     * @throws SybonProblemImportException if import failed.
+     */
+    suspend fun importProblem(bacsProblemId: String, retryPolicy: RetryPolicy = RetryPolicy()): SybonProblem? {
         suspend fun getProblem() = getProblems().filter { it.internalProblemId == bacsProblemId }.minByOrNull { it.id }
         getLogger(javaClass).debug("Checking if the problem is already in this collection")
         getProblem()?.let {
