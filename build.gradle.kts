@@ -5,7 +5,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion = "1.5.2"
+val ktorVersion = "1.5.3"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.0.1"
 val kotestVersion = "4.4.3"
