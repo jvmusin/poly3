@@ -9,7 +9,7 @@ object PolygonSourceTypeToIRLanguageConverter {
             "kotlin" -> IRLanguage.KOTLIN
             "python.2" -> IRLanguage.PYTHON2
             "python.3" -> IRLanguage.PYTHON3
-            "java8" -> IRLanguage.JAVA
+            "java8", "java11" -> IRLanguage.JAVA
             else -> IRLanguage.OTHER
         }
     }
