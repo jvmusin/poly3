@@ -24,9 +24,9 @@ object RetrofitClientFactory {
             maxRequestsPerHost = 15
         }
         val client = OkHttpClient().newBuilder()
-            .connectTimeout(2, TimeUnit.MINUTES)
-            .readTimeout(2, TimeUnit.MINUTES)
-            .writeTimeout(2, TimeUnit.MINUTES)
+            .connectTimeout(10, TimeUnit.MINUTES)
+            .readTimeout(10, TimeUnit.MINUTES)
+            .writeTimeout(10, TimeUnit.MINUTES)
             .apply(builder)
             .addInterceptor(httpLoggingInterceptor)
             .dispatcher(dispatcher)
