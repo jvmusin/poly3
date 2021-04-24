@@ -9,7 +9,7 @@ import sybon.api.SybonProblem
 import util.RetryPolicy
 import kotlin.time.ExperimentalTime
 
-/** Service used to communicate with Sybon Archive via [SybonArchiveApi]).
+/** Service used to communicate with Sybon Archive via [SybonArchiveApi].
  *
  *  Uses the only collection with the given [collectionId].
  */

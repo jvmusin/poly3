@@ -2,6 +2,7 @@ package server.routes
 
 import api.AdditionalProblemProperties
 import api.ToastKind
+import bacs.BacsArchiveBuilder
 import bacs.BacsArchiveService
 import io.ktor.application.call
 import io.ktor.http.ContentDisposition
@@ -19,7 +20,6 @@ import org.koin.ktor.ext.inject
 import polygon.PolygonService
 import polygon.api.toDto
 import server.MessageSenderFactory
-import sybon.toZipArchive
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.name
 import kotlin.time.ExperimentalTime
@@ -30,6 +30,7 @@ fun Route.problemRoute() {
     val bacsArchiveService: BacsArchiveService by inject()
     val polygonService: PolygonService by inject()
     val messageSenderFactory: MessageSenderFactory by inject()
+    val archiveBuilder: BacsArchiveBuilder by inject()
 
     get {
         val problemId = call.parameters["problem-id"]!!.toInt()
@@ -42,7 +43,7 @@ fun Route.problemRoute() {
         val properties = call.receive<AdditionalProblemProperties>()
         val sendMessage = messageSenderFactory.create(this, fullName)
         val irProblem = downloadProblem(sendMessage, problemId, polygonService)
-        val zip = irProblem.toZipArchive(properties)
+        val zip = archiveBuilder.buildArchive(irProblem, properties)
         sendMessage("Задача выкачана из полигона, скачиваем архив", ToastKind.SUCCESS)
         call.response.header(
             HttpHeaders.ContentDisposition,

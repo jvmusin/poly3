@@ -31,7 +31,6 @@ import io.ktor.utils.io.writeFully
 import ir.IRProblem
 import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory.getLogger
-import sybon.toZipArchive
 import util.RetryPolicy
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
@@ -41,7 +40,7 @@ import kotlin.random.Random
 import kotlin.time.ExperimentalTime
 
 /** Allows communicating to Bacs Archive. */
-class BacsArchiveService(private val client: HttpClient) {
+class BacsArchiveService(private val client: HttpClient, private val archiveBuilder: BacsArchiveBuilder) {
 
     /** Includes mostly the fix for multipart requests.*/
     @SuppressWarnings("ALL")
@@ -390,7 +389,7 @@ class BacsArchiveService(private val client: HttpClient) {
 
     /** Uploads [problem] to Bacs archive with extra [properties]. */
     suspend fun uploadProblem(problem: IRProblem, properties: AdditionalProblemProperties = defaultProperties): String {
-        val zip = problem.toZipArchive(properties)
+        val zip = archiveBuilder.buildArchive(problem, properties)
         uploadProblem(zip)
         val fullName = properties.buildFullName(problem.name)
         val state = waitTillProblemIsImported(fullName)

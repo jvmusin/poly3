@@ -12,7 +12,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 
 /** Factory for [BacsArchiveService]. */
-class BacsArchiveServiceFactory(private val config: BacsConfig) {
+class BacsArchiveServiceFactory(private val config: BacsConfig, private val bacsArchiveBuilder: BacsArchiveBuilder) {
 
     /** Creates [BacsArchiveService] using auth credentials and other settings from [config]. */
     @OptIn(ExperimentalTime::class)
@@ -37,6 +37,6 @@ class BacsArchiveServiceFactory(private val config: BacsConfig) {
                 this.requestTimeout = 10.minutes.toLongMilliseconds()
             }
         }
-        return BacsArchiveService(client)
+        return BacsArchiveService(client, bacsArchiveBuilder)
     }
 }
