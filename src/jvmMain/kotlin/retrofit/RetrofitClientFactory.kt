@@ -20,13 +20,13 @@ object RetrofitClientFactory {
             getLogger(HttpLoggingInterceptor::class.java).info(message)
         }.setLevel(HttpLoggingInterceptor.Level.BASIC)
         val dispatcher = Dispatcher().apply {
-            maxRequests = 15
-            maxRequestsPerHost = 15
+            maxRequests = 5
+            maxRequestsPerHost = 5
         }
         val client = OkHttpClient().newBuilder()
-            .connectTimeout(2, TimeUnit.MINUTES)
-            .readTimeout(2, TimeUnit.MINUTES)
-            .writeTimeout(2, TimeUnit.MINUTES)
+            .connectTimeout(10, TimeUnit.MINUTES)
+            .readTimeout(10, TimeUnit.MINUTES)
+            .writeTimeout(10, TimeUnit.MINUTES)
             .apply(builder)
             .addInterceptor(httpLoggingInterceptor)
             .dispatcher(dispatcher)

@@ -34,7 +34,7 @@ class BacsArchiveServiceFactory(private val config: BacsConfig) {
                 }
             }
             engine {
-                this.requestTimeout = 2.minutes.toLongMilliseconds()
+                this.requestTimeout = 10.minutes.toLongMilliseconds()
             }
         }
         return BacsArchiveService(client)
