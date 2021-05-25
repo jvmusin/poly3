@@ -19,7 +19,7 @@ val config4kVersion = "0.4.2"
 val log4j2Version = "2.14.1"
 
 plugins {
-    kotlin("multiplatform") version "1.4.32"
+    kotlin("multiplatform") version "1.5.10"
     application
     kotlin("plugin.serialization") version "1.4.32"
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
