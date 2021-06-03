@@ -22,7 +22,7 @@ plugins {
     kotlin("multiplatform") version "1.4.32"
     application
     kotlin("plugin.serialization") version "1.4.32"
-    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+    id("org.jlleitschuh.gradle.ktlint") version "10.1.0"
 }
 
 group = "jvmusin"
