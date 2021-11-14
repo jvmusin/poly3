@@ -127,7 +127,7 @@ class PolygonProblemDownloaderImpl(
         return if (format == StatementFormat.HTML) {
             val result = decodeToString().replace(
                 "problem-statement.css",
-                "https://raw.githubusercontent.com/jvmusin/poly3/master/problem-statement.css"
+                "https://jvmusin.github.io/problem-statement.css"
             )
             result.encodeToByteArray()
         } else {
