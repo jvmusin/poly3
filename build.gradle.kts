@@ -14,7 +14,7 @@ val kotlinReactVersion = "17.0.2-pre.265-kotlin-1.5.31"
 val kotlinStyledVersion = "5.3.3-pre.265-kotlin-1.5.31"
 val okhttp3Version = "5.0.0-alpha.2"
 val jsoupVersion = "1.14.3"
-val reactTooltipVersion = "4.2.15"
+val reactTooltipVersion = "4.2.21"
 val config4kVersion = "0.4.2"
 val log4j2Version = "2.14.1"
 
@@ -28,7 +28,6 @@ group = "jvmusin"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    jcenter()
     mavenCentral()
     maven { url = uri("https://github.com/ktorio/ktor") }
 }
