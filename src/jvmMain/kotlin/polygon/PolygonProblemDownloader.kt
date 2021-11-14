@@ -1,24 +1,12 @@
 package polygon
 
-import ir.IRChecker
-import ir.IRLimits
-import ir.IRProblem
-import ir.IRSolution
-import ir.IRStatement
-import ir.IRTest
-import ir.IRTestGroup
-import ir.IRTestGroupPointsPolicy
+import api.StatementFormat
+import ir.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import polygon.api.PolygonApi
-import polygon.api.PolygonTest
-import polygon.api.Problem
-import polygon.api.ProblemInfo
-import polygon.api.downloadPackage
-import polygon.api.getLatestPackageId
-import polygon.api.getProblem
-import polygon.api.getStatement
-import polygon.api.getStatementRaw
+import kotlinx.coroutines.withContext
+import polygon.api.*
 import polygon.converter.PolygonPointsPolicyConverter
 import polygon.converter.PolygonSourceTypeToIRLanguageConverter
 import polygon.converter.PolygonTagToIRVerdictConverter
@@ -28,13 +16,8 @@ import polygon.exception.downloading.format.UnsupportedFormatException
 import polygon.exception.downloading.packages.NoPackagesBuiltException
 import polygon.exception.downloading.packages.OldBuiltPackageException
 import polygon.exception.downloading.resource.CheckerNotFoundException
-import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.resource.StatementNotFoundException
-import polygon.exception.downloading.tests.MissingTestGroupException
-import polygon.exception.downloading.tests.NonSequentialTestIndicesException
-import polygon.exception.downloading.tests.NonSequentialTestsInTestGroupException
-import polygon.exception.downloading.tests.SamplesNotFirstException
-import polygon.exception.downloading.tests.SamplesNotFormingFirstTestGroupException
+import polygon.exception.downloading.tests.*
 import polygon.exception.downloading.tests.points.NonIntegralTestPointsException
 import polygon.exception.downloading.tests.points.PointsOnSampleException
 import polygon.exception.downloading.tests.points.TestPointsDisabledException
@@ -65,7 +48,11 @@ interface PolygonProblemDownloader {
      * @throws AccessDeniedException if not enough rights to download the problem.
      * @throws ProblemDownloadingException if something gone wrong while downloading the problem.
      */
-    suspend fun downloadProblem(problemId: Int, includeTests: Boolean): IRProblem
+    suspend fun downloadProblem(
+        problemId: Int,
+        includeTests: Boolean,
+        statementFormat: StatementFormat = StatementFormat.PDF
+    ): IRProblem
 }
 
 class PolygonProblemDownloaderImpl(
@@ -82,7 +69,8 @@ class PolygonProblemDownloaderImpl(
      */
     private data class FullPackageId(
         val packageId: Int,
-        val includeTests: Boolean
+        val includeTests: Boolean,
+        val statementFormat: StatementFormat
     )
 
     /**
@@ -108,7 +96,7 @@ class PolygonProblemDownloaderImpl(
             if (modified) {
                 throw ProblemModifiedException(
                     "Файлы задачи изменены. Сначала откатите изменения или закоммитьте их и соберите новый пакет " +
-                        "(скорее всего (99.9%) косяк Рустама)"
+                            "(скорее всего (99.9%) косяк Рустама)"
                 )
             }
             if (latestPackage == null) {
@@ -135,20 +123,36 @@ class PolygonProblemDownloaderImpl(
         }
     }
 
+    private fun ByteArray.fixExternalLinks(format: StatementFormat): ByteArray {
+        return if (format == StatementFormat.HTML) {
+            val result = decodeToString().replace(
+                "problem-statement.css",
+                "https://raw.githubusercontent.com/jvmusin/poly3/master/problem-statement.css"
+            )
+            result.encodeToByteArray()
+        } else {
+            this
+        }
+    }
+
     /**
      * Returns problem statement.
      *
      * @param problemId id of the problem.
      * @param packageId id of the problem package.
+     * @param format format of the statement be it `PDF` or `HTML`.
      * @return Problem statement.
      * @throws StatementNotFoundException if there are no statements for the problem.
-     * @throws PdfStatementNotFoundException if there are no *.pdf* statements for the problem.
      */
-    private suspend fun downloadStatement(problemId: Int, packageId: Int): IRStatement {
+    private suspend fun downloadStatement(
+        problemId: Int,
+        packageId: Int,
+        format: StatementFormat = StatementFormat.PDF
+    ): IRStatement {
         return polygonApi.getStatement(problemId)?.let { (language, statement) ->
-            val content = polygonApi.getStatementRaw(problemId, packageId, "pdf", language)
-                ?: throw PdfStatementNotFoundException("Не найдена pdf версия условия")
-            IRStatement(statement.name, content.toList())
+            val content = polygonApi.getStatementRaw(problemId, packageId, format, language)?.fixExternalLinks(format)
+                ?: throw StatementNotFoundException("Не найдена $format версия условия")
+            IRStatement(statement.name, content.toList(), format)
         } ?: throw StatementNotFoundException("Не найдено условие")
     }
 
@@ -277,7 +281,7 @@ class PolygonProblemDownloaderImpl(
         if (rawTests.any { it.points == null }) {
             throw TestPointsDisabledException(
                 "Если используются группы тестов, то баллы должны быть включены, " +
-                    "галочка 'Are test points enabled?' в полигоне"
+                        "галочка 'Are test points enabled?' в полигоне"
             )
         }
         if (rawTests.any { it.points != it.points!!.toInt().toDouble() }) {
@@ -340,12 +344,17 @@ class PolygonProblemDownloaderImpl(
      *
      * @param packageId id of the problem.
      * @param includeTests whether to include tests or not.
+     * @param statementFormat format of the statement, be it `PDF` or `HTML`.
      * @return [IRProblem] instance of the problem or *null* if it's not in the cache.
      */
-    private fun getProblemFromCache(packageId: Int, includeTests: Boolean): IRProblem? {
-        cache[FullPackageId(packageId, includeTests)].also { if (it != null) return it }
+    private fun getProblemFromCache(
+        packageId: Int,
+        includeTests: Boolean,
+        statementFormat: StatementFormat
+    ): IRProblem? {
+        cache[FullPackageId(packageId, includeTests, statementFormat)].also { if (it != null) return it }
         if (!includeTests) {
-            cache[FullPackageId(packageId, true)].also { if (it != null) return it }
+            cache[FullPackageId(packageId, true, statementFormat)].also { if (it != null) return it }
         }
         return null
     }
@@ -355,51 +364,58 @@ class PolygonProblemDownloaderImpl(
      *
      * @param packageId if of the problem.
      * @param includeTests whether to include tests or not.
+     * @param statementFormat format of the statement, be it `PDF` or `HTML`.
      * @param problem [IRProblem] instance to save.
      */
-    private fun saveProblemToCache(packageId: Int, includeTests: Boolean, problem: IRProblem) {
-        cache[FullPackageId(packageId, includeTests)] = problem
+    private fun saveProblemToCache(
+        packageId: Int,
+        includeTests: Boolean,
+        statementFormat: StatementFormat,
+        problem: IRProblem
+    ) {
+        cache[FullPackageId(packageId, includeTests, statementFormat)] = problem
     }
 
     @OptIn(ExperimentalPathApi::class)
-    override suspend fun downloadProblem(problemId: Int, includeTests: Boolean) = coroutineScope {
-        // eagerly check for access
-        val problem = getProblem(problemId)
+    override suspend fun downloadProblem(problemId: Int, includeTests: Boolean, statementFormat: StatementFormat) =
+        withContext(Dispatchers.IO) {
+            // eagerly check for access
+            val problem = getProblem(problemId)
 
-        val packageId = polygonApi.getLatestPackageId(problemId)
+            val packageId = polygonApi.getLatestPackageId(problemId)
 
-        val cached = getProblemFromCache(packageId, includeTests)
-        if (cached != null) return@coroutineScope cached
+            val cached = getProblemFromCache(packageId, includeTests, statementFormat)
+            if (cached != null) return@withContext cached
 
-        val info = async { getProblemInfo(problemId) }
-        val statement = async { downloadStatement(problemId, packageId) }
-        val checker = async { downloadChecker(problemId, packageId) }
+            val info = async { getProblemInfo(problemId) }
+            val statement = async { downloadStatement(problemId, packageId, statementFormat) }
+            val checker = async { downloadChecker(problemId, packageId) }
 
-        val testsAndTestGroups = async {
-            /*
-             * These methods can throw an exception about incorrectly formatted problem,
-             * so throw them as soon as possible before downloading tests data.
-             */
-            run {
-                info.await()
-                statement.await()
-                checker.await()
+            val testsAndTestGroups = async {
+                /*
+                 * These methods can throw an exception about incorrectly formatted problem,
+                 * so throw them as soon as possible before downloading tests data.
+                 */
+                run {
+                    info.await()
+                    statement.await()
+                    checker.await()
+                }
+                getTestsAndTestGroups(problemId, includeTests)
             }
-            getTestsAndTestGroups(problemId, includeTests)
+
+            val solutions = async { getSolutions(problemId) }
+            val limits = async { with(info.await()) { IRLimits(timeLimit, memoryLimit) } }
+
+            IRProblem(
+                name = problem.name,
+                owner = problem.owner,
+                statement = statement.await(),
+                limits = limits.await(),
+                tests = testsAndTestGroups.await().first,
+                groups = testsAndTestGroups.await().second,
+                checker = checker.await(),
+                solutions = solutions.await()
+            ).also { saveProblemToCache(packageId, includeTests, statementFormat, it) }
         }
-
-        val solutions = async { getSolutions(problemId) }
-        val limits = async { with(info.await()) { IRLimits(timeLimit, memoryLimit) } }
-
-        IRProblem(
-            name = problem.name,
-            owner = problem.owner,
-            statement = statement.await(),
-            limits = limits.await(),
-            tests = testsAndTestGroups.await().first,
-            groups = testsAndTestGroups.await().second,
-            checker = checker.await(),
-            solutions = solutions.await()
-        ).also { saveProblemToCache(packageId, includeTests, it) }
-    }
 }

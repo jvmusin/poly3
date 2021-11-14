@@ -85,7 +85,8 @@ fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = defaultProp
     }
 
     fun writeStatement() {
-        statementPath.resolve("problem.pdf").writeBytes(statement.content.toByteArray())
+        val statementName = "problem.${statement.format.lowercase}"
+        statementPath.resolve(statementName).writeBytes(statement.content.toByteArray())
         statementPath.resolve("pdf.ini").writeText(
             """
                 [info]
@@ -93,16 +94,14 @@ fun IRProblem.toZipArchive(properties: AdditionalProblemProperties = defaultProp
 
                 [build]
                 builder = copy
-                source = problem.pdf
+                source = $statementName
             """.trimIndent()
         )
     }
 
     fun writeTests() {
-        fun writeTest(index: Int, type: String, content: String) {
-            testsPath.resolve("$index.$type").writeText(content)
-        }
         requireNotNull(tests)
+        fun writeTest(index: Int, type: String, content: String) = testsPath.resolve("$index.$type").writeText(content)
         for (t in tests) writeTest(t.index, "in", t.input)
         for (t in tests) writeTest(t.index, "out", t.output)
     }

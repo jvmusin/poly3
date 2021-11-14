@@ -1,11 +1,12 @@
 package polygon.api
 
+import api.StatementFormat
 import polygon.exception.response.NoSuchProblemException
 import util.extract
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.ZipFile
 import kotlin.io.path.ExperimentalPathApi
@@ -32,14 +33,15 @@ suspend fun PolygonApi.downloadPackage(problemId: Int, packageId: Int): Path {
 suspend fun PolygonApi.getStatementRaw(
     problemId: Int,
     packageId: Int,
-    type: String = "pdf",
+    format: StatementFormat = StatementFormat.PDF,
     language: String = "russian"
 ): ByteArray? {
+    val formatAsString = format.lowercase
     val filePath = downloadPackage(problemId, packageId)
         .resolve("statements")
-        .resolve(".$type")
+        .resolve(".$formatAsString")
         .resolve(language)
-        .resolve("problem.$type")
+        .resolve("problem.$formatAsString")
     if (filePath.notExists()) return null
     return filePath.readBytes()
 }
@@ -58,7 +60,7 @@ suspend fun PolygonApi.getProblem(problemId: Int) = getProblems().extract().sing
 suspend fun PolygonApi.getStatement(problemId: Int, language: String? = null): Pair<String, Statement>? {
     return getStatements(problemId).extract().entries.firstOrNull {
         language == null || it.key == language
-    }?.let { it.key to it.value }
+    }?.toPair()
 }
 
 suspend fun PolygonApi.getLatestPackageId(problemId: Int): Int {

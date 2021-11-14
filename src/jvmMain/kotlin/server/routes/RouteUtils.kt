@@ -1,6 +1,7 @@
 package server.routes
 
 import api.AdditionalProblemProperties
+import api.StatementFormat
 import api.ToastKind
 import bacs.BacsArchiveService
 import io.ktor.features.BadRequestException
@@ -9,10 +10,10 @@ import polygon.PolygonService
 import polygon.exception.downloading.ProblemDownloadingException
 import server.MessageSender
 
-suspend fun downloadProblem(sendMessage: MessageSender, problemId: Int, polygonService: PolygonService): IRProblem {
-    return try {
+suspend fun downloadProblem(sendMessage: MessageSender, problemId: Int, polygonService: PolygonService, statementFormat: StatementFormat = StatementFormat.PDF): IRProblem {
+    try {
         sendMessage("Выкачиваем задачу из полигона")
-        polygonService.downloadProblem(problemId, true)
+        return polygonService.downloadProblem(problemId, true, statementFormat)
     } catch (e: ProblemDownloadingException) {
         val msg = "Не удалось выкачать задачу из полигона: ${e.message}"
         sendMessage(msg, ToastKind.FAILURE)
@@ -28,7 +29,7 @@ suspend fun transferProblemToBacs(
     polygonService: PolygonService,
     bacsArchiveService: BacsArchiveService
 ) {
-    val irProblem = downloadProblem(sendMessage, problemId, polygonService)
+    val irProblem = downloadProblem(sendMessage, problemId, polygonService, properties.statementFormat)
     sendMessage("Задача выкачана из полигона, закидываем в бакс")
     try {
         bacsArchiveService.uploadProblem(irProblem, properties)

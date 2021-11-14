@@ -41,7 +41,7 @@ fun Route.problemRoute() {
         val problemId = call.parameters["problem-id"]!!.toInt()
         val properties = call.receive<AdditionalProblemProperties>()
         val sendMessage = messageSenderFactory.create(this, fullName)
-        val irProblem = downloadProblem(sendMessage, problemId, polygonService)
+        val irProblem = downloadProblem(sendMessage, problemId, polygonService, properties.statementFormat)
         val zip = irProblem.toZipArchive(properties)
         sendMessage("Задача выкачана из полигона, скачиваем архив", ToastKind.SUCCESS)
         call.response.header(
