@@ -5,7 +5,6 @@ import api.Verdict
 import sybon.api.SybonSubmissionResult
 import sybon.converter.SybonTestStatusToVerdictConverter.toVerdict
 import util.decodeBase64
-import kotlin.time.ExperimentalTime
 import kotlin.time.TimedValue
 
 object SybonSubmissionResultToSubmissionResultConverter {
@@ -49,8 +48,7 @@ object SybonSubmissionResultToSubmissionResultConverter {
         )
     }
 
-    @OptIn(ExperimentalTime::class)
     fun TimedValue<SybonSubmissionResult>.toSubmissionResult(): SubmissionResult {
-        return convert(value).copy(executionTimeSeconds = duration.inSeconds.toInt())
+        return convert(value).copy(executionTimeSeconds = duration.inWholeSeconds.toInt())
     }
 }

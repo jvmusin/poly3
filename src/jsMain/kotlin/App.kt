@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 import api.Problem
 import api.ProblemInfo
 import api.Solution
@@ -28,7 +26,6 @@ import react.functionalComponent
 import react.useEffect
 import react.useEffectWithCleanup
 import react.useState
-import kotlin.time.ExperimentalTime
 import kotlin.time.seconds
 
 val mainScope = MainScope()
@@ -51,7 +48,7 @@ fun showToast(toast: Toast) {
             div("toast-body") { +toast.content }
         }
     }.single()
-    bootstrap.Toast(toastElement, jsObject { delay = 60.seconds.toLongMilliseconds().toInt() }).show()
+    bootstrap.Toast(toastElement, jsObject { delay = 60.seconds.inWholeMilliseconds.toInt() }).show()
 }
 
 val App = functionalComponent<RProps> {

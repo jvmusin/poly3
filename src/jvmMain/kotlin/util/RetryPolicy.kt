@@ -4,10 +4,10 @@ package util
 
 import kotlinx.coroutines.delay
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
-import kotlin.time.minutes
-import kotlin.time.seconds
 
 /**
  * Retry policy.

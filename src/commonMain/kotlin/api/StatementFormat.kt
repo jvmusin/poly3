@@ -4,5 +4,5 @@ enum class StatementFormat {
     PDF,
     HTML;
 
-    val lowercase = name.toLowerCase()
+    val lowercase = name.lowercase()
 }

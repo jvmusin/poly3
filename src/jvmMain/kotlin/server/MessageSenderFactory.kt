@@ -2,15 +2,12 @@ package server
 
 import api.Toast
 import api.ToastKind
-import io.ktor.application.ApplicationCall
-import io.ktor.application.call
-import io.ktor.http.cio.websocket.Frame
-import io.ktor.sessions.get
-import io.ktor.sessions.sessions
-import io.ktor.util.pipeline.PipelineContext
-import io.ktor.websocket.WebSocketServerSession
+import io.ktor.application.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.sessions.*
+import io.ktor.util.pipeline.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -28,7 +25,6 @@ interface MessageSenderFactory {
 class MessageSenderFactoryImpl : MessageSenderFactory {
     private val wsBySession = ConcurrentHashMap<Session, CopyOnWriteArrayList<SendChannel<Frame>>>()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun CoroutineScope.createMessageSender(call: ApplicationCall, title: String) = object : MessageSender {
         override fun invoke(content: String, kind: ToastKind) {
             val list = wsBySession[call.sessions.get<Session>()]!!

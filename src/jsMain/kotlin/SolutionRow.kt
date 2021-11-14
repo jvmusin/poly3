@@ -13,7 +13,6 @@ import react.dom.tr
 import react.functionalComponent
 import react.useEffectWithCleanup
 import react.useState
-import kotlin.time.ExperimentalTime
 
 external interface SolutionRowProps : RProps {
     var problem: Problem
@@ -22,7 +21,6 @@ external interface SolutionRowProps : RProps {
     var sybonProblemId: Int?
 }
 
-@OptIn(ExperimentalTime::class)
 val SolutionRow = functionalComponent<SolutionRowProps> { props ->
     val (isRunning, setRunning) = useState(false)
     val (result, setResult) = useState<SubmissionResult?>(null)

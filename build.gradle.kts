@@ -5,7 +5,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion = "1.5.4"
+val ktorVersion = "1.6.0"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.1.0"
 val kotestVersion = "4.4.3"
@@ -19,10 +19,9 @@ val config4kVersion = "0.4.2"
 val log4j2Version = "2.14.1"
 
 plugins {
-    kotlin("multiplatform") version "1.4.32"
+    kotlin("multiplatform") version "1.6.0-RC2"
     application
-    kotlin("plugin.serialization") version "1.4.32"
-//    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+    kotlin("plugin.serialization") version "1.6.0-RC2"
 }
 
 group = "jvmusin"
@@ -31,9 +30,6 @@ version = "1.0-SNAPSHOT"
 repositories {
     jcenter()
     mavenCentral()
-    maven { url = uri("https://dl.bintray.com/kotlin/kotlin-js-wrappers") }
-    maven { url = uri("https://dl.bintray.com/kotlin/kotlinx") }
-    maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
 }
 
 kotlin {
@@ -57,6 +53,14 @@ kotlin {
         }
     }
     sourceSets {
+        all {
+            languageSettings.apply {
+                optIn("kotlin.ExperimentalStdlibApi")
+                optIn("kotlin.time.ExperimentalTime")
+                optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+                optIn("kotlinx.serialization.ExperimentalSerializationApi")
+            }
+        }
         val commonMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-common"))
@@ -181,9 +185,3 @@ tasks.withType<Test> {
         exceptionFormat = TestExceptionFormat.FULL
     }
 }
-
-// subprojects {
-//     configure<KtlintExtension>() {
-//         debug.set(true)
-//     }
-// }

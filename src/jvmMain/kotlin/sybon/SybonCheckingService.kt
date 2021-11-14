@@ -6,9 +6,8 @@ import sybon.api.SybonSubmissionResult
 import sybon.api.SybonSubmitSolution
 import util.RetryPolicy
 import util.encodeBase64
-import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.measureTimedValue
-import kotlin.time.minutes
 
 /**
  * Sybon checking service.
@@ -57,7 +56,6 @@ class SybonCheckingService(private val sybonCheckingApi: SybonCheckingApi) {
      *
      * Retrieves solution result accordingly to [checkResultRetryPolicy] and returns [SybonSubmissionResult] when it's ready.
      */
-    @OptIn(ExperimentalTime::class)
     suspend fun submitSolutionTimed(
         problemId: Int,
         solutionText: String,

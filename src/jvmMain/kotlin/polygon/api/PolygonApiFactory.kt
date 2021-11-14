@@ -12,8 +12,8 @@ import retrofit.RetrofitClientFactory
 import retrofit.bufferedBody
 import util.RetryPolicy
 import util.sha512
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
-import kotlin.time.minutes
 
 /**
  * PolygonAPI factory.

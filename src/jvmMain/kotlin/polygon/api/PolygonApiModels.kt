@@ -67,7 +67,7 @@ data class File(
         SOURCE,
         AUX;
 
-        override fun toString() = super.toString().toLowerCase()
+        override fun toString() = super.toString().lowercase()
     }
 }
 
