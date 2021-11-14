@@ -11,12 +11,12 @@ import react.*
 import react.dom.*
 import kotlin.math.roundToInt
 
-external interface ProblemDetailsProps : RProps {
+external interface ProblemDetailsProps : PropsWithChildren {
     var problem: Problem
     var problemInfo: ProblemInfo?
 }
 
-val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
+val ProblemDetails = fc<ProblemDetailsProps> { props ->
     val problem = props.problem
     val problemInfo = props.problemInfo
 
@@ -35,11 +35,11 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
         statementFormat = statementFormat
     )
 
-    useEffect(listOf(problem)) {
+    useEffect(problem) {
         setPrefix("polybacs-")
         setSuffix("")
     }
-    useEffect(listOf(problem, problemInfo)) {
+    useEffect(problem, problemInfo) {
         if (problemInfo == null) {
             setTimeLimitSeconds("")
             setMemoryLimitMegabytes("")
@@ -48,10 +48,10 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
             setMemoryLimitMegabytes("${problemInfo.memoryLimitMegabytes}")
         }
     }
-    useEffect(listOf(problem, prefix, suffix)) {
+    useEffect(problem, prefix, suffix) {
         setFinalProblemName(buildAdditionalProperties().buildFullName(problem.name))
     }
-    useEffectWithCleanup(listOf(finalProblemName)) {
+    useEffect(finalProblemName) {
         setNameAvailability(NameAvailability.LOADING)
         var cancelled = false
         mainScope.launch {
@@ -64,12 +64,12 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
             if (!cancelled)
                 setNameAvailability(availability)
         }
-        return@useEffectWithCleanup { cancelled = true }
+        cleanup { cancelled = true }
     }
 
     h2("my-3 text-center") { +"Свойства задачи" }
     div("container gy-3") {
-        fun draw(name: String, property: String, initialValue: String, setValue: ((String) -> Unit)? = null) {
+        fun draw(name: String, property: String, initialValue: String, setValue: StateSetter<String>? = null) {
             div("row align-items-center") {
                 label("col col-form-label text-end") {
                     +"$name:"

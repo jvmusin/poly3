@@ -7,37 +7,28 @@ import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
-import react.RProps
-import react.child
-import react.dom.div
-import react.dom.h3
-import react.dom.span
-import react.dom.table
-import react.dom.tbody
-import react.dom.th
-import react.dom.thead
-import react.dom.tr
-import react.functionalComponent
+import react.PropsWithChildren
+import react.dom.*
+import react.fc
 import react.useEffect
-import react.useEffectWithCleanup
 import react.useState
 
-external interface SolutionsListProps : RProps {
+external interface SolutionsListProps : PropsWithChildren {
     var problem: Problem
     var solutions: List<Solution>
 }
 
-val SolutionsList = functionalComponent<SolutionsListProps> { props ->
+val SolutionsList = fc<SolutionsListProps> { props ->
     val (isRunning, setRunning) = useState(false)
     val (solutionsTriggered, setSolutionsTriggered) = useState(false)
     val (sybonProblemId, setSybonProblemId) = useState<Int?>(null)
 
-    useEffect(listOf(props.problem)) {
+    useEffect(props.problem) {
         setSolutionsTriggered(false)
     }
 
-    useEffectWithCleanup(listOf(props.problem, isRunning)) {
-        if (!isRunning) return@useEffectWithCleanup {}
+    useEffect(props.problem, isRunning) {
+        if (!isRunning) return@useEffect
         var cancelled = false
 
         mainScope.launch {
@@ -66,7 +57,7 @@ val SolutionsList = functionalComponent<SolutionsListProps> { props ->
             }
         }
 
-        return@useEffectWithCleanup {
+        cleanup {
             cancelled = true
             setRunning(false)
         }
@@ -76,12 +67,12 @@ val SolutionsList = functionalComponent<SolutionsListProps> { props ->
         span("me-2") { +"Решения" }
         if (isRunning) {
             span("spinner-border text-secondary") {
-                attrs { role = "status" }
+                attrs.role = "status"
             }
         } else {
             span("btn btn-primary") {
                 +"Протестировать все решения в баксе на ограничениях из полигона"
-                attrs { onClickFunction = { setRunning(true) } }
+                attrs.onClickFunction = { setRunning(true) }
             }
         }
     }
@@ -91,14 +82,14 @@ val SolutionsList = functionalComponent<SolutionsListProps> { props ->
                 table("table table-sm") {
                     thead {
                         tr {
-                            th { +"Имя"; attrs { scope = ThScope.col } }
-                            th { +"Язык"; attrs { scope = ThScope.col } }
-                            th { +"Полигон"; attrs { scope = ThScope.col } }
-                            th { +"Сайбон"; attrs { scope = ThScope.col } }
-                            th { +"Тест"; attrs { scope = ThScope.col } }
-                            th { +"Время"; attrs { scope = ThScope.col } }
-                            th { +"Память"; attrs { scope = ThScope.col } }
-                            th { +"Рантайм"; attrs { scope = ThScope.col } }
+                            th { +"Имя"; attrs.scope = ThScope.col }
+                            th { +"Язык"; attrs.scope = ThScope.col }
+                            th { +"Полигон"; attrs.scope = ThScope.col }
+                            th { +"Сайбон"; attrs.scope = ThScope.col }
+                            th { +"Тест"; attrs.scope = ThScope.col }
+                            th { +"Время"; attrs.scope = ThScope.col }
+                            th { +"Память"; attrs.scope = ThScope.col }
+                            th { +"Рантайм"; attrs.scope = ThScope.col }
                         }
                     }
                     tbody {

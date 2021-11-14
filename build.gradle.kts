@@ -10,10 +10,10 @@ val retrofitVersion = "2.9.0"
 val serializationVersion = "1.1.0"
 val kotestVersion = "4.4.3"
 val koinVersion = "2.2.2"
-val kotlinReactVersion = "17.0.1-pre.148-kotlin-1.4.30"
-val kotlinStyledVersion = "5.2.1-pre.148-kotlin-1.4.30"
+val kotlinReactVersion = "17.0.2-pre.236-kotlin-1.5.30"
+val kotlinStyledVersion = "5.3.0-pre.236-kotlin-1.5.30"
 val okhttp3Version = "5.0.0-alpha.2"
-val jsoupVersion = "1.13.1"
+val jsoupVersion = "1.14.3"
 val reactTooltipVersion = "4.2.15"
 val config4kVersion = "0.4.2"
 val log4j2Version = "2.14.1"
@@ -114,9 +114,9 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation("org.jetbrains:kotlin-react:$kotlinReactVersion")
-                implementation("org.jetbrains:kotlin-react-dom:$kotlinReactVersion")
-                implementation("org.jetbrains:kotlin-styled:$kotlinStyledVersion")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-react:$kotlinReactVersion")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:$kotlinReactVersion")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-styled:$kotlinStyledVersion")
 
                 implementation("io.ktor:ktor-client-js:$ktorVersion")
                 implementation("io.ktor:ktor-client-json-js:$ktorVersion")

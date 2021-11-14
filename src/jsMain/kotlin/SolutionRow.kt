@@ -5,27 +5,27 @@ import api.Verdict
 import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.role
-import react.RProps
+import react.PropsWithChildren
 import react.dom.span
 import react.dom.td
 import react.dom.th
 import react.dom.tr
-import react.functionalComponent
-import react.useEffectWithCleanup
+import react.fc
+import react.useEffect
 import react.useState
 
-external interface SolutionRowProps : RProps {
+external interface SolutionRowProps : PropsWithChildren {
     var problem: Problem
     var solution: Solution
     var runTriggered: Boolean
     var sybonProblemId: Int?
 }
 
-val SolutionRow = functionalComponent<SolutionRowProps> { props ->
+val SolutionRow = fc<SolutionRowProps> { props ->
     val (isRunning, setRunning) = useState(false)
     val (result, setResult) = useState<SubmissionResult?>(null)
 
-    useEffectWithCleanup(listOf(props.problem, props.runTriggered)) {
+    useEffect(props.problem, props.runTriggered) {
         setRunning(props.runTriggered)
         var cancelled = false
         if (props.runTriggered) {
@@ -42,7 +42,7 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
                 }
             }
         }
-        {
+        cleanup {
             cancelled = true
             setRunning(false)
             setResult(null)
@@ -67,7 +67,7 @@ val SolutionRow = functionalComponent<SolutionRowProps> { props ->
         td { verdict("${solution.name}-expect", solution.expectedVerdict) }
         td {
             when {
-                isRunning -> span("spinner-border text-secondary") { attrs { role = "status" } }
+                isRunning -> span("spinner-border text-secondary") { attrs.role = "status" }
                 result != null -> {
                     if (result.message != null) verdict(
                         id = "${solution.name}-result",

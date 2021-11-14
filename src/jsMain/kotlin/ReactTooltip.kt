@@ -8,13 +8,13 @@
 import org.w3c.dom.Element
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.EventTarget
-import react.RClass
-import react.RProps
+import react.ComponentClass
+import react.PropsWithChildren
 
 @JsModule("react-tooltip")
 @JsNonModule
 external object ReactTooltip {
-    val default: RClass<TooltipProps>
+    val default: ComponentClass<TooltipProps>
 
     inline fun show(target: Element): Any = default.asDynamic().show(target)
     inline fun hide(target: Element): Any = default.asDynamic().hide(target)
@@ -41,10 +41,10 @@ external interface `T$0` {
     var top: Number
 }
 
-external interface TooltipProps : RProps {
-    var children: Any?
-        get() = definedExternally
-        set(value) = definedExternally
+external interface TooltipProps : PropsWithChildren {
+//        var children: Any?
+//        get() = definedExternally
+//        set(value) = definedExternally
     var uuid: String?
         get() = definedExternally
         set(value) = definedExternally

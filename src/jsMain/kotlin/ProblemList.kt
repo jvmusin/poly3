@@ -1,24 +1,17 @@
 import api.Problem
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
-import react.RProps
-import react.dom.button
-import react.dom.div
-import react.dom.h2
-import react.dom.i
-import react.dom.small
-import react.dom.span
-import react.dom.strong
-import react.dom.ul
-import react.functionalComponent
+import react.PropsWithChildren
+import react.dom.*
+import react.fc
 
-external interface ProblemListProps : RProps {
+external interface ProblemListProps : PropsWithChildren {
     var problems: List<Problem>
     var selectedProblem: Problem?
     var setSelectedProblem: (Problem) -> Unit
 }
 
-val ProblemList = functionalComponent<ProblemListProps> { props ->
+val ProblemList = fc<ProblemListProps> { props ->
     h2("my-3 text-center") { +"Доступные задачи" }
     ul("list-group") {
         for (p in props.problems) {

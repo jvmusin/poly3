@@ -1,8 +1,4 @@
-import api.Problem
-import api.ProblemInfo
-import api.Solution
-import api.Toast
-import api.ToastKind
+import api.*
 import kotlinext.js.jsObject
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
@@ -15,17 +11,8 @@ import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.strong
 import org.w3c.dom.get
-import react.RProps
-import react.child
-import react.dom.div
-import react.dom.h1
-import react.dom.header
-import react.dom.hr
-import react.dom.span
-import react.functionalComponent
-import react.useEffect
-import react.useEffectWithCleanup
-import react.useState
+import react.*
+import react.dom.*
 import kotlin.time.seconds
 
 val mainScope = MainScope()
@@ -51,13 +38,13 @@ fun showToast(toast: Toast) {
     bootstrap.Toast(toastElement, jsObject { delay = 60.seconds.inWholeMilliseconds.toInt() }).show()
 }
 
-val App = functionalComponent<RProps> {
+val App = fc<PropsWithChildren> {
     val (problems, setProblems) = useState<List<Problem>>(emptyList())
     val (selectedProblem, setSelectedProblem) = useState<Problem?>(null)
     val (selectedProblemInfo, setSelectedProblemInfo) = useState<ProblemInfo?>(null)
     val (solutions, setSolutions) = useState<List<Solution>>(emptyList())
 
-    useEffect(emptyList()) {
+    useEffect(*arrayOf()) {
         mainScope.launch {
             Api.registerNotifications()
         }
@@ -66,7 +53,7 @@ val App = functionalComponent<RProps> {
         }
     }
 
-    useEffectWithCleanup(listOf(selectedProblem)) {
+    useEffect(selectedProblem) {
         var cancelled = false
         if (selectedProblem != null) {
             setSelectedProblemInfo(null)
@@ -80,7 +67,7 @@ val App = functionalComponent<RProps> {
                 if (!cancelled) setSolutions(newSolutions)
             }
         }
-        return@useEffectWithCleanup { cancelled = true }
+        cleanup { cancelled = true }
     }
 
     div("toast-container") {
