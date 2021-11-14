@@ -36,7 +36,6 @@ import polygon.exception.downloading.format.UnsupportedFormatException
 import polygon.exception.downloading.packages.NoPackagesBuiltException
 import polygon.exception.downloading.packages.OldBuiltPackageException
 import polygon.exception.downloading.resource.CheckerNotFoundException
-import polygon.exception.downloading.resource.PdfStatementNotFoundException
 import polygon.exception.downloading.resource.StatementNotFoundException
 import polygon.exception.downloading.tests.MissingTestGroupException
 import polygon.exception.downloading.tests.NonSequentialTestIndicesException
@@ -105,8 +104,8 @@ class PolygonProblemDownloaderTests : BehaviorSpec(), KoinTest {
                 }
             }
             When("problem has no pdf statement") {
-                Then("throws PdfStatementNotFoundException") {
-                    downloadProblemWithException<PdfStatementNotFoundException>(problemWithoutPdfStatement)
+                Then("throws StatementNotFoundException") {
+                    downloadProblemWithException<StatementNotFoundException>(problemWithoutPdfStatement)
                 }
             }
             When("problem has no cpp checker") {
