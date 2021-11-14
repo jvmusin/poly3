@@ -1,5 +1,7 @@
 package ir
 
+import api.StatementFormat
+
 data class IRProblem(
     val name: String,
     val owner: String,
@@ -13,7 +15,7 @@ data class IRProblem(
     val mainSolution get() = solutions.single { it.isMain }
 }
 
-data class IRStatement(val name: String, val content: List<Byte>)
+data class IRStatement(val name: String, val content: List<Byte>, val format: StatementFormat = StatementFormat.PDF)
 data class IRTest(
     val index: Int,
     val isSample: Boolean,

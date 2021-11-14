@@ -1,8 +1,5 @@
-import api.AdditionalProblemProperties
-import api.NameAvailability
+import api.*
 import api.NameAvailability.CHECK_FAILED
-import api.Problem
-import api.ProblemInfo
 import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
@@ -10,17 +7,8 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 import org.w3c.dom.HTMLInputElement
-import react.RProps
-import react.dom.button
-import react.dom.div
-import react.dom.h2
-import react.dom.input
-import react.dom.label
-import react.dom.span
-import react.functionalComponent
-import react.useEffect
-import react.useEffectWithCleanup
-import react.useState
+import react.*
+import react.dom.*
 import kotlin.math.roundToInt
 
 external interface ProblemDetailsProps : RProps {
@@ -37,12 +25,14 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
     val (timeLimitSeconds, setTimeLimitSeconds) = useState("")
     val (memoryLimitMegabytes, setMemoryLimitMegabytes) = useState("")
     val (finalProblemName, setFinalProblemName) = useState("")
+    val (statementFormat, setStatementFormat) = useState(StatementFormat.PDF)
     val (nameAvailability, setNameAvailability) = useState(NameAvailability.LOADING)
     fun buildAdditionalProperties() = AdditionalProblemProperties(
         prefix = prefix,
         suffix = suffix,
         timeLimitMillis = ((timeLimitSeconds.toDoubleOrNull() ?: 0.0) * 1000).roundToInt(),
-        memoryLimitMegabytes = memoryLimitMegabytes.toIntOrNull() ?: 0
+        memoryLimitMegabytes = memoryLimitMegabytes.toIntOrNull() ?: 0,
+        statementFormat = statementFormat
     )
 
     useEffect(listOf(problem)) {
@@ -104,6 +94,32 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
             }
         }
 
+        fun drawStatementFormat() {
+            div("row align-items-center") {
+                label("col col-form-label text-end") {
+                    +"Тип условия:"
+                    attrs["htmlFor"] = "problem-statement"
+                }
+                div("col") {
+                    for (format in StatementFormat.values()) {
+                        div("form-check") {
+                            input(InputType.radio, classes = "form-check-input", name = "problem-statement") {
+                                attrs {
+                                    id = format.name
+                                    defaultChecked = format == StatementFormat.PDF
+                                    onChangeFunction = { setStatementFormat(format) }
+                                }
+                            }
+                            label("form-check-label") {
+                                attrs["htmlFor"] = format
+                                +format.name
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         draw("Название", "name", problem.name)
         draw("Автор", "author", problem.owner)
         if (problemInfo != null) {
@@ -113,6 +129,7 @@ val ProblemDetails = functionalComponent<ProblemDetailsProps> { props ->
             draw("Ограничение памяти (MB)", "ml", memoryLimitMegabytes, setMemoryLimitMegabytes)
             draw("Добавить префикс", "prefix", prefix, setPrefix)
             draw("Добавить суффикс", "suffix", suffix, setSuffix)
+            drawStatementFormat()
             div("row mt-1") {
                 div("col text-center") {
                     span("me-2") { +finalProblemName }
