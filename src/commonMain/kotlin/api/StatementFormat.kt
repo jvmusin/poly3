@@ -2,5 +2,7 @@ package api
 
 enum class StatementFormat {
     PDF,
-    HTML
+    HTML;
+
+    val lowercase = name.toLowerCase()
 }
