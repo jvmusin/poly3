@@ -9,11 +9,9 @@ import io.kotest.koin.KoinListener
 import io.kotest.matchers.shouldBe
 import org.koin.test.KoinTest
 import org.koin.test.inject
-import kotlin.time.ExperimentalTime
 import kotlin.time.minutes
 import kotlin.time.seconds
 
-@OptIn(ExperimentalTime::class)
 class BacsArchiveServiceTests : BehaviorSpec(), KoinTest {
     override fun listeners() = listOf(KoinListener(bacsModule))
     private val service: BacsArchiveService by inject()

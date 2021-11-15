@@ -81,7 +81,7 @@ class PolygonApiFactory(private val config: PolygonConfig) {
                     val body = res.bufferedBody()?.string() ?: "NO BODY"
                     getLogger(javaClass).warn(
                         "Polygon API responded with code ${res.code} and body '$body'\n" +
-                            "Now sleep for ${retryPolicy.retryAfter} and make try #${++done + 1}"
+                                "Now sleep for ${retryPolicy.retryAfter} and make try #${++done + 1}"
                     )
                     false
                 } else true

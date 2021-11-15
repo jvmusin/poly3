@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val ktorVersion = "1.6.5"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.3.1"
-val kotestVersion = "4.4.3"
+val kotestVersion = "4.6.3"
 val koinVersion = "2.2.2"
 val kotlinReactVersion = "17.0.2-pre.265-kotlin-1.5.31"
 val kotlinStyledVersion = "5.3.3-pre.265-kotlin-1.5.31"
@@ -19,15 +19,16 @@ val config4kVersion = "0.4.2"
 val log4j2Version = "2.14.1"
 
 plugins {
-    kotlin("multiplatform") version "1.6.0-RC2"
+    kotlin("multiplatform") version "1.6.0"
     application
-    kotlin("plugin.serialization") version "1.6.0-RC2"
+    kotlin("plugin.serialization") version "1.6.0"
 }
 
 group = "jvmusin"
 version = "1.0-SNAPSHOT"
 
 repositories {
+    jcenter()
     mavenCentral()
     maven { url = uri("https://github.com/ktorio/ktor") }
 }
@@ -35,20 +36,18 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "15"
+            kotlinOptions.jvmTarget = "17"
+        }
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
         }
         withJava()
     }
     js(IR) {
+        binaries.executable()
         browser {
-            binaries.executable()
             commonWebpackConfig {
                 cssSupport.enabled = true
-            }
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                }
             }
         }
     }
@@ -108,7 +107,7 @@ kotlin {
                 implementation("io.kotest:kotest-property:$kotestVersion")
 
                 implementation("org.koin:koin-test:$koinVersion")
-                implementation("io.kotest:kotest-extensions-koin:$kotestVersion")
+                implementation("io.kotest:kotest-extensions-koin:4.4.3") // TODO: WTF is this version
             }
         }
         val jsMain by getting {
