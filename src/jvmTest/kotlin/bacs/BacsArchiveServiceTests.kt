@@ -9,8 +9,8 @@ import io.kotest.koin.KoinListener
 import io.kotest.matchers.shouldBe
 import org.koin.test.KoinTest
 import org.koin.test.inject
-import kotlin.time.minutes
-import kotlin.time.seconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class BacsArchiveServiceTests : BehaviorSpec(), KoinTest {
     override fun listeners() = listOf(KoinListener(bacsModule))
