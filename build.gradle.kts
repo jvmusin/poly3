@@ -2,7 +2,6 @@
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val ktorVersion = "1.6.5"
@@ -10,8 +9,8 @@ val retrofitVersion = "2.9.0"
 val serializationVersion = "1.3.1"
 val kotestVersion = "4.6.3"
 val koinVersion = "2.2.2"
-val kotlinReactVersion = "17.0.2-pre.265-kotlin-1.5.31"
-val kotlinStyledVersion = "5.3.3-pre.265-kotlin-1.5.31"
+val kotlinReactVersion = "17.0.2-pre.266-kotlin-1.6.0"
+val kotlinStyledVersion = "5.3.3-pre.266-kotlin-1.6.0"
 val okhttp3Version = "5.0.0-alpha.2"
 val jsoupVersion = "1.14.3"
 val reactTooltipVersion = "4.2.21"
@@ -134,40 +133,14 @@ application {
     // applicationDefaultJvmArgs = listOf("-Dio.netty.noKeySetOptimization=true", "-Dio.netty.noUnsafe=true")
 }
 
-tasks.getByName<KotlinWebpack>("jsBrowserProductionWebpack") {
-    outputFileName = "output.js"
-}
-tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack") {
-    outputFileName = "output.js"
+tasks.named<Copy>("jvmProcessResources") {
+    val jsBrowserDistribution = tasks.named("jsBrowserDistribution")
+    from(jsBrowserDistribution)
 }
 
-tasks.getByName<Jar>("jvmJar") {
-    // creates a big unoptimized js pack, replace 'Development' with 'Production' to make it work better
-    val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
-    dependsOn(webpackTask) // make sure JS gets compiled first
-    from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
-}
-
-tasks.getByName<JavaExec>("run") {
-    dependsOn(tasks.getByName<Jar>("jvmJar"))
-    classpath(tasks.getByName<Jar>("jvmJar"))
-}
-
-// Alias "installDist" as "stage" (for cloud providers)
-tasks.create("stage") {
-    dependsOn(tasks.getByName("installDist"))
-}
-
-// only necessary until https://youtrack.jetbrains.com/issue/KT-37964 is resolved
-distributions {
-    main {
-        contents {
-            from("$buildDir/libs") {
-                rename("${rootProject.name}-jvm", rootProject.name)
-                into("lib")
-            }
-        }
-    }
+tasks.named<JavaExec>("run") {
+    dependsOn(tasks.named<Jar>("jvmJar"))
+    classpath(tasks.named<Jar>("jvmJar"))
 }
 
 tasks.withType<KotlinCompile>().all {
