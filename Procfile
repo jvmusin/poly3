@@ -1,1 +1,1 @@
-web: build/install/poly3/bin/poly3
+web: ./gradlew run
