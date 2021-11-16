@@ -157,3 +157,7 @@ tasks.withType<Test> {
         exceptionFormat = TestExceptionFormat.FULL
     }
 }
+
+tasks.create("stage") {
+    dependsOn(tasks.getByName("installDist"))
+}
