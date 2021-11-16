@@ -2,6 +2,7 @@
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val ktorVersion = "1.6.5"
@@ -160,4 +161,16 @@ tasks.withType<Test> {
 
 tasks.create("stage") {
     dependsOn(tasks.getByName("installDist"))
+}
+
+// only necessary until https://youtrack.jetbrains.com/issue/KT-37964 is resolved
+distributions {
+    main {
+        contents {
+            from("$buildDir/libs") {
+                rename("${rootProject.name}-jvm", rootProject.name)
+                into("lib")
+            }
+        }
+    }
 }
