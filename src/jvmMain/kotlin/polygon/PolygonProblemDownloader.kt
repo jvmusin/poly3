@@ -125,11 +125,28 @@ class PolygonProblemDownloaderImpl(
 
     private fun ByteArray.fixExternalLinks(format: StatementFormat): ByteArray {
         return if (format == StatementFormat.HTML) {
-            val result = decodeToString().replace(
-                "problem-statement.css",
-                "https://jvmusin.github.io/problem-statement.css"
-            )
-            result.encodeToByteArray()
+            val mathJaxWas = """
+                <SCRIPT async="" src="https://polygon.codeforces.com/lib/MathJax/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
+            """.trimIndent()
+            val mathJaxNew = """
+                <SCRIPT async="" src="https://statement.bacs.cs.istu.ru/MathJax.js" type="text/javascript">
+            """.trimIndent()
+            val cssWas = """
+                <LINK href="problem-statement.css" rel="stylesheet" type="text/css">
+            """.trimIndent()
+            val cssNew = """
+                <LINK href="https://statement.bacs.cs.istu.ru/problem-statement.css" rel="stylesheet" type="text/css">
+            """.trimIndent()
+
+            fun String.replaceSurely(was: String, new: String) = replace(was, new).also {
+                require(it != this) {
+                    "String $was had to be in the file and replaced with $new, but it was not found in $this"
+                }
+            }
+            decodeToString()
+                .replaceSurely(mathJaxWas, mathJaxNew)
+                .replaceSurely(cssWas, cssNew)
+                .encodeToByteArray()
         } else {
             this
         }
