@@ -11,9 +11,12 @@ import kotlinx.html.js.div
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.strong
 import org.w3c.dom.get
-import react.*
+import react.PropsWithChildren
 import react.dom.*
-import kotlin.time.seconds
+import react.fc
+import react.useEffect
+import react.useState
+import kotlin.time.Duration.Companion.seconds
 
 val mainScope = MainScope()
 

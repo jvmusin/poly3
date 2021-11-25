@@ -66,7 +66,7 @@ fun main() {
     }
 
     window.onload = {
-        render(document.getElementById("root")) {
+        render(document.getElementById("root")!!) {
             child(App)
         }
     }
