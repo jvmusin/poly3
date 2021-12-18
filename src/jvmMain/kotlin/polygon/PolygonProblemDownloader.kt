@@ -129,7 +129,7 @@ class PolygonProblemDownloaderImpl(
                 <SCRIPT async="" src="https://polygon.codeforces.com/lib/MathJax/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
             """.trimIndent()
             val mathJaxNew = """
-                <SCRIPT async="" src="https://statement.bacs.cs.istu.ru/MathJax.js" type="text/javascript">
+                <SCRIPT async="" src="https://statement.bacs.cs.istu.ru/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript">
             """.trimIndent()
             val cssWas = """
                 <LINK href="problem-statement.css" rel="stylesheet" type="text/css">
