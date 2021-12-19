@@ -5,7 +5,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion = "1.6.5"
+val ktorVersion = "1.6.7"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.3.1"
 val kotestVersion = "5.0.1"
@@ -19,7 +19,7 @@ val config4kVersion = "0.4.2"
 val log4j2Version = "2.14.1"
 
 plugins {
-    kotlin("multiplatform") version "1.6.0"
+    kotlin("multiplatform") version "1.6.10"
     application
     kotlin("plugin.serialization") version "1.6.0"
 }
