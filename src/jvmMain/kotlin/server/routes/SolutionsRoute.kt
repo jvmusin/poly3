@@ -19,6 +19,7 @@ import io.ktor.websocket.webSocket
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.inject
+import org.slf4j.LoggerFactory
 import polygon.PolygonService
 import polygon.exception.downloading.ProblemDownloadingException
 import server.MessageSenderFactory
@@ -43,6 +44,7 @@ fun Route.solutionsRoute() {
         val irProblem = try {
             polygonService.downloadProblem(problemId)
         } catch (e: ProblemDownloadingException) {
+            LoggerFactory.getLogger(javaClass).warn("Failed to get solutions: ${e.message}", e)
             messageSenderFactory.create(this, fullName)(e.message.orEmpty(), ToastKind.FAILURE)
             call.respond(
                 HttpStatusCode.BadRequest,
