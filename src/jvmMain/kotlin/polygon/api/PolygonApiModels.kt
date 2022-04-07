@@ -139,7 +139,8 @@ data class Package(
     val creationTimeSeconds: Long,
     val state: State,
     val comment: String,
-    val revision: Int
+    val revision: Int,
+    val type: String // https://github.com/Codeforces/polygon-issue-tracking/issues/498
 ) {
     @Serializable
     enum class State {
