@@ -16,10 +16,10 @@ val okhttp3Version = "5.0.0-alpha.3"
 val jsoupVersion = "1.14.3"
 val reactTooltipVersion = "4.2.21"
 val config4kVersion = "0.4.2"
-val log4j2Version = "2.14.1"
+val log4j2Version = "2.17.2"
 
 plugins {
-    kotlin("multiplatform") version "1.6.0"
+    kotlin("multiplatform") version "1.6.21"
     application
     kotlin("plugin.serialization") version "1.6.0"
 }
