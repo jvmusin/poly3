@@ -1,5 +1,5 @@
 import api.*
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -38,7 +38,7 @@ fun showToast(toast: Toast) {
             div("toast-body") { +toast.content }
         }
     }.single()
-    bootstrap.Toast(toastElement, jsObject { delay = 60.seconds.inWholeMilliseconds.toInt() }).show()
+    bootstrap.Toast(toastElement, jso { delay = 60.seconds.inWholeMilliseconds.toInt() }).show()
 }
 
 val App = fc<PropsWithChildren> {
@@ -93,9 +93,7 @@ val App = fc<PropsWithChildren> {
                 +"Чтобы твоя задача появилась в списке, добавь WRITE права на неё пользователю Musin"
                 attrs.onClickFunction = {
                     val element = document.getElementById("notifications")!!.firstElementChild!!
-                    val xxxyyyxxx = bootstrap.Toast(element, jsObject { delay = 1000 })
-                    console.log(xxxyyyxxx)
-                    xxxyyyxxx.show()
+                    bootstrap.Toast(element, jso { delay = 1000 }).show()
                 }
             }
         }
@@ -106,7 +104,7 @@ val App = fc<PropsWithChildren> {
                     div("problem-list") {
                         child(
                             ProblemList,
-                            jsObject {
+                            jso {
                                 this.problems = problems
                                 this.selectedProblem = selectedProblem
                                 this.setSelectedProblem = { problem -> setSelectedProblem(problem) }
@@ -119,7 +117,7 @@ val App = fc<PropsWithChildren> {
                         if (selectedProblem != null) {
                             child(
                                 ProblemDetails,
-                                jsObject {
+                                jso {
                                     problem = selectedProblem
                                     problemInfo = selectedProblemInfo
                                 }
@@ -131,7 +129,7 @@ val App = fc<PropsWithChildren> {
                             hr { }
                             child(
                                 SolutionsList,
-                                jsObject {
+                                jso {
                                     this.problem = selectedProblem!!
                                     this.solutions = solutions
                                 }

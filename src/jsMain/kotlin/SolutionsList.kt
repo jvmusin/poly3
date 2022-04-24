@@ -2,7 +2,7 @@ import api.Problem
 import api.Solution
 import api.Toast
 import api.ToastKind
-import kotlinext.js.jsObject
+import kotlinext.js.jso
 import kotlinx.coroutines.launch
 import kotlinx.html.ThScope
 import kotlinx.html.js.onClickFunction
@@ -96,7 +96,7 @@ val SolutionsList = fc<SolutionsListProps> { props ->
                         for (solution in props.solutions) {
                             child(
                                 SolutionRow,
-                                jsObject {
+                                jso {
                                     this.problem = props.problem
                                     this.solution = solution
                                     this.runTriggered = solutionsTriggered
