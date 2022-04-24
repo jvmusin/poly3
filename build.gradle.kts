@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val ktorVersion = "1.6.7"
 val retrofitVersion = "2.9.0"
-val serializationVersion = "1.3.1"
+val serializationVersion = "1.3.2"
 val kotestVersion = "5.2.3"
 val koinVersion = "2.2.2"
 val kotlinReactVersion = "17.0.2-pre.272-kotlin-1.6.0"
