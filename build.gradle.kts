@@ -21,7 +21,7 @@ val log4j2Version = "2.17.2"
 plugins {
     kotlin("multiplatform") version "1.6.21"
     application
-    kotlin("plugin.serialization") version "1.6.0"
+    kotlin("plugin.serialization") version "1.6.21"
 }
 
 group = "jvmusin"
