@@ -5,10 +5,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion = "1.6.7"
+val ktorVersion = "1.6.8"
 val retrofitVersion = "2.9.0"
 val serializationVersion = "1.3.1"
-val kotestVersion = "5.0.1"
+val kotestVersion = "5.2.3"
 val koinVersion = "2.2.2"
 val kotlinReactVersion = "17.0.2-pre.272-kotlin-1.6.0"
 val kotlinStyledVersion = "5.3.3-pre.275-kotlin-1.6.0"
