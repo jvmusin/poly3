@@ -1,10 +1,14 @@
 package server.routes
 
-import io.ktor.application.call
-import io.ktor.http.ContentType
-import io.ktor.response.respondText
-import io.ktor.routing.Route
-import io.ktor.routing.get
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 
 @Suppress("SpellCheckingInspection")
 private val index = """
@@ -34,6 +38,24 @@ private val index = """
     </html>
 """.trimIndent()
 
+private val noSleepDuration = Duration.ofMinutes(2)
+private val sleepAt = AtomicReference(Instant.now() + noSleepDuration)
+
 fun Route.homeRoute() {
-    get { call.respondText(index, ContentType.Text.Html) }
+    thread(start = true) {
+        val now = Instant.now()
+        val sleep = sleepAt.get()
+        if (now > sleep) {
+            println("Going to shutdown because it's time")
+            exitProcess(0)
+        } else {
+            println("Not going to shutdown, sleep now")
+            val addSleep = Duration.between(now, sleep)
+            Thread.sleep(addSleep.toMillis() + 10_000)
+        }
+    }
+    get {
+        sleepAt.getAndUpdate { old -> old + noSleepDuration }
+        call.respondText(index, ContentType.Text.Html)
+    }
 }
