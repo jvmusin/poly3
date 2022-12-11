@@ -16,6 +16,10 @@ kill_timeout = 5
 [processes]
   app = "build/install/poly3/bin/poly3"
 
+[build]
+  builder = "paketobuildpacks/builder:full"
+  buildpacks = ["gcr.io/paketo-buildpacks/gradle"]
+
 [[services]]
   http_checks = []
   internal_port = 8080
