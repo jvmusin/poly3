@@ -38,20 +38,22 @@ private val index = """
     </html>
 """.trimIndent()
 
-private val noSleepDuration = Duration.ofMinutes(2)
+private val noSleepDuration = Duration.ofMinutes(30)
 private val sleepAt = AtomicReference(Instant.now() + noSleepDuration)
 
 fun Route.homeRoute() {
     thread(start = true) {
-        val now = Instant.now()
-        val sleep = sleepAt.get()
-        if (now > sleep) {
-            println("Going to shutdown because it's time")
-            exitProcess(0)
-        } else {
-            println("Not going to shutdown, sleep now")
-            val addSleep = Duration.between(now, sleep)
-            Thread.sleep(addSleep.toMillis() + 10_000)
+        while (true) {
+            val now = Instant.now()
+            val sleep = sleepAt.get()
+            if (now > sleep) {
+                println("Going to shutdown because it's time")
+                exitProcess(0)
+            } else {
+                val addSleep = Duration.between(now, sleep)
+                println("Not going to shutdown, sleep now for $addSleep")
+                Thread.sleep(addSleep.toMillis() + 10_000)
+            }
         }
     }
     get {
