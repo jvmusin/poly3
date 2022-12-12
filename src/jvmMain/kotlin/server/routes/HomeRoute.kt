@@ -39,9 +39,10 @@ private val index = """
 """.trimIndent()
 
 private val noSleepDuration = Duration.ofMinutes(30)
-private val sleepAt = AtomicReference(Instant.now() + noSleepDuration)
+private val sleepAt = AtomicReference<Instant>()
 
-fun Route.homeRoute() {
+fun enableAutomaticShutdown() {
+    sleepAt.set(Instant.now() + noSleepDuration)
     thread(start = true) {
         while (true) {
             val now = Instant.now()
@@ -56,6 +57,9 @@ fun Route.homeRoute() {
             }
         }
     }
+}
+
+fun Route.homeRoute() {
     get {
         sleepAt.getAndUpdate { old -> old + noSleepDuration }
         call.respondText(index, ContentType.Text.Html)
