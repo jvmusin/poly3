@@ -61,7 +61,7 @@ fun enableAutomaticShutdown() {
 
 fun Route.homeRoute() {
     get {
-        sleepAt.getAndUpdate { old -> old + noSleepDuration }
+//        sleepAt.getAndUpdate { old -> old + noSleepDuration }
         call.respondText(index, ContentType.Text.Html)
     }
 }

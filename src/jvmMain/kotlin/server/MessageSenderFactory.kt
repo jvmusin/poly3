@@ -27,7 +27,7 @@ class MessageSenderFactoryImpl : MessageSenderFactory {
 
     private fun CoroutineScope.createMessageSender(call: ApplicationCall, title: String) = object : MessageSender {
         override fun invoke(content: String, kind: ToastKind) {
-            val list = wsBySession[call.sessions.get<Session>()]!!
+            val list = wsBySession[call.sessions.get<Session>()] ?: return
             list.removeIf { it.isClosedForSend }
             for (out in list) {
                 launch {
