@@ -14,6 +14,7 @@ fun Route.rootRoute() {
     static("static") { resources() }
     homeRoute()
     notificationsRoute()
+    secretsRoute()
     route("problems") {
         problemsRoute()
     }
